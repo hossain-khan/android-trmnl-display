@@ -36,6 +36,10 @@ eithernet = "2.0.0"
 # https://developer.android.com/jetpack/androidx/releases/work
 workManager = "2.10.0"
 
+# Coil
+# https://github.com/coil-kt/coil
+coil = "3.1.0"
+
 [libraries]
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
 androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
@@ -107,6 +111,10 @@ moshi-kotlin-codegen = { group = "com.squareup.moshi", name = "moshi-kotlin-code
 eithernet = { group = "com.slack.eithernet", name = "eithernet", version.ref = "eithernet" }
 eithernet-integration-retrofit = { group = "com.slack.eithernet", name = "eithernet-integration-retrofit", version.ref = "eithernet" }
 
+# Coil
+# https://github.com/coil-kt/coil
+coil-compose = { group = "io.coil-kt.coil3", name = "coil-compose", version.ref = "coil" }
+coil-network-okhttp = { group = "io.coil-kt.coil3", name = "coil-network-okhttp", version.ref = "coil" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

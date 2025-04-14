@@ -16,9 +16,9 @@ import com.slack.circuit.overlay.ContentWithOverlays
 import com.slack.circuit.sharedelements.SharedElementTransitionLayout
 import com.slack.circuitx.gesturenavigation.GestureNavigationDecorationFactory
 import com.squareup.anvil.annotations.ContributesMultibinding
-import dev.hossain.trmnl.circuit.InboxScreen
 import dev.hossain.trmnl.di.ActivityKey
 import dev.hossain.trmnl.di.AppScope
+import dev.hossain.trmnl.ui.display.TrmnlMirrorDisplayScreen
 import dev.hossain.trmnl.ui.theme.CircuitAppTheme
 import javax.inject.Inject
 
@@ -37,7 +37,7 @@ class MainActivity
             setContent {
                 CircuitAppTheme {
                     // See https://slackhq.github.io/circuit/navigation/
-                    val backStack = rememberSaveableBackStack(root = InboxScreen)
+                    val backStack = rememberSaveableBackStack(root = TrmnlMirrorDisplayScreen())
                     val navigator = rememberCircuitNavigator(backStack)
 
                     // See https://slackhq.github.io/circuit/circuit-content/
