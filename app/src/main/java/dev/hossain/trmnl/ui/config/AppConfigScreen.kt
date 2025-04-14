@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
@@ -28,9 +29,14 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import coil3.compose.AsyncImage
+import coil3.request.ImageRequest
+import coil3.request.crossfade
 import com.slack.circuit.codegen.annotations.CircuitInject
 import com.slack.circuit.runtime.CircuitUiEvent
 import com.slack.circuit.runtime.CircuitUiState
@@ -192,6 +198,7 @@ fun AppConfigContent(
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
 
     Scaffold(
         modifier = modifier,
@@ -263,9 +270,27 @@ fun AppConfigContent(
                                         style = MaterialTheme.typography.titleMedium,
                                         color = MaterialTheme.colorScheme.primary,
                                     )
-                                    Spacer(modifier = Modifier.height(8.dp))
-                                    Text("Image URL: ${result.imageUrl}")
+
                                     Spacer(modifier = Modifier.height(16.dp))
+
+                                    // Image preview using Coil
+                                    AsyncImage(
+                                        model =
+                                            ImageRequest
+                                                .Builder(context)
+                                                .data(result.imageUrl)
+                                                .crossfade(true)
+                                                .build(),
+                                        contentDescription = "Preview image",
+                                        contentScale = ContentScale.Fit,
+                                        modifier =
+                                            Modifier
+                                                .size(240.dp)
+                                                .padding(4.dp),
+                                    )
+
+                                    Spacer(modifier = Modifier.height(16.dp))
+
                                     Button(
                                         onClick = { state.eventSink(AppConfigScreen.Event.SaveAndContinue) },
                                         modifier = Modifier.fillMaxWidth(),
