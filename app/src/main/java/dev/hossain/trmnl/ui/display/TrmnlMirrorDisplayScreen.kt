@@ -2,12 +2,8 @@ package dev.hossain.trmnl.ui.display
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -40,11 +36,9 @@ import kotlinx.parcelize.Parcelize
 import kotlin.coroutines.cancellation.CancellationException
 
 @Parcelize
-data class TrmnlMirrorDisplayScreen(
-    val serverUrl: String = "https://www.filesampleshub.com/download/image/bmp/sample1.bmp",
-) : Screen {
+data object TrmnlMirrorDisplayScreen : Screen {
     data class State(
-        val imageUrl: String,
+        val imageUrl: String?,
         val isLoading: Boolean = false,
         val error: String? = null,
         val eventSink: (Event) -> Unit,
@@ -61,7 +55,6 @@ class TrmnlMirrorDisplayPresenter
     @AssistedInject
     constructor(
         @Assisted private val navigator: Navigator,
-        @Assisted private val screen: TrmnlMirrorDisplayScreen,
         private val displayRepository: TrmnlDisplayRepository,
         private val tokenManager: TokenManager,
     ) : Presenter<TrmnlMirrorDisplayScreen.State> {
@@ -101,7 +94,7 @@ class TrmnlMirrorDisplayPresenter
             }
 
             return TrmnlMirrorDisplayScreen.State(
-                imageUrl = imageUrl ?: screen.serverUrl,
+                imageUrl = imageUrl,
                 isLoading = isLoading,
                 error = error,
                 eventSink = { event ->
@@ -144,53 +137,38 @@ class TrmnlMirrorDisplayPresenter
         @CircuitInject(TrmnlMirrorDisplayScreen::class, AppScope::class)
         @AssistedFactory
         fun interface Factory {
-            fun create(
-                navigator: Navigator,
-                screen: TrmnlMirrorDisplayScreen,
-            ): TrmnlMirrorDisplayPresenter
+            fun create(navigator: Navigator): TrmnlMirrorDisplayPresenter
         }
     }
 
 @CircuitInject(TrmnlMirrorDisplayScreen::class, AppScope::class)
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TrmnlMirrorDisplayContent(
     state: TrmnlMirrorDisplayScreen.State,
     modifier: Modifier = Modifier,
 ) {
-    Scaffold(
-        modifier = modifier,
-        topBar = {
-            TopAppBar(
-                title = { Text("Terminal Mirror") },
+    // Simple Box instead of Scaffold for edge-to-edge content
+    Box(
+        modifier = modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center,
+    ) {
+        if (state.isLoading) {
+            CircularProgressIndicator()
+        } else if (state.error != null) {
+            Text(text = "Error: ${state.error}")
+        } else {
+            val context = LocalContext.current
+            AsyncImage(
+                model =
+                    ImageRequest
+                        .Builder(context)
+                        .data(state.imageUrl)
+                        .crossfade(true)
+                        .build(),
+                contentDescription = "Terminal Display",
+                contentScale = ContentScale.Fit,
+                modifier = Modifier.fillMaxSize(),
             )
-        },
-    ) { innerPadding ->
-        Box(
-            modifier =
-                Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding),
-            contentAlignment = Alignment.Center,
-        ) {
-            if (state.isLoading) {
-                CircularProgressIndicator()
-            } else if (state.error != null) {
-                Text(text = "Error: ${state.error}")
-            } else {
-                val context = LocalContext.current
-                AsyncImage(
-                    model =
-                        ImageRequest
-                            .Builder(context)
-                            .data(state.imageUrl)
-                            .crossfade(true)
-                            .build(),
-                    contentDescription = "Terminal Display",
-                    contentScale = ContentScale.Fit,
-                    modifier = Modifier.fillMaxSize(),
-                )
-            }
         }
     }
 }

@@ -163,7 +163,7 @@ class AppConfigPresenter
                                     tokenManager.saveAccessToken(accessToken)
 
                                     if (screen.returnToMirrorAfterSave) {
-                                        navigator.goTo(TrmnlMirrorDisplayScreen())
+                                        navigator.goTo(TrmnlMirrorDisplayScreen)
                                     } else {
                                         navigator.pop()
                                     }
