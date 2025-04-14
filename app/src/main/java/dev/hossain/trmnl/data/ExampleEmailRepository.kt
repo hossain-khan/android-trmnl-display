@@ -1,7 +1,7 @@
 package dev.hossain.trmnl.data
 
-import dev.hossain.trmnl.di.AppScope
 import com.squareup.anvil.annotations.ContributesBinding
+import dev.hossain.trmnl.di.AppScope
 import javax.inject.Inject
 
 // -------------------------------------------------------------------------------------

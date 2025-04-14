@@ -7,10 +7,6 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.runtime.remember
-import dev.hossain.trmnl.circuit.InboxScreen
-import dev.hossain.trmnl.di.ActivityKey
-import dev.hossain.trmnl.di.AppScope
-import dev.hossain.trmnl.ui.theme.CircuitAppTheme
 import com.slack.circuit.backstack.rememberSaveableBackStack
 import com.slack.circuit.foundation.Circuit
 import com.slack.circuit.foundation.CircuitCompositionLocals
@@ -20,6 +16,10 @@ import com.slack.circuit.overlay.ContentWithOverlays
 import com.slack.circuit.sharedelements.SharedElementTransitionLayout
 import com.slack.circuitx.gesturenavigation.GestureNavigationDecorationFactory
 import com.squareup.anvil.annotations.ContributesMultibinding
+import dev.hossain.trmnl.circuit.InboxScreen
+import dev.hossain.trmnl.di.ActivityKey
+import dev.hossain.trmnl.di.AppScope
+import dev.hossain.trmnl.ui.theme.CircuitAppTheme
 import javax.inject.Inject
 
 @ContributesMultibinding(AppScope::class, boundType = Activity::class)
@@ -50,9 +50,9 @@ class MainActivity
                                     navigator = navigator,
                                     backStack = backStack,
                                     decoratorFactory =
-                                    remember(navigator) {
-                                        GestureNavigationDecorationFactory(onBackInvoked = navigator::pop)
-                                    },
+                                        remember(navigator) {
+                                            GestureNavigationDecorationFactory(onBackInvoked = navigator::pop)
+                                        },
                                 )
                             }
                         }
