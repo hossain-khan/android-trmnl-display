@@ -1,4 +1,4 @@
-package app.example.data
+package dev.hossain.trmnl.data
 
 import app.example.di.AppScope
 import com.squareup.anvil.annotations.ContributesBinding

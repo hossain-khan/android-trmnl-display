@@ -1,4 +1,4 @@
-package app.example.ui.theme
+package dev.hossain.trmnl.ui.theme
 
 import androidx.compose.ui.graphics.Color
 

@@ -1,4 +1,4 @@
-package app.example.circuit
+package dev.hossain.trmnl.circuit
 
 // -------------------------------------------------------------------------------------
 //

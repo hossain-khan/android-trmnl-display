@@ -1,4 +1,4 @@
-package app.example.di
+package dev.hossain.trmnl.di
 
 import com.slack.circuit.foundation.Circuit
 import com.slack.circuit.runtime.presenter.Presenter

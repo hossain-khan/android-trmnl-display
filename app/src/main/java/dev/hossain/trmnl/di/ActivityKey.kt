@@ -1,4 +1,4 @@
-package app.example.di
+package dev.hossain.trmnl.di
 
 import android.app.Activity
 import dagger.MapKey

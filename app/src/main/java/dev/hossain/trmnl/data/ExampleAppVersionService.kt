@@ -1,4 +1,4 @@
-package app.example.data
+package dev.hossain.trmnl.data
 
 import android.content.Context
 import app.example.di.ApplicationContext

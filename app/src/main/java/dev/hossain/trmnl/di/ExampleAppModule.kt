@@ -1,4 +1,4 @@
-package app.example.di
+package dev.hossain.trmnl.di
 
 import app.example.data.ExampleEmailValidator
 import com.squareup.anvil.annotations.ContributesTo
