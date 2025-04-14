@@ -15,7 +15,7 @@ android {
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "app.example"
+        applicationId = "dev.hossain.trmnl"
         minSdk = 30
         targetSdk = 35
         versionCode = 1
