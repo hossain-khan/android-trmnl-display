@@ -37,7 +37,7 @@ class MainActivity
             setContent {
                 CircuitAppTheme {
                     // See https://slackhq.github.io/circuit/navigation/
-                    val backStack = rememberSaveableBackStack(root = TrmnlMirrorDisplayScreen())
+                    val backStack = rememberSaveableBackStack(root = TrmnlMirrorDisplayScreen)
                     val navigator = rememberCircuitNavigator(backStack)
 
                     // See https://slackhq.github.io/circuit/circuit-content/

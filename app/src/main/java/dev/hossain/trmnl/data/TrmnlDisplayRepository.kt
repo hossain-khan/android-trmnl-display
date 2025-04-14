@@ -5,6 +5,9 @@ import dev.hossain.trmnl.di.AppScope
 import dev.hossain.trmnl.network.TrmnlApiService
 import javax.inject.Inject
 
+/**
+ * Repository class responsible for fetching and mapping display data.
+ */
 @SingleIn(AppScope::class)
 class TrmnlDisplayRepository
     @Inject

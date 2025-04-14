@@ -35,8 +35,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
-import coil3.request.ImageRequest
-import coil3.request.crossfade
 import com.slack.circuit.codegen.annotations.CircuitInject
 import com.slack.circuit.runtime.CircuitUiEvent
 import com.slack.circuit.runtime.CircuitUiState
@@ -49,6 +47,7 @@ import dagger.assisted.AssistedInject
 import dev.hossain.trmnl.data.TrmnlDisplayRepository
 import dev.hossain.trmnl.di.AppScope
 import dev.hossain.trmnl.ui.display.TrmnlMirrorDisplayScreen
+import dev.hossain.trmnl.util.CoilRequestUtils
 import dev.hossain.trmnl.util.TokenManager
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
@@ -163,7 +162,7 @@ class AppConfigPresenter
                                     tokenManager.saveAccessToken(accessToken)
 
                                     if (screen.returnToMirrorAfterSave) {
-                                        navigator.goTo(TrmnlMirrorDisplayScreen())
+                                        navigator.goTo(TrmnlMirrorDisplayScreen)
                                     } else {
                                         navigator.pop()
                                     }
@@ -271,16 +270,9 @@ fun AppConfigContent(
                                         color = MaterialTheme.colorScheme.primary,
                                     )
 
-                                    Spacer(modifier = Modifier.height(16.dp))
-
-                                    // Image preview using Coil
+                                    // Image preview using Coil with improved caching
                                     AsyncImage(
-                                        model =
-                                            ImageRequest
-                                                .Builder(context)
-                                                .data(result.imageUrl)
-                                                .crossfade(true)
-                                                .build(),
+                                        model = CoilRequestUtils.createCachedImageRequest(context, result.imageUrl),
                                         contentDescription = "Preview image",
                                         contentScale = ContentScale.Fit,
                                         modifier =
