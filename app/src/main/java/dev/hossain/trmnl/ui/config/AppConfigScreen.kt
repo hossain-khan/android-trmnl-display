@@ -35,6 +35,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
+import coil3.request.ImageRequest
+import coil3.request.crossfade
 import com.slack.circuit.codegen.annotations.CircuitInject
 import com.slack.circuit.runtime.CircuitUiEvent
 import com.slack.circuit.runtime.CircuitUiState
@@ -47,7 +49,6 @@ import dagger.assisted.AssistedInject
 import dev.hossain.trmnl.data.TrmnlDisplayRepository
 import dev.hossain.trmnl.di.AppScope
 import dev.hossain.trmnl.ui.display.TrmnlMirrorDisplayScreen
-import dev.hossain.trmnl.util.CoilRequestUtils
 import dev.hossain.trmnl.util.TokenManager
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
@@ -270,9 +271,16 @@ fun AppConfigContent(
                                         color = MaterialTheme.colorScheme.primary,
                                     )
 
-                                    // Image preview using Coil with improved caching
+                                    Spacer(modifier = Modifier.height(16.dp))
+
+                                    // Image preview using Coil
                                     AsyncImage(
-                                        model = CoilRequestUtils.createCachedImageRequest(context, result.imageUrl),
+                                        model =
+                                            ImageRequest
+                                                .Builder(context)
+                                                .data(result.imageUrl)
+                                                .crossfade(true)
+                                                .build(),
                                         contentDescription = "Preview image",
                                         contentScale = ContentScale.Fit,
                                         modifier =

@@ -16,6 +16,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import coil3.compose.AsyncImage
+import coil3.request.ImageRequest
+import coil3.request.crossfade
 import com.slack.circuit.codegen.annotations.CircuitInject
 import com.slack.circuit.runtime.CircuitUiEvent
 import com.slack.circuit.runtime.CircuitUiState
@@ -29,7 +31,6 @@ import dev.hossain.trmnl.data.TrmnlDisplayRepository
 import dev.hossain.trmnl.di.AppScope
 import dev.hossain.trmnl.ui.FullScreenMode
 import dev.hossain.trmnl.ui.config.AppConfigScreen
-import dev.hossain.trmnl.util.CoilRequestUtils
 import dev.hossain.trmnl.util.TokenManager
 import kotlinx.coroutines.launch
 import kotlinx.parcelize.Parcelize
@@ -161,7 +162,12 @@ fun TrmnlMirrorDisplayContent(
         } else {
             val context = LocalContext.current
             AsyncImage(
-                model = CoilRequestUtils.createCachedImageRequest(context, state.imageUrl),
+                model =
+                    ImageRequest
+                        .Builder(context)
+                        .data(state.imageUrl)
+                        .crossfade(true)
+                        .build(),
                 contentDescription = "Terminal Display",
                 contentScale = ContentScale.Fit,
                 modifier = Modifier.fillMaxSize(),
