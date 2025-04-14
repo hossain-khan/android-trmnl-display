@@ -1,0 +1,3 @@
+[submodule "external/trmnl-display"]
+	path = external/trmnl-display
+	url = https://github.com/usetrmnl/trmnl-display.git
