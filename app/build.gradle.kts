@@ -11,7 +11,7 @@ plugins {
 }
 
 android {
-    namespace = "app.example"
+    namespace = "dev.hossain.trmnl"
     compileSdk = 35
 
     defaultConfig {

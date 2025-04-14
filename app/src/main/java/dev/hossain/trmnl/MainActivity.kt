@@ -1,4 +1,4 @@
-package app.example
+package dev.hossain.trmnl
 
 import android.app.Activity
 import android.os.Bundle
@@ -7,10 +7,10 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.runtime.remember
-import app.example.circuit.InboxScreen
-import app.example.di.ActivityKey
-import app.example.di.AppScope
-import app.example.ui.theme.CircuitAppTheme
+import dev.hossain.trmnl.circuit.InboxScreen
+import dev.hossain.trmnl.di.ActivityKey
+import dev.hossain.trmnl.di.AppScope
+import dev.hossain.trmnl.ui.theme.CircuitAppTheme
 import com.slack.circuit.backstack.rememberSaveableBackStack
 import com.slack.circuit.foundation.Circuit
 import com.slack.circuit.foundation.CircuitCompositionLocals

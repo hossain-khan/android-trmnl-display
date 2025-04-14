@@ -1,4 +1,4 @@
-package app.example
+package dev.hossain.trmnl
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry

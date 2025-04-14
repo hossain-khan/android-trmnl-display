@@ -5,7 +5,7 @@ import android.app.Application
 import android.content.Intent
 import androidx.annotation.Keep
 import androidx.core.app.AppComponentFactory
-import app.example.CircuitApp
+import dev.hossain.trmnl.CircuitApp
 import javax.inject.Provider
 
 /**

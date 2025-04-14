@@ -1,7 +1,7 @@
 package dev.hossain.trmnl.data
 
 import android.content.Context
-import app.example.di.ApplicationContext
+import dev.hossain.trmnl.di.ApplicationContext
 import javax.inject.Inject
 
 // Example service class that does not need DI module or binding

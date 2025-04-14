@@ -21,10 +21,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
 import androidx.compose.ui.Modifier
-import app.example.data.Email
-import app.example.data.ExampleAppVersionService
-import app.example.data.ExampleEmailRepository
-import app.example.di.AppScope
+import dev.hossain.trmnl.data.Email
+import dev.hossain.trmnl.data.ExampleAppVersionService
+import dev.hossain.trmnl.data.ExampleEmailRepository
+import dev.hossain.trmnl.di.AppScope
 import com.slack.circuit.codegen.annotations.CircuitInject
 import com.slack.circuit.runtime.CircuitUiEvent
 import com.slack.circuit.runtime.CircuitUiState

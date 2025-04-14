@@ -1,6 +1,6 @@
 package dev.hossain.trmnl.di
 
-import app.example.data.ExampleEmailValidator
+import dev.hossain.trmnl.data.ExampleEmailValidator
 import com.squareup.anvil.annotations.ContributesTo
 import dagger.Module
 import dagger.Provides

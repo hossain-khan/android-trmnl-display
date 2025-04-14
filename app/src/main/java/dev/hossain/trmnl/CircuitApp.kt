@@ -1,7 +1,7 @@
-package app.example
+package dev.hossain.trmnl
 
 import android.app.Application
-import app.example.di.AppComponent
+import dev.hossain.trmnl.di.AppComponent
 
 /**
  * Application class for the app with key initializations.
