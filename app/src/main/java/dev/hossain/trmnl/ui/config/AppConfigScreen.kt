@@ -31,7 +31,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.OffsetMapping
+import androidx.compose.ui.text.input.TransformedText
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
@@ -196,8 +200,17 @@ fun AppConfigContent(
     modifier: Modifier = Modifier,
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
-    val scope = rememberCoroutineScope()
     val context = LocalContext.current
+
+    // Create masked version of the token for display
+    val maskedToken =
+        with(state.accessToken) {
+            if (length > 4) {
+                "${take(2)}${"*".repeat(length - 4)}${takeLast(2)}"
+            } else {
+                this // Don't mask if token is too short
+            }
+        }
 
     Scaffold(
         modifier = modifier,
@@ -233,12 +246,35 @@ fun AppConfigContent(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
+                // Use masked token for display but keep actual token for validation
                 OutlinedTextField(
                     value = state.accessToken,
                     onValueChange = { state.eventSink(AppConfigScreen.Event.AccessTokenChanged(it)) },
                     label = { Text("Access Token") },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
+                    visualTransformation =
+                        if (state.accessToken.length > 4) {
+                            VisualTransformation { text ->
+                                val maskedText =
+                                    buildString {
+                                        text.text.forEachIndexed { index, char ->
+                                            append(
+                                                when {
+                                                    index < 2 || index >= text.text.length - 2 -> char
+                                                    else -> '*'
+                                                },
+                                            )
+                                        }
+                                    }
+                                TransformedText(
+                                    AnnotatedString(maskedText),
+                                    OffsetMapping.Identity,
+                                )
+                            }
+                        } else {
+                            VisualTransformation.None
+                        },
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -270,6 +306,11 @@ fun AppConfigContent(
                                         color = MaterialTheme.colorScheme.primary,
                                     )
 
+                                    Text(
+                                        "Token: $maskedToken",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                    )
+
                                     // Image preview using Coil with improved caching
                                     AsyncImage(
                                         model = CoilRequestUtils.createCachedImageRequest(context, result.imageUrl),
@@ -292,6 +333,7 @@ fun AppConfigContent(
                                 }
                             }
                             is AppConfigScreen.ValidationResult.Failure -> {
+                                // Error state remains the same
                                 Column(
                                     modifier = Modifier.padding(16.dp),
                                     horizontalAlignment = Alignment.CenterHorizontally,
