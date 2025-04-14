@@ -54,6 +54,10 @@ import kotlinx.coroutines.launch
 import kotlinx.parcelize.Parcelize
 import kotlin.coroutines.cancellation.CancellationException
 
+/**
+ * This is the full screen view to show TRMNL's bitmap image for other e-ink display,
+ * or any other devices like phone or tablet.
+ */
 @Parcelize
 data object TrmnlMirrorDisplayScreen : Screen {
     data class State(
@@ -189,8 +193,8 @@ fun TrmnlMirrorDisplayContent(
     state: TrmnlMirrorDisplayScreen.State,
     modifier: Modifier = Modifier,
 ) {
-    // Apply fullscreen mode
-    FullScreenMode(enabled = true)
+    // Apply fullscreen mode and keep screen on
+    FullScreenMode(enabled = true, keepScreenOn = true)
 
     // State to track if controls are visible
     var controlsVisible by remember { mutableStateOf(false) }
