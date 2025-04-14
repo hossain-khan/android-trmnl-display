@@ -27,6 +27,7 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dev.hossain.trmnl.data.TrmnlDisplayRepository
 import dev.hossain.trmnl.di.AppScope
+import dev.hossain.trmnl.ui.FullScreenMode
 import dev.hossain.trmnl.ui.config.AppConfigScreen
 import dev.hossain.trmnl.util.CoilRequestUtils
 import dev.hossain.trmnl.util.TokenManager
@@ -146,7 +147,9 @@ fun TrmnlMirrorDisplayContent(
     state: TrmnlMirrorDisplayScreen.State,
     modifier: Modifier = Modifier,
 ) {
-    // Simple Box instead of Scaffold for edge-to-edge content
+    // Apply fullscreen mode
+    FullScreenMode(enabled = true)
+
     Box(
         modifier = modifier.fillMaxSize(),
         contentAlignment = Alignment.Center,
