@@ -9,6 +9,12 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
@@ -25,8 +31,13 @@ import com.slack.circuit.runtime.screen.Screen
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
+import dev.hossain.trmnl.data.TrmnlDisplayRepository
 import dev.hossain.trmnl.di.AppScope
+import dev.hossain.trmnl.ui.config.AppConfigScreen
+import dev.hossain.trmnl.util.TokenManager
+import kotlinx.coroutines.launch
 import kotlinx.parcelize.Parcelize
+import kotlin.coroutines.cancellation.CancellationException
 
 @Parcelize
 data class TrmnlMirrorDisplayScreen(
@@ -51,15 +62,76 @@ class TrmnlMirrorDisplayPresenter
     constructor(
         @Assisted private val navigator: Navigator,
         @Assisted private val screen: TrmnlMirrorDisplayScreen,
+        private val displayRepository: TrmnlDisplayRepository,
+        private val tokenManager: TokenManager,
     ) : Presenter<TrmnlMirrorDisplayScreen.State> {
         @Composable
-        override fun present(): TrmnlMirrorDisplayScreen.State =
-            TrmnlMirrorDisplayScreen.State(
-                imageUrl = screen.serverUrl,
+        override fun present(): TrmnlMirrorDisplayScreen.State {
+            var imageUrl by remember { mutableStateOf<String?>(null) }
+            var isLoading by remember { mutableStateOf(true) }
+            var error by remember { mutableStateOf<String?>(null) }
+            val scope = rememberCoroutineScope()
+
+            LaunchedEffect(Unit) {
+                tokenManager.accessTokenFlow.collect { token ->
+                    if (token.isNullOrBlank()) {
+                        // No token stored, navigate to config screen
+                        navigator.goTo(AppConfigScreen(returnToMirrorAfterSave = true))
+                        return@collect
+                    }
+
+                    try {
+                        isLoading = true
+                        error = null
+
+                        val response = displayRepository.getDisplayData(token)
+                        imageUrl = response.imageUrl
+
+                        if (imageUrl == null) {
+                            error = "No image URL provided in the response"
+                        }
+                    } catch (e: CancellationException) {
+                        throw e
+                    } catch (e: Exception) {
+                        error = e.message ?: "Unknown error"
+                    } finally {
+                        isLoading = false
+                    }
+                }
+            }
+
+            return TrmnlMirrorDisplayScreen.State(
+                imageUrl = imageUrl ?: screen.serverUrl,
+                isLoading = isLoading,
+                error = error,
                 eventSink = { event ->
                     when (event) {
                         TrmnlMirrorDisplayScreen.Event.RefreshRequested -> {
-                            // In a real app, you might trigger a refresh of the image
+                            // Trigger a refresh
+                            scope.launch {
+                                isLoading = true
+                                error = null
+
+                                try {
+                                    val token =
+                                        tokenManager.accessTokenFlow.collect { token ->
+                                            if (!token.isNullOrBlank()) {
+                                                val response = displayRepository.getDisplayData(token)
+                                                imageUrl = response.imageUrl
+
+                                                if (imageUrl == null) {
+                                                    error = "No image URL provided in the response"
+                                                }
+                                            } else {
+                                                error = "No access token found"
+                                            }
+                                            isLoading = false
+                                        }
+                                } catch (e: Exception) {
+                                    error = e.message ?: "Error refreshing display"
+                                    isLoading = false
+                                }
+                            }
                         }
                         TrmnlMirrorDisplayScreen.Event.BackPressed -> {
                             navigator.pop()
@@ -67,6 +139,7 @@ class TrmnlMirrorDisplayPresenter
                     }
                 },
             )
+        }
 
         @CircuitInject(TrmnlMirrorDisplayScreen::class, AppScope::class)
         @AssistedFactory
