@@ -6,7 +6,7 @@ import dev.hossain.trmnl.di.AppComponent
 /**
  * Application class for the app with key initializations.
  */
-class CircuitApp : Application() {
+class TrmnlDisplayApp : Application() {
     private val appComponent: AppComponent by lazy { AppComponent.create(this) }
 
     fun appComponent(): AppComponent = appComponent

@@ -5,7 +5,7 @@ import android.app.Application
 import android.content.Intent
 import androidx.annotation.Keep
 import androidx.core.app.AppComponentFactory
-import dev.hossain.trmnl.CircuitApp
+import dev.hossain.trmnl.TrmnlDisplayApp
 import javax.inject.Provider
 
 /**
@@ -83,7 +83,7 @@ class ComposeAppComponentFactory : AppComponentFactory() {
     ): Application {
         val app = super.instantiateApplicationCompat(classLoader, className)
         // Retrieve the Dagger app component and the activity providers from it
-        activityProviders = (app as CircuitApp).appComponent().activityProviders
+        activityProviders = (app as TrmnlDisplayApp).appComponent().activityProviders
         return app
     }
 
