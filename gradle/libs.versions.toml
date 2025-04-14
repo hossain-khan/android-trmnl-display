@@ -14,6 +14,28 @@ kotlin = "2.1.10"
 ksp = "2.1.10-1.0.31"
 lifecycleRuntimeKtx = "2.8.7"
 
+# Http client for Android
+# https://square.github.io/okhttp/
+okhttp = "4.12.0"
+retrofit = "2.11.0"
+
+# https://github.com/JakeWharton/timber
+timber = "5.0.1"
+
+# A modern JSON library for Kotlin and Java.
+# https://github.com/square/moshi
+moshi = "1.15.2"
+
+kotlinxSerializationJson = "1.8.1"
+kotlinxSerializationProperties = "1.8.1"
+
+# API result type for modeling network API responses.
+# https://github.com/slackhq/EitherNet
+eithernet = "2.0.0"
+
+# https://developer.android.com/jetpack/androidx/releases/work
+workManager = "2.10.0"
+
 [libraries]
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
 androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
@@ -55,6 +77,35 @@ anvil-annotations-optional = { group = "dev.zacsweers.anvil", name = "annotation
 # https://mvnrepository.com/artifact/androidx.compose.ui/ui-text-google-fonts
 androidx-ui-text-google-fonts = { group = "androidx.compose.ui", name = "ui-text-google-fonts", version.ref = "googleFonts" }
 
+androidx-work-runtime-ktx = { group = "androidx.work", name = "work-runtime-ktx", version.ref = "workManager" }
+
+# https://github.com/JakeWharton/timber
+timber = { group = "com.jakewharton.timber", name = "timber", version.ref = "timber"}
+
+retrofit = { group = "com.squareup.retrofit2", name = "retrofit", version.ref = "retrofit" }
+retrofit-mock-server = { group = "com.squareup.retrofit2", name = "retrofit-mock", version.ref = "retrofit" }
+retrofit-converter-gson = { group = "com.squareup.retrofit2", name = "converter-gson", version.ref = "retrofit" }
+retrofit-converter-moshi = { group = "com.squareup.retrofit2", name = "converter-moshi", version.ref = "retrofit" }
+
+# Kotlin multiplatform / multi-format serialization
+# https://github.com/Kotlin/kotlinx.serialization
+# https://kotlinlang.org/docs/serialization.html#example-json-serialization
+kotlinx-serialization-json = { group = "org.jetbrains.kotlinx",name = "kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
+kotlinx-serialization-properties = { group = "org.jetbrains.kotlinx",name = "kotlinx-serialization-properties", version.ref = "kotlinxSerializationProperties" }
+
+okhttp = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okhttp" }
+okhttp-logging-interceptor = { group = "com.squareup.okhttp3", name = "logging-interceptor", version.ref = "okhttp" }
+okhttp-mock-webserver = { group = "com.squareup.okhttp3", name = "mockwebserver", version.ref = "okhttp" }
+
+# A modern JSON library for Kotlin and Java.
+# https://github.com/square/moshi
+moshi-kotlin = { group = "com.squareup.moshi", name = "moshi-kotlin", version.ref = "moshi" }
+moshi-kotlin-codegen = { group = "com.squareup.moshi", name = "moshi-kotlin-codegen", version.ref = "moshi" }
+
+# API result type for modeling network API responses.
+# https://github.com/slackhq/EitherNet
+eithernet = { group = "com.slack.eithernet", name = "eithernet", version.ref = "eithernet" }
+eithernet-integration-retrofit = { group = "com.slack.eithernet", name = "eithernet-integration-retrofit", version.ref = "eithernet" }
 
 
 [plugins]

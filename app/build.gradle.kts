@@ -85,6 +85,22 @@ dependencies {
     implementation(libs.anvil.annotations)
     implementation(libs.anvil.annotations.optional)
 
+    // Retrofit
+    implementation(libs.retrofit)
+    implementation(libs.retrofit.converter.gson)
+    implementation(libs.retrofit.converter.moshi)
+
+    // WorkManager
+    implementation(libs.androidx.work.runtime.ktx)
+
+    // OkHttp
+    implementation(libs.okhttp)
+    implementation(libs.okhttp.logging.interceptor)
+
+    // Moshi
+    implementation(libs.moshi.kotlin)
+    ksp(libs.moshi.kotlin.codegen)
+
     // Testing
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(libs.androidx.junit)
