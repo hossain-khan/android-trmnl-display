@@ -40,6 +40,9 @@ workManager = "2.10.0"
 # https://github.com/coil-kt/coil
 coil = "3.1.0"
 
+datastore = "1.1.4"
+security-crypto = "1.1.0-alpha07"
+
 [libraries]
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
 androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
@@ -115,6 +118,9 @@ eithernet-integration-retrofit = { group = "com.slack.eithernet", name = "either
 # https://github.com/coil-kt/coil
 coil-compose = { group = "io.coil-kt.coil3", name = "coil-compose", version.ref = "coil" }
 coil-network-okhttp = { group = "io.coil-kt.coil3", name = "coil-network-okhttp", version.ref = "coil" }
+
+androidx-datastore-preferences = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastore" }
+androidx-security-crypto = { group = "androidx.security", name = "security-crypto", version.ref = "security-crypto" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
