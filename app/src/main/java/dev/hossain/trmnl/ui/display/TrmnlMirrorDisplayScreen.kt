@@ -10,15 +10,19 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -30,7 +34,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.window.core.layout.WindowSizeClass
+import androidx.window.core.layout.WindowSizeClass.Companion.WIDTH_DP_EXPANDED_LOWER_BOUND
+import androidx.window.core.layout.WindowSizeClass.Companion.WIDTH_DP_MEDIUM_LOWER_BOUND
 import coil3.compose.AsyncImage
 import com.slack.circuit.codegen.annotations.CircuitInject
 import com.slack.circuit.runtime.CircuitUiEvent
@@ -192,6 +200,7 @@ class TrmnlMirrorDisplayPresenter
 fun TrmnlMirrorDisplayContent(
     state: TrmnlMirrorDisplayScreen.State,
     modifier: Modifier = Modifier,
+    windowSizeClass: WindowSizeClass = currentWindowAdaptiveInfo().windowSizeClass,
 ) {
     // Apply fullscreen mode and keep screen on
     FullScreenMode(enabled = true, keepScreenOn = true)
@@ -233,6 +242,21 @@ fun TrmnlMirrorDisplayContent(
             )
         }
 
+        // Shows larger button on tablets
+        // https://developer.android.com/develop/ui/compose/layouts/adaptive/support-different-display-sizes
+        // https://developer.android.com/develop/ui/compose/layouts/adaptive/use-window-size-classes
+        val isExpandedWidth =
+            windowSizeClass.isWidthAtLeastBreakpoint(WIDTH_DP_EXPANDED_LOWER_BOUND) ||
+                windowSizeClass.isWidthAtLeastBreakpoint(WIDTH_DP_MEDIUM_LOWER_BOUND)
+
+        // Choose text style based on window width
+        val fabTextStyle =
+            if (isExpandedWidth) {
+                MaterialTheme.typography.titleLarge
+            } else {
+                MaterialTheme.typography.bodyLarge
+            }
+
         // Floating action buttons that appear when controls are visible
         AnimatedVisibility(
             visible = controlsVisible,
@@ -246,7 +270,6 @@ fun TrmnlMirrorDisplayContent(
                         .padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                // Configure button with text
                 ExtendedFloatingActionButton(
                     onClick = {
                         state.eventSink(TrmnlMirrorDisplayScreen.Event.ConfigureRequested)
@@ -255,12 +278,20 @@ fun TrmnlMirrorDisplayContent(
                         Icon(
                             imageVector = Icons.Default.Settings,
                             contentDescription = null,
+                            modifier = if (isExpandedWidth) Modifier.size(32.dp) else Modifier,
                         )
                     },
-                    text = { Text("Configure Token") },
+                    text = {
+                        Text(
+                            "Configure Token",
+                            style = fabTextStyle,
+                            fontWeight = FontWeight.Bold,
+                        )
+                    },
                 )
 
-                // Refresh button with text
+                Spacer(modifier = Modifier.size(16.dp))
+
                 ExtendedFloatingActionButton(
                     onClick = {
                         state.eventSink(TrmnlMirrorDisplayScreen.Event.RefreshRequested)
@@ -269,9 +300,16 @@ fun TrmnlMirrorDisplayContent(
                         Icon(
                             imageVector = Icons.Default.Refresh,
                             contentDescription = null,
+                            modifier = if (isExpandedWidth) Modifier.size(32.dp) else Modifier,
                         )
                     },
-                    text = { Text("Refresh Image") },
+                    text = {
+                        Text(
+                            "Refresh Image",
+                            style = fabTextStyle,
+                            fontWeight = FontWeight.Bold,
+                        )
+                    },
                 )
             }
         }

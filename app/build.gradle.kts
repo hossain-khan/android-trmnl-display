@@ -69,6 +69,7 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.text.google.fonts)
     implementation(libs.androidx.ui.tooling.preview)
+    implementation(libs.androidx.window)
 
     implementation(libs.circuit.codegen.annotations)
     implementation(libs.circuit.foundation)
@@ -77,6 +78,8 @@ dependencies {
     implementation(libs.circuitx.effects)
     implementation(libs.circuitx.gestureNav)
     implementation(libs.circuitx.overlays)
+    implementation(libs.androidx.compose.materialWindow)
+    implementation(libs.androidx.adaptive)
     ksp(libs.circuit.codegen)
 
     implementation(libs.dagger)
