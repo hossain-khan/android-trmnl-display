@@ -1,2 +1,19 @@
 # Android - TRMNL Display
 A simple app to mirror existing TRMNL's content to your Android device (preferably e-ink display).
+
+## 📜 Preconditions
+You must have a **valid** `access-token` to access the [screen content](https://docs.usetrmnl.com/go/private-api/fetch-screen-content) using TRMNL server API.
+
+Here are some of the known ways you can get access to the `access-token`.
+
+1. You must own a terminal with "developer edition" add-on purchased
+2. You have purchased their [BYOD](https://docs.usetrmnl.com/go/diy/byod)* product. (Not confirmed if you also need to buy "developer edition" add-on)
+3. You have self-serve installation of TRMNL service using [BYOS](https://docs.usetrmnl.com/go/diy/byos) (Not confirmed if this works - I plan to try this later)
+
+
+## How to try
+Once released, install the APK on your Android device.
+
+1. Configure the `access-token`  
+    i. 📝 NOTE: Right now only `https://usetrmnl.com/api` service API is supported, custom service URL will be added later
+3. Save token and keep the app on with the TRMNL content/image showing.
