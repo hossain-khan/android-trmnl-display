@@ -70,7 +70,7 @@ dependencies {
     implementation(libs.androidx.ui.text.google.fonts)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.window)
-    implementation("androidx.work:work-runtime-ktx:2.10.0")
+    implementation(libs.androidx.work.runtime.ktx)
 
     implementation(libs.circuit.codegen.annotations)
     implementation(libs.circuit.foundation)
