@@ -15,12 +15,16 @@ class TrmnlDisplayRepository
         private val apiService: TrmnlApiService,
     ) {
         suspend fun getDisplayData(accessToken: String): TrmnlDisplayInfo {
+            // Temporarily throwing an exception to prevent API calls during tests
+            throw IllegalStateException("Don't make API call during tests.")
+
             val response = apiService.getDisplayData(accessToken)
             // Map the response to the display info
             return TrmnlDisplayInfo(
                 status = response.status,
                 imageUrl = response.imageUrl ?: "",
                 error = response.error,
+                refreshRateSecs = response.refreshRate,
             )
         }
     }

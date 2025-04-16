@@ -55,6 +55,7 @@ import dev.hossain.trmnl.ui.FullScreenMode
 import dev.hossain.trmnl.ui.config.AppConfigScreen
 import dev.hossain.trmnl.util.CoilRequestUtils
 import dev.hossain.trmnl.util.TokenManager
+import dev.hossain.trmnl.work.TrmnlWorkManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.firstOrNull
@@ -90,6 +91,7 @@ class TrmnlMirrorDisplayPresenter
         @Assisted private val navigator: Navigator,
         private val displayRepository: TrmnlDisplayRepository,
         private val tokenManager: TokenManager,
+        private val trmnlWorkManager: TrmnlWorkManager,
     ) : Presenter<TrmnlMirrorDisplayScreen.State> {
         @Composable
         override fun present(): TrmnlMirrorDisplayScreen.State {

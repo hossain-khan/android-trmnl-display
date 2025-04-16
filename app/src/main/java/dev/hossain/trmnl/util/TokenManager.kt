@@ -56,6 +56,25 @@ class TokenManager
         }
 
         /**
+         * Checks if a token is already set
+         * @return Flow of Boolean indicating if token exists and is not empty
+         */
+        val hasTokenFlow: Flow<Boolean> =
+            accessTokenFlow.map { token ->
+                !token.isNullOrBlank()
+            }
+
+        /**
+         * Checks synchronously if token is already set
+         * @return true if token exists and is not empty
+         */
+        fun hasTokenSync(): Boolean {
+            return runBlocking {
+                return@runBlocking hasTokenFlow.first()
+            }
+        }
+
+        /**
          * Clears the access token
          */
         suspend fun clearAccessToken() {

@@ -20,6 +20,7 @@ import dev.hossain.trmnl.di.ActivityKey
 import dev.hossain.trmnl.di.AppScope
 import dev.hossain.trmnl.ui.display.TrmnlMirrorDisplayScreen
 import dev.hossain.trmnl.ui.theme.CircuitAppTheme
+import dev.hossain.trmnl.work.TrmnlWorkManager
 import javax.inject.Inject
 
 @ContributesMultibinding(AppScope::class, boundType = Activity::class)
@@ -28,11 +29,14 @@ class MainActivity
     @Inject
     constructor(
         private val circuit: Circuit,
+        private val trmnlWorkManager: TrmnlWorkManager,
     ) : ComponentActivity() {
         @OptIn(ExperimentalSharedTransitionApi::class)
         override fun onCreate(savedInstanceState: Bundle?) {
             enableEdgeToEdge()
             super.onCreate(savedInstanceState)
+
+            conditionallyStartTrmnlRefreshWork()
 
             setContent {
                 CircuitAppTheme {
@@ -59,5 +63,10 @@ class MainActivity
                     }
                 }
             }
+        }
+
+        private fun conditionallyStartTrmnlRefreshWork() {
+            // Start the periodic work
+            trmnlWorkManager.scheduleImageRefreshWork()
         }
     }
