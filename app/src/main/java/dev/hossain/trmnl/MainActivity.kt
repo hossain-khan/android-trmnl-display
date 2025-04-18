@@ -7,6 +7,8 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.runtime.remember
+import androidx.work.WorkInfo
+import androidx.work.WorkManager
 import com.slack.circuit.backstack.rememberSaveableBackStack
 import com.slack.circuit.foundation.Circuit
 import com.slack.circuit.foundation.CircuitCompositionLocals
@@ -20,6 +22,11 @@ import dev.hossain.trmnl.di.ActivityKey
 import dev.hossain.trmnl.di.AppScope
 import dev.hossain.trmnl.ui.display.TrmnlMirrorDisplayScreen
 import dev.hossain.trmnl.ui.theme.CircuitAppTheme
+import dev.hossain.trmnl.work.TrmnlImageRefreshWorker
+import dev.hossain.trmnl.work.TrmnlImageUpdateManager
+import dev.hossain.trmnl.work.TrmnlWorkManager
+import dev.hossain.trmnl.work.TrmnlWorkManager.Companion.IMAGE_REFRESH_WORK_NAME
+import timber.log.Timber
 import javax.inject.Inject
 
 @ContributesMultibinding(AppScope::class, boundType = Activity::class)
@@ -28,11 +35,16 @@ class MainActivity
     @Inject
     constructor(
         private val circuit: Circuit,
+        private val trmnlWorkManager: TrmnlWorkManager,
+        private val trmnlImageUpdateManager: TrmnlImageUpdateManager,
     ) : ComponentActivity() {
         @OptIn(ExperimentalSharedTransitionApi::class)
         override fun onCreate(savedInstanceState: Bundle?) {
             enableEdgeToEdge()
             super.onCreate(savedInstanceState)
+
+            conditionallyStartTrmnlRefreshWork()
+            listenForWorkUpdates()
 
             setContent {
                 CircuitAppTheme {
@@ -59,5 +71,42 @@ class MainActivity
                     }
                 }
             }
+        }
+
+        private fun conditionallyStartTrmnlRefreshWork() {
+            // Start the periodic work
+            trmnlWorkManager.scheduleImageRefreshWork()
+        }
+
+        private fun listenForWorkUpdates() {
+            // Listen for work results
+            WorkManager
+                .getInstance(this)
+                .getWorkInfosForUniqueWorkLiveData(IMAGE_REFRESH_WORK_NAME)
+                .observe(this) { workInfos ->
+                    workInfos.forEach { workInfo ->
+                        Timber.d("Received WorkInfo: $workInfo")
+                        if (workInfo.state == WorkInfo.State.SUCCEEDED) {
+                            val hasNewImage =
+                                workInfo.outputData.getBoolean(
+                                    TrmnlImageRefreshWorker.KEY_HAS_NEW_IMAGE,
+                                    false,
+                                )
+
+                            if (hasNewImage) {
+                                val newImageUrl =
+                                    workInfo.outputData.getString(
+                                        TrmnlImageRefreshWorker.KEY_NEW_IMAGE_URL,
+                                    )
+
+                                if (newImageUrl != null) {
+                                    Timber.d("New image URL: $newImageUrl")
+                                    // Update the image URL in your UI
+                                    trmnlImageUpdateManager.updateImage(newImageUrl)
+                                }
+                            }
+                        }
+                    }
+                }
         }
     }

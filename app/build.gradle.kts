@@ -70,6 +70,7 @@ dependencies {
     implementation(libs.androidx.ui.text.google.fonts)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.window)
+    implementation(libs.androidx.work.runtime.ktx)
 
     implementation(libs.circuit.codegen.annotations)
     implementation(libs.circuit.foundation)
@@ -89,6 +90,9 @@ dependencies {
 
     implementation(libs.anvil.annotations)
     implementation(libs.anvil.annotations.optional)
+
+    // Timber
+    implementation(libs.timber)
 
     // Retrofit
     implementation(libs.retrofit)

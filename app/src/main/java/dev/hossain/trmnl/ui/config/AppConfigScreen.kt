@@ -48,11 +48,14 @@ import com.slack.circuit.runtime.screen.Screen
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
+import dev.hossain.trmnl.data.AppConfig.DEFAULT_REFRESH_RATE_SEC
 import dev.hossain.trmnl.data.TrmnlDisplayRepository
 import dev.hossain.trmnl.di.AppScope
+import dev.hossain.trmnl.ui.config.AppConfigScreen.ValidationResult
 import dev.hossain.trmnl.ui.display.TrmnlMirrorDisplayScreen
 import dev.hossain.trmnl.util.CoilRequestUtils
 import dev.hossain.trmnl.util.TokenManager
+import dev.hossain.trmnl.work.TrmnlWorkManager
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 import kotlinx.parcelize.Parcelize
@@ -71,6 +74,7 @@ data class AppConfigScreen(
     sealed class ValidationResult {
         data class Success(
             val imageUrl: String,
+            val refreshRateSecs: Long,
         ) : ValidationResult()
 
         data class Failure(
@@ -98,12 +102,13 @@ class AppConfigPresenter
         @Assisted private val screen: AppConfigScreen,
         private val displayRepository: TrmnlDisplayRepository,
         private val tokenManager: TokenManager,
+        private val trmnlWorkManager: TrmnlWorkManager,
     ) : Presenter<AppConfigScreen.State> {
         @Composable
         override fun present(): AppConfigScreen.State {
             var accessToken by remember { mutableStateOf("") }
             var isLoading by remember { mutableStateOf(false) }
-            var validationResult by remember { mutableStateOf<AppConfigScreen.ValidationResult?>(null) }
+            var validationResult by remember { mutableStateOf<ValidationResult?>(null) }
             val scope = rememberCoroutineScope()
 
             // Load saved token if available
@@ -138,19 +143,23 @@ class AppConfigPresenter
                                     if (response.status == 500) {
                                         // Handle explicit error response
                                         val errorMessage = response.error ?: "Device not found"
-                                        validationResult = AppConfigScreen.ValidationResult.Failure(errorMessage)
-                                    } else if (response.imageUrl != null) {
+                                        validationResult = ValidationResult.Failure(errorMessage)
+                                    } else if (response.imageUrl.isNotBlank()) {
                                         // Success case - we have an image URL
-                                        validationResult = AppConfigScreen.ValidationResult.Success(response.imageUrl)
+                                        validationResult =
+                                            ValidationResult.Success(
+                                                response.imageUrl,
+                                                response.refreshRateSecs ?: DEFAULT_REFRESH_RATE_SEC,
+                                            )
                                     } else {
                                         // No error but also no image URL
-                                        validationResult = AppConfigScreen.ValidationResult.Failure("No image URL received")
+                                        validationResult = ValidationResult.Failure("No image URL received")
                                     }
                                 } catch (e: CancellationException) {
                                     throw e
                                 } catch (e: Exception) {
                                     validationResult =
-                                        AppConfigScreen.ValidationResult.Failure(
+                                        ValidationResult.Failure(
                                             e.message ?: "Unknown network error",
                                         )
                                 } finally {
@@ -161,9 +170,11 @@ class AppConfigPresenter
 
                         AppConfigScreen.Event.SaveAndContinue -> {
                             // Only save if validation was successful
-                            if (validationResult is AppConfigScreen.ValidationResult.Success) {
+                            val result = validationResult
+                            if (result is ValidationResult.Success) {
                                 scope.launch {
                                     tokenManager.saveAccessToken(accessToken)
+                                    trmnlWorkManager.updateRefreshInterval(result.refreshRateSecs)
 
                                     if (screen.returnToMirrorAfterSave) {
                                         navigator.goTo(TrmnlMirrorDisplayScreen)
@@ -295,7 +306,7 @@ fun AppConfigContent(
                         modifier = Modifier.fillMaxWidth(),
                     ) {
                         when (result) {
-                            is AppConfigScreen.ValidationResult.Success -> {
+                            is ValidationResult.Success -> {
                                 Column(
                                     modifier = Modifier.padding(16.dp),
                                     horizontalAlignment = Alignment.CenterHorizontally,
@@ -332,7 +343,7 @@ fun AppConfigContent(
                                     }
                                 }
                             }
-                            is AppConfigScreen.ValidationResult.Failure -> {
+                            is ValidationResult.Failure -> {
                                 // Error state remains the same
                                 Column(
                                     modifier = Modifier.padding(16.dp),

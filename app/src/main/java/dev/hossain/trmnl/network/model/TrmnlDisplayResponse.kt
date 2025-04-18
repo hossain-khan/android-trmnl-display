@@ -32,7 +32,7 @@ data class TrmnlDisplayResponse(
     @Json(name = "image_name") val imageName: String?,
     @Json(name = "update_firmware") val updateFirmware: Boolean?,
     @Json(name = "firmware_url") val firmwareUrl: String?,
-    @Json(name = "refresh_rate") val refreshRate: String?,
+    @Json(name = "refresh_rate") val refreshRate: Long?,
     @Json(name = "reset_firmware") val resetFirmware: Boolean?,
     val error: String? = null, // Added for error responses
     @Json(name = "special_function") val specialFunction: String? = null,
