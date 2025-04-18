@@ -9,6 +9,7 @@ import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkRequest
 import com.squareup.anvil.annotations.optional.SingleIn
+import dev.hossain.trmnl.data.AppConfig.DEFAULT_REFRESH_RATE_SEC
 import dev.hossain.trmnl.di.AppScope
 import dev.hossain.trmnl.di.ApplicationContext
 import dev.hossain.trmnl.util.TokenManager
@@ -22,19 +23,20 @@ class TrmnlWorkManager
     constructor(
         @ApplicationContext private val context: Context,
         private val tokenManager: TokenManager,
-        private val workerFactory: TrmnlImageRefreshWorker.Factory,
     ) {
         private val workManager = WorkManager.getInstance(context)
 
         companion object {
             internal const val IMAGE_REFRESH_WORK_NAME = "trmnl_image_refresh_work"
-            private const val DEFAULT_REFRESH_INTERVAL_MINUTES = 60L
         }
 
         /**
          * Schedule periodic image refresh work
          */
-        fun scheduleImageRefreshWork(intervalMinutes: Long = DEFAULT_REFRESH_INTERVAL_MINUTES) {
+        fun scheduleImageRefreshWork(intervalSeconds: Long = DEFAULT_REFRESH_RATE_SEC) {
+            // Convert seconds to minutes and ensure minimum interval
+            val intervalMinutes = (intervalSeconds / 60).coerceAtLeast(15).toLong()
+
             if (tokenManager.hasTokenSync().not()) {
                 Timber.w("Token not set, skipping image refresh work scheduling")
                 return
@@ -76,7 +78,8 @@ class TrmnlWorkManager
         /**
          * Update the refresh interval based on server response
          */
-        fun updateRefreshInterval(newIntervalSeconds: Int) {
+        fun updateRefreshInterval(newIntervalSeconds: Long) {
+            Timber.d("Updating refresh interval to $newIntervalSeconds seconds")
             // Convert seconds to minutes and ensure minimum interval
             val intervalMinutes = (newIntervalSeconds / 60).coerceAtLeast(15).toLong()
 

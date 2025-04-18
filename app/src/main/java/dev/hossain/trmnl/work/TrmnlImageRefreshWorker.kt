@@ -7,6 +7,7 @@ import androidx.work.workDataOf
 import dev.hossain.trmnl.data.TrmnlDisplayRepository
 import dev.hossain.trmnl.util.TokenManager
 import kotlinx.coroutines.flow.firstOrNull
+import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -19,6 +20,8 @@ class TrmnlImageRefreshWorker(
     private val tokenManager: TokenManager,
 ) : CoroutineWorker(appContext, params) {
     companion object {
+        private const val TAG = "TrmnlWorker"
+
         const val KEY_REFRESH_RESULT = "refresh_result"
         const val KEY_NEW_IMAGE_URL = "new_image_url"
         const val KEY_ERROR = "error"
@@ -26,11 +29,13 @@ class TrmnlImageRefreshWorker(
     }
 
     override suspend fun doWork(): Result {
+        Timber.tag(TAG).d("Starting image refresh work")
         try {
             // Get current token
             val token = tokenManager.accessTokenFlow.firstOrNull()
 
             if (token.isNullOrBlank()) {
+                Timber.tag(TAG).w("Token is not set, skipping image refresh")
                 return Result.failure(
                     workDataOf(
                         KEY_REFRESH_RESULT to "failure",
@@ -44,6 +49,7 @@ class TrmnlImageRefreshWorker(
 
             // Check for errors
             if (response.status == 500) {
+                Timber.tag(TAG).w("Failed to fetch display data: ${response.error}")
                 return Result.failure(
                     workDataOf(
                         KEY_REFRESH_RESULT to "failure",
@@ -53,7 +59,8 @@ class TrmnlImageRefreshWorker(
             }
 
             // Check if image URL is valid
-            if (response.imageUrl.isNullOrEmpty()) {
+            if (response.imageUrl.isEmpty()) {
+                Timber.tag(TAG).w("No image URL provided in response")
                 return Result.failure(
                     workDataOf(
                         KEY_REFRESH_RESULT to "failure",
@@ -65,10 +72,12 @@ class TrmnlImageRefreshWorker(
             // Check if we should adapt refresh rate
             val refreshRate = response.refreshRateSecs
             refreshRate?.let {
+                Timber.tag(TAG).d("Adapting refresh rate to $refreshRate seconds")
                 // You can reschedule the worker with this new interval
                 // (implementation in WorkManager setup)
             }
 
+            Timber.tag(TAG).i("Image refresh successful, new URL: ${response.imageUrl}")
             return Result.success(
                 workDataOf(
                     KEY_REFRESH_RESULT to "success",
@@ -77,6 +86,7 @@ class TrmnlImageRefreshWorker(
                 ),
             )
         } catch (e: Exception) {
+            Timber.tag(TAG).e(e, "Error during image refresh: ${e.message}")
             return Result.failure(
                 workDataOf(
                     KEY_REFRESH_RESULT to "failure",
