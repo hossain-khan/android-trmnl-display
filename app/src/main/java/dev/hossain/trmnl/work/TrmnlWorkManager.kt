@@ -27,7 +27,7 @@ class TrmnlWorkManager
         private val workManager = WorkManager.getInstance(context)
 
         companion object {
-            private const val IMAGE_REFRESH_WORK_NAME = "trmnl_image_refresh_work"
+            internal const val IMAGE_REFRESH_WORK_NAME = "trmnl_image_refresh_work"
             private const val DEFAULT_REFRESH_INTERVAL_MINUTES = 60L
         }
 
