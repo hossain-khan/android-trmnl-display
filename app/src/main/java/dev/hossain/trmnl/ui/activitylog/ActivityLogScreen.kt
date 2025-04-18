@@ -39,8 +39,8 @@ import com.slack.circuit.runtime.screen.Screen
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
-import dev.hossain.trmnl.data.log.TrmnlActivityLog
-import dev.hossain.trmnl.data.log.TrmnlActivityLogManager
+import dev.hossain.trmnl.data.log.TrmnlRefreshLog
+import dev.hossain.trmnl.data.log.TrmnlRefreshLogManager
 import dev.hossain.trmnl.di.AppScope
 import kotlinx.coroutines.launch
 import kotlinx.parcelize.Parcelize
@@ -51,7 +51,7 @@ import java.util.Locale
 @Parcelize
 data object ActivityLogScreen : Screen {
     data class State(
-        val logs: List<TrmnlActivityLog>,
+        val logs: List<TrmnlRefreshLog>,
         val eventSink: (Event) -> Unit,
     ) : CircuitUiState
 
@@ -66,7 +66,7 @@ class ActivityLogPresenter
     @AssistedInject
     constructor(
         @Assisted private val navigator: Navigator,
-        private val activityLogManager: TrmnlActivityLogManager,
+        private val activityLogManager: TrmnlRefreshLogManager,
     ) : Presenter<ActivityLogScreen.State> {
         @Composable
         override fun present(): ActivityLogScreen.State {
@@ -150,7 +150,7 @@ fun ActivityLogContent(
 
 @Composable
 private fun LogItem(
-    log: TrmnlActivityLog,
+    log: TrmnlRefreshLog,
     modifier: Modifier = Modifier,
 ) {
     Card(

@@ -5,6 +5,7 @@ import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
 import dev.hossain.trmnl.data.TrmnlDisplayRepository
+import dev.hossain.trmnl.data.log.TrmnlRefreshLogManager
 import dev.hossain.trmnl.util.TokenManager
 import kotlinx.coroutines.flow.firstOrNull
 import timber.log.Timber
@@ -18,6 +19,7 @@ class TrmnlImageRefreshWorker(
     params: WorkerParameters,
     private val displayRepository: TrmnlDisplayRepository,
     private val tokenManager: TokenManager,
+    private val refreshLogManager: TrmnlRefreshLogManager,
 ) : CoroutineWorker(appContext, params) {
     companion object {
         private const val TAG = "TrmnlWorker"
@@ -36,6 +38,7 @@ class TrmnlImageRefreshWorker(
 
             if (token.isNullOrBlank()) {
                 Timber.tag(TAG).w("Token is not set, skipping image refresh")
+                refreshLogManager.addFailureLog("No access token found")
                 return Result.failure(
                     workDataOf(
                         KEY_REFRESH_RESULT to "failure",
@@ -50,6 +53,7 @@ class TrmnlImageRefreshWorker(
             // Check for errors
             if (response.status == 500) {
                 Timber.tag(TAG).w("Failed to fetch display data: ${response.error}")
+                refreshLogManager.addFailureLog(response.error ?: "Unknown server error")
                 return Result.failure(
                     workDataOf(
                         KEY_REFRESH_RESULT to "failure",
@@ -61,6 +65,7 @@ class TrmnlImageRefreshWorker(
             // Check if image URL is valid
             if (response.imageUrl.isEmpty()) {
                 Timber.tag(TAG).w("No image URL provided in response")
+                refreshLogManager.addFailureLog("No image URL provided in response")
                 return Result.failure(
                     workDataOf(
                         KEY_REFRESH_RESULT to "failure",
@@ -68,6 +73,9 @@ class TrmnlImageRefreshWorker(
                     ),
                 )
             }
+
+            // Log success
+            refreshLogManager.addSuccessLog(response.imageUrl, response.refreshRateSecs)
 
             // Check if we should adapt refresh rate
             val refreshRate = response.refreshRateSecs
@@ -87,6 +95,7 @@ class TrmnlImageRefreshWorker(
             )
         } catch (e: Exception) {
             Timber.tag(TAG).e(e, "Error during image refresh: ${e.message}")
+            refreshLogManager.addFailureLog(e.message ?: "Unknown error during refresh")
             return Result.failure(
                 workDataOf(
                     KEY_REFRESH_RESULT to "failure",
@@ -101,16 +110,18 @@ class TrmnlImageRefreshWorker(
         constructor(
             private val displayRepository: TrmnlDisplayRepository,
             private val tokenManager: TokenManager,
+            private val refreshLogManager: TrmnlRefreshLogManager,
         ) {
             fun create(
                 appContext: Context,
                 params: WorkerParameters,
             ): TrmnlImageRefreshWorker =
                 TrmnlImageRefreshWorker(
-                    appContext,
-                    params,
-                    displayRepository,
-                    tokenManager,
+                    appContext = appContext,
+                    params = params,
+                    displayRepository = displayRepository,
+                    tokenManager = tokenManager,
+                    refreshLogManager = refreshLogManager,
                 )
         }
 }

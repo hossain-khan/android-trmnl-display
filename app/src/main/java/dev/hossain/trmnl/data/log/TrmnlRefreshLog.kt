@@ -5,7 +5,7 @@ import com.squareup.moshi.JsonClass
 import java.time.Instant
 
 @JsonClass(generateAdapter = true)
-data class TrmnlActivityLog(
+data class TrmnlRefreshLog(
     @Json(name = "timestamp") val timestamp: Long,
     @Json(name = "imageUrl") val imageUrl: String?,
     @Json(name = "refreshRateSeconds") val refreshRateSeconds: Long?,
@@ -16,16 +16,16 @@ data class TrmnlActivityLog(
         fun createSuccess(
             imageUrl: String,
             refreshRateSeconds: Long?,
-        ): TrmnlActivityLog =
-            TrmnlActivityLog(
+        ): TrmnlRefreshLog =
+            TrmnlRefreshLog(
                 timestamp = Instant.now().toEpochMilli(),
                 imageUrl = imageUrl,
                 refreshRateSeconds = refreshRateSeconds,
                 success = true,
             )
 
-        fun createFailure(error: String): TrmnlActivityLog =
-            TrmnlActivityLog(
+        fun createFailure(error: String): TrmnlRefreshLog =
+            TrmnlRefreshLog(
                 timestamp = Instant.now().toEpochMilli(),
                 imageUrl = null,
                 refreshRateSeconds = null,

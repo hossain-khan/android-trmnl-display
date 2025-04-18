@@ -8,8 +8,8 @@ import com.squareup.anvil.annotations.ContributesTo
 import com.squareup.anvil.annotations.optional.SingleIn
 import dagger.Module
 import dagger.Provides
-import dev.hossain.trmnl.data.log.TrmnlActivityLogSerializer
-import dev.hossain.trmnl.data.log.TrmnlActivityLogs
+import dev.hossain.trmnl.data.log.TrmnlRefreshLogSerializer
+import dev.hossain.trmnl.data.log.TrmnlRefreshLogs
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -21,9 +21,9 @@ object DataStoreModule {
     @SingleIn(AppScope::class)
     fun provideActivityLogDataStore(
         @ApplicationContext context: Context,
-    ): DataStore<TrmnlActivityLogs> =
+    ): DataStore<TrmnlRefreshLogs> =
         DataStoreFactory.create(
-            serializer = TrmnlActivityLogSerializer,
+            serializer = TrmnlRefreshLogSerializer,
             produceFile = { context.dataStoreFile("trmnl_activity_logs.json") },
             corruptionHandler = null,
             scope = CoroutineScope(Dispatchers.IO + SupervisorJob()),
