@@ -24,7 +24,7 @@ class TrmnlDisplayRepository
                     status = 0,
                     imageUrl = "https://picsum.photos/300/200?grayscale",
                     error = null,
-                    refreshRateSecs = 3600,
+                    refreshRateSecs = 600L,
                 )
             }
 

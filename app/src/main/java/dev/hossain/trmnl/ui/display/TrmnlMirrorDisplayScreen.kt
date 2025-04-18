@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.CircularProgressIndicator
@@ -52,6 +53,7 @@ import dagger.assisted.AssistedInject
 import dev.hossain.trmnl.data.TrmnlDisplayRepository
 import dev.hossain.trmnl.di.AppScope
 import dev.hossain.trmnl.ui.FullScreenMode
+import dev.hossain.trmnl.ui.activitylog.ActivityLogScreen
 import dev.hossain.trmnl.ui.config.AppConfigScreen
 import dev.hossain.trmnl.util.CoilRequestUtils
 import dev.hossain.trmnl.util.TokenManager
@@ -80,6 +82,8 @@ data object TrmnlMirrorDisplayScreen : Screen {
         data object RefreshRequested : Event()
 
         data object ConfigureRequested : Event()
+
+        data object ViewLogsRequested : Event()
 
         data object BackPressed : Event()
     }
@@ -149,6 +153,9 @@ class TrmnlMirrorDisplayPresenter
                         }
                         TrmnlMirrorDisplayScreen.Event.BackPressed -> {
                             navigator.pop()
+                        }
+                        TrmnlMirrorDisplayScreen.Event.ViewLogsRequested -> {
+                            navigator.goTo(ActivityLogScreen)
                         }
                     }
                 },
@@ -292,7 +299,7 @@ fun TrmnlMirrorDisplayContent(
                     },
                 )
 
-                Spacer(modifier = Modifier.size(16.dp))
+                Spacer(modifier = Modifier.size(8.dp))
 
                 ExtendedFloatingActionButton(
                     onClick = {
@@ -308,6 +315,28 @@ fun TrmnlMirrorDisplayContent(
                     text = {
                         Text(
                             "Refresh Image",
+                            style = fabTextStyle,
+                            fontWeight = FontWeight.Bold,
+                        )
+                    },
+                )
+
+                Spacer(modifier = Modifier.size(8.dp))
+
+                ExtendedFloatingActionButton(
+                    onClick = {
+                        state.eventSink(TrmnlMirrorDisplayScreen.Event.ViewLogsRequested)
+                    },
+                    icon = {
+                        Icon(
+                            imageVector = Icons.Default.DateRange,
+                            contentDescription = null,
+                            modifier = if (isExpandedWidth) Modifier.size(32.dp) else Modifier,
+                        )
+                    },
+                    text = {
+                        Text(
+                            "View Activity Logs",
                             style = fabTextStyle,
                             fontWeight = FontWeight.Bold,
                         )

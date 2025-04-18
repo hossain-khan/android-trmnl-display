@@ -24,7 +24,6 @@ import dev.hossain.trmnl.ui.display.TrmnlMirrorDisplayScreen
 import dev.hossain.trmnl.ui.theme.CircuitAppTheme
 import dev.hossain.trmnl.work.TrmnlImageRefreshWorker
 import dev.hossain.trmnl.work.TrmnlImageUpdateManager
-import dev.hossain.trmnl.work.TrmnlWorkManager
 import dev.hossain.trmnl.work.TrmnlWorkManager.Companion.IMAGE_REFRESH_WORK_NAME
 import timber.log.Timber
 import javax.inject.Inject
@@ -35,7 +34,6 @@ class MainActivity
     @Inject
     constructor(
         private val circuit: Circuit,
-        private val trmnlWorkManager: TrmnlWorkManager,
         private val trmnlImageUpdateManager: TrmnlImageUpdateManager,
     ) : ComponentActivity() {
         @OptIn(ExperimentalSharedTransitionApi::class)
@@ -43,7 +41,6 @@ class MainActivity
             enableEdgeToEdge()
             super.onCreate(savedInstanceState)
 
-            conditionallyStartTrmnlRefreshWork()
             listenForWorkUpdates()
 
             setContent {
@@ -71,11 +68,6 @@ class MainActivity
                     }
                 }
             }
-        }
-
-        private fun conditionallyStartTrmnlRefreshWork() {
-            // Start the periodic work
-            trmnlWorkManager.scheduleImageRefreshWork()
         }
 
         private fun listenForWorkUpdates() {
