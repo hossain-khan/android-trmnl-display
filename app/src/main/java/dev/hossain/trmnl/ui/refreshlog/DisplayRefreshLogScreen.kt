@@ -3,6 +3,7 @@ package dev.hossain.trmnl.ui.refreshlog
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -10,6 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material3.Card
@@ -22,7 +24,9 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -39,6 +43,7 @@ import com.slack.circuit.runtime.screen.Screen
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
+import dev.hossain.trmnl.BuildConfig
 import dev.hossain.trmnl.data.log.TrmnlRefreshLog
 import dev.hossain.trmnl.data.log.TrmnlRefreshLogManager
 import dev.hossain.trmnl.di.AppScope
@@ -51,27 +56,65 @@ import java.util.Locale
 /**
  * A screen that displays the refresh logs of the TRMNL display.
  * This is meant to validate how often the refresh rate is set and when the image is updated.
+ *
+ * The screen provides functionality to:
+ * - View chronological logs of display refresh attempts
+ * - See detailed information about successful and failed refresh operations
+ * - Clear logs (via action button)
+ * - Add test logs (debug builds only)
  */
 @Parcelize
 data object DisplayRefreshLogScreen : Screen {
+    /**
+     * Represents the UI state for the [DisplayRefreshLogScreen].
+     */
     data class State(
         val logs: List<TrmnlRefreshLog>,
         val eventSink: (Event) -> Unit,
     ) : CircuitUiState
 
+    /**
+     * Events that can be triggered from the DisplayRefreshLogScreen UI.
+     */
     sealed class Event : CircuitUiEvent {
+        /**
+         * Event triggered when the user presses the back button.
+         */
         data object BackPressed : Event()
 
+        /**
+         * Event triggered when the user requests to clear all logs.
+         */
         data object ClearLogs : Event()
+
+        /**
+         * Event triggered when a test success log should be added (debug only).
+         */
+        data object AddSuccessLog : Event()
+
+        /**
+         * Event triggered when a test failure log should be added (debug only).
+         */
+        data object AddFailLog : Event()
     }
 }
 
+/**
+ * Presenter for the DisplayRefreshLogScreen.
+ * Manages the screen's state and handles events from the UI.
+ */
 class DisplayRefreshLogPresenter
     @AssistedInject
     constructor(
         @Assisted private val navigator: Navigator,
         private val activityLogManager: TrmnlRefreshLogManager,
     ) : Presenter<DisplayRefreshLogScreen.State> {
+        /**
+         * Creates and returns the state for the DisplayRefreshLogScreen.
+         * Collects logs from the log manager and sets up event handling.
+         *
+         * @return The current UI state.
+         */
         @Composable
         override fun present(): DisplayRefreshLogScreen.State {
             val logs by activityLogManager.logsFlow.collectAsState(initial = emptyList())
@@ -87,11 +130,33 @@ class DisplayRefreshLogPresenter
                                 activityLogManager.clearLogs()
                             }
                         }
+
+                        DisplayRefreshLogScreen.Event.AddFailLog -> {
+                            scope.launch {
+                                activityLogManager.addLog(
+                                    TrmnlRefreshLog.createFailure(error = "Test failure")
+                                )
+                            }
+                        }
+                        DisplayRefreshLogScreen.Event.AddSuccessLog -> {
+                            scope.launch {
+
+                                activityLogManager.addLog(
+                                    TrmnlRefreshLog.createSuccess(
+                                        imageUrl = "https://debug.example.com/image.png",
+                                        refreshRateSeconds = 300L
+                                    )
+                                )
+                            }
+                        }
                     }
                 },
             )
         }
 
+        /**
+         * Factory interface for creating DisplayRefreshLogPresenter instances.
+         */
         @CircuitInject(DisplayRefreshLogScreen::class, AppScope::class)
         @AssistedFactory
         fun interface Factory {
@@ -99,6 +164,10 @@ class DisplayRefreshLogPresenter
         }
     }
 
+/**
+ * Main composable function for rendering the DisplayRefreshLogScreen.
+ * Sets up the screen's structure including toolbar, log list, and debug controls.
+ */
 @CircuitInject(DisplayRefreshLogScreen::class, AppScope::class)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -110,10 +179,10 @@ fun DisplayRefreshLogContent(
         modifier = modifier,
         topBar = {
             TopAppBar(
-                title = { Text("Activity Logs") },
+                title = { Text("Display Refresh Logs") },
                 navigationIcon = {
                     IconButton(onClick = { state.eventSink(DisplayRefreshLogScreen.Event.BackPressed) }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
                 actions = {
@@ -123,12 +192,26 @@ fun DisplayRefreshLogContent(
                 },
             )
         },
+        bottomBar = {
+            // Debug controls only visible in debug builds
+            if (BuildConfig.DEBUG) {
+                DebugControls(
+                    onAddSuccessLog = {
+                        state.eventSink(DisplayRefreshLogScreen.Event.AddSuccessLog)
+
+
+                    },
+                    onAddFailLog = {
+                        state.eventSink(DisplayRefreshLogScreen.Event.AddFailLog)
+                    }
+                )
+            }
+        }
     ) { innerPadding ->
         Box(
-            modifier =
-                Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding),
         ) {
             if (state.logs.isEmpty()) {
                 Text(
@@ -139,9 +222,7 @@ fun DisplayRefreshLogContent(
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
-                    contentPadding =
-                        androidx.compose.foundation.layout
-                            .PaddingValues(16.dp),
+                    contentPadding = PaddingValues(16.dp),
                 ) {
                     items(state.logs) { log ->
                         LogItem(log = log)
@@ -152,6 +233,10 @@ fun DisplayRefreshLogContent(
     }
 }
 
+/**
+ * Composable function that renders a single log entry as a card.
+ * Displays different information based on whether the log represents a success or failure.
+ */
 @Composable
 private fun LogItem(
     log: TrmnlRefreshLog,
@@ -220,6 +305,51 @@ private fun LogItem(
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.error,
                 )
+            }
+        }
+    }
+}
+
+/**
+ * Debug controls for manually adding test logs. Only visible in debug builds.
+ */
+@Composable
+private fun DebugControls(
+    onAddSuccessLog: () -> Unit,
+    onAddFailLog: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(16.dp)
+    ) {
+        Text(
+            text = "Debug Controls",
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            androidx.compose.material3.Button(
+                onClick = onAddSuccessLog,
+                modifier = Modifier.weight(1f).padding(end = 8.dp)
+            ) {
+                Text("Add Success Log")
+            }
+
+            androidx.compose.material3.Button(
+                onClick = onAddFailLog,
+                modifier = Modifier.weight(1f).padding(start = 8.dp),
+                colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.error
+                )
+            ) {
+                Text("Add Fail Log")
             }
         }
     }
