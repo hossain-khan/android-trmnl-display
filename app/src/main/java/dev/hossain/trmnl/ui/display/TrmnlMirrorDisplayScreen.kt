@@ -108,7 +108,7 @@ class TrmnlMirrorDisplayPresenter
             val scope = rememberCoroutineScope()
 
             LaunchedEffect(Unit) {
-                loadImage(scope, tokenManager, displayRepository, imageMetadataStore) { newImageUrl, newError ->
+                loadTrmnlDisplayImage(scope, tokenManager, displayRepository, imageMetadataStore) { newImageUrl, newError ->
                     imageUrl = newImageUrl
                     error = newError
                     isLoading = false
@@ -168,12 +168,16 @@ class TrmnlMirrorDisplayPresenter
             )
         }
 
-        private suspend fun loadImage(
+        /**
+         * Load the terminal display image from the server or use a cached version if available.
+         * Provides the image URL and error message (if any) to the [onImageLoadComplete] callback.
+         */
+        private fun loadTrmnlDisplayImage(
             scope: CoroutineScope,
             tokenManager: TokenManager,
             displayRepository: TrmnlDisplayRepository,
             imageMetadataStore: ImageMetadataStore,
-            onComplete: (String?, String?) -> Unit,
+            onImageLoadComplete: (String?, String?) -> Unit,
         ) {
             scope.launch {
                 // First check if there's a valid token
@@ -194,7 +198,7 @@ class TrmnlMirrorDisplayPresenter
                         val metadata = imageMetadataStore.imageMetadataFlow.firstOrNull()
                         if (metadata != null) {
                             Timber.d("Using cached valid image URL: ${metadata.url}")
-                            onComplete(metadata.url, null)
+                            onImageLoadComplete(metadata.url, null)
                             return@launch
                         }
                     }
@@ -215,12 +219,12 @@ class TrmnlMirrorDisplayPresenter
                         Timber.d("Successfully fetched new image from API: $imageUrl")
                     }
 
-                    onComplete(imageUrl, error)
+                    onImageLoadComplete(imageUrl, error)
                 } catch (e: CancellationException) {
                     throw e
                 } catch (e: Exception) {
                     Timber.e(e, "Error loading image")
-                    onComplete(null, e.message ?: "Unknown error")
+                    onImageLoadComplete(null, e.message ?: "Unknown error")
                 }
             }
         }
