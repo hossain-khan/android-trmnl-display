@@ -40,7 +40,7 @@ class TrmnlRefreshLogManager
             addLog(TrmnlRefreshLog.createFailure(error))
         }
 
-        private suspend fun addLog(log: TrmnlRefreshLog) {
+        internal suspend fun addLog(log: TrmnlRefreshLog) {
             dataStore.updateData { currentLogs ->
                 val updatedLogs =
                     currentLogs.logs.toMutableList().apply {

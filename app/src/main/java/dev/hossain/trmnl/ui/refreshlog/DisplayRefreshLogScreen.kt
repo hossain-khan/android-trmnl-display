@@ -3,6 +3,7 @@ package dev.hossain.trmnl.ui.refreshlog
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -10,6 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material3.Card
@@ -22,7 +24,9 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -39,6 +43,7 @@ import com.slack.circuit.runtime.screen.Screen
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
+import dev.hossain.trmnl.BuildConfig
 import dev.hossain.trmnl.data.log.TrmnlRefreshLog
 import dev.hossain.trmnl.data.log.TrmnlRefreshLogManager
 import dev.hossain.trmnl.di.AppScope
@@ -63,6 +68,10 @@ data object DisplayRefreshLogScreen : Screen {
         data object BackPressed : Event()
 
         data object ClearLogs : Event()
+
+        data object AddSuccessLog : Event()
+
+        data object AddFailLog : Event()
     }
 }
 
@@ -85,6 +94,25 @@ class DisplayRefreshLogPresenter
                         DisplayRefreshLogScreen.Event.ClearLogs -> {
                             scope.launch {
                                 activityLogManager.clearLogs()
+                            }
+                        }
+
+                        DisplayRefreshLogScreen.Event.AddFailLog -> {
+                            scope.launch {
+                                activityLogManager.addLog(
+                                    TrmnlRefreshLog.createFailure(error = "Test failure")
+                                )
+                            }
+                        }
+                        DisplayRefreshLogScreen.Event.AddSuccessLog -> {
+                            scope.launch {
+
+                                activityLogManager.addLog(
+                                    TrmnlRefreshLog.createSuccess(
+                                        imageUrl = "https://debug.example.com/image.png",
+                                        refreshRateSeconds = 300L
+                                    )
+                                )
                             }
                         }
                     }
@@ -110,10 +138,10 @@ fun DisplayRefreshLogContent(
         modifier = modifier,
         topBar = {
             TopAppBar(
-                title = { Text("Activity Logs") },
+                title = { Text("Display Refresh Logs") },
                 navigationIcon = {
                     IconButton(onClick = { state.eventSink(DisplayRefreshLogScreen.Event.BackPressed) }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
                 actions = {
@@ -123,12 +151,26 @@ fun DisplayRefreshLogContent(
                 },
             )
         },
+        bottomBar = {
+            // Debug controls only visible in debug builds
+            if (BuildConfig.DEBUG) {
+                DebugControls(
+                    onAddSuccessLog = {
+                        state.eventSink(DisplayRefreshLogScreen.Event.AddSuccessLog)
+
+
+                    },
+                    onAddFailLog = {
+                        state.eventSink(DisplayRefreshLogScreen.Event.AddFailLog)
+                    }
+                )
+            }
+        }
     ) { innerPadding ->
         Box(
-            modifier =
-                Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding),
         ) {
             if (state.logs.isEmpty()) {
                 Text(
@@ -139,9 +181,7 @@ fun DisplayRefreshLogContent(
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
-                    contentPadding =
-                        androidx.compose.foundation.layout
-                            .PaddingValues(16.dp),
+                    contentPadding = PaddingValues(16.dp),
                 ) {
                     items(state.logs) { log ->
                         LogItem(log = log)
@@ -220,6 +260,50 @@ private fun LogItem(
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.error,
                 )
+            }
+        }
+    }
+}
+
+
+
+@Composable
+private fun DebugControls(
+    onAddSuccessLog: () -> Unit,
+    onAddFailLog: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(16.dp)
+    ) {
+        Text(
+            text = "Debug Controls",
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            androidx.compose.material3.Button(
+                onClick = onAddSuccessLog,
+                modifier = Modifier.weight(1f).padding(end = 8.dp)
+            ) {
+                Text("Add Success Log")
+            }
+
+            androidx.compose.material3.Button(
+                onClick = onAddFailLog,
+                modifier = Modifier.weight(1f).padding(start = 8.dp),
+                colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.error
+                )
+            ) {
+                Text("Add Fail Log")
             }
         }
     }
