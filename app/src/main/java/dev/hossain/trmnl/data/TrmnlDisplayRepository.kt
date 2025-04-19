@@ -15,27 +15,34 @@ class TrmnlDisplayRepository
     @Inject
     constructor(
         private val apiService: TrmnlApiService,
+        private val imageMetadataStore: ImageMetadataStore,
     ) {
         suspend fun getDisplayData(accessToken: String): TrmnlDisplayInfo {
             if (BuildConfig.DEBUG) {
                 // Avoid using real API in debug mode
-                Timber.d("DEBUG: Using mock data for display info")
-                return TrmnlDisplayInfo(
-                    status = 0,
-                    imageUrl = "https://picsum.photos/300/200?grayscale",
-                    error = null,
-                    refreshRateSecs = 600L,
-                )
+                return fakeTrmnlDisplayInfo()
             }
 
             val response = apiService.getDisplayData(accessToken)
+
             // Map the response to the display info
-            return TrmnlDisplayInfo(
-                status = response.status,
-                imageUrl = response.imageUrl ?: "",
-                error = response.error,
-                refreshRateSecs = response.refreshRate,
-            )
+            val displayInfo =
+                TrmnlDisplayInfo(
+                    status = response.status,
+                    imageUrl = response.imageUrl ?: "",
+                    error = response.error,
+                    refreshRateSecs = response.refreshRate,
+                )
+
+            // If response was successful and has an image URL, save to data store
+            if (response.status != 500 && !displayInfo.imageUrl.isNullOrEmpty()) {
+                imageMetadataStore.saveImageMetadata(
+                    displayInfo.imageUrl,
+                    displayInfo.refreshRateSecs,
+                )
+            }
+
+            return displayInfo
         }
 
         suspend fun checkServerStatus(): Boolean {
@@ -44,5 +51,21 @@ class TrmnlDisplayRepository
 
             // If we got 200 OK, we assume the server is up
             return true
+        }
+
+        private suspend fun fakeTrmnlDisplayInfo(): TrmnlDisplayInfo {
+            Timber.d("DEBUG: Using mock data for display info")
+            val mockImageUrl = "https://picsum.photos/300/200?grayscale"
+            val mockRefreshRate = 600L
+
+            // Save mock data to the data store
+            imageMetadataStore.saveImageMetadata(mockImageUrl, mockRefreshRate)
+
+            return TrmnlDisplayInfo(
+                status = 0,
+                imageUrl = mockImageUrl,
+                error = null,
+                refreshRateSecs = mockRefreshRate,
+            )
         }
     }
