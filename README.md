@@ -20,3 +20,17 @@ Once released, install the APK on your Android device.
 
 ### Limitations 🚧
 * Right now, screen lock using [recommended](https://developer.android.com/develop/background-work/background-tasks/awake/screen-on) **`FLAG_KEEP_SCREEN_ON`** is not working. So, if you plan to keep the screen on idefinitely, you should set that in the device settings.
+
+
+## Application Overview
+
+The TRMNL Display Mirror app serves as a digital display mirror for TRMNL e-ink devices. The app connects to the TRMNL API, fetches display data, and shows it on Android devices.
+
+### Key Features
+
+- [x] Token-based authentication with the TRMNL API
+- [x] Automatic periodic image refresh from the server
+- [x] Manual refresh capabilities
+- [x] Configurable refresh rate based on server settings
+- [x] Image caching for offline viewing
+- [x] Refresh history logging
