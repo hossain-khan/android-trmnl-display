@@ -4,15 +4,25 @@ import android.content.Context
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
+import dev.hossain.trmnl.MainActivity
 import dev.hossain.trmnl.data.TrmnlDisplayRepository
 import dev.hossain.trmnl.data.log.TrmnlRefreshLogManager
+import dev.hossain.trmnl.di.WorkerModule
+import dev.hossain.trmnl.ui.display.TrmnlMirrorDisplayScreen
 import dev.hossain.trmnl.util.TokenManager
 import kotlinx.coroutines.flow.firstOrNull
 import timber.log.Timber
 import javax.inject.Inject
 
 /**
- * Worker to refresh the image displayed on the TRMNL.
+ * Worker to refresh the image displayed on the TRMNL mirror display.
+ *
+ * The worker result is observed in [MainActivity] and then updated via the [TrmnlImageUpdateManager].
+ * Whenever the image is updated, the [TrmnlImageUpdateManager] will notify the observers.
+ * In this case the [TrmnlMirrorDisplayScreen] will recompose and update the image.
+ *
+ * @see TrmnlImageUpdateManager
+ * @see TrmnlMirrorDisplayScreen
  */
 class TrmnlImageRefreshWorker(
     appContext: Context,
@@ -104,6 +114,12 @@ class TrmnlImageRefreshWorker(
         }
     }
 
+    /**
+     * Factory class for creating instances of [TrmnlImageRefreshWorker] with additional dependency using DI.
+     *
+     * @see TrmnlWorkerFactory
+     * @see WorkerModule
+     */
     class Factory
         @Inject
         constructor(
