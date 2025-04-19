@@ -13,7 +13,12 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -198,15 +203,17 @@ fun DisplayRefreshLogContent(
                 DebugControls(
                     onAddSuccessLog = {
                         state.eventSink(DisplayRefreshLogScreen.Event.AddSuccessLog)
-
-
                     },
                     onAddFailLog = {
                         state.eventSink(DisplayRefreshLogScreen.Event.AddFailLog)
-                    }
+                    },
+                    // Use a modifier that takes navigation bar padding into account
+                    modifier = Modifier.navigationBarsPadding()
                 )
             }
-        }
+        },
+        // Use WindowInsets.navigationBars to ensure content doesn't overlap with the navigation bar
+        contentWindowInsets = WindowInsets.navigationBars
     ) { innerPadding ->
         Box(
             modifier = Modifier
@@ -335,17 +342,17 @@ private fun DebugControls(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            androidx.compose.material3.Button(
+            Button(
                 onClick = onAddSuccessLog,
                 modifier = Modifier.weight(1f).padding(end = 8.dp)
             ) {
                 Text("Add Success Log")
             }
 
-            androidx.compose.material3.Button(
+            Button(
                 onClick = onAddFailLog,
                 modifier = Modifier.weight(1f).padding(start = 8.dp),
-                colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.error
                 )
             ) {
