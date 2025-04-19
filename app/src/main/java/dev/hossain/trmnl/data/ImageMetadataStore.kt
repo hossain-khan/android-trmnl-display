@@ -11,7 +11,9 @@ import com.squareup.anvil.annotations.optional.SingleIn
 import dev.hossain.trmnl.di.AppScope
 import dev.hossain.trmnl.di.ApplicationContext
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.runBlocking
 import timber.log.Timber
 import java.time.Instant
 import javax.inject.Inject
@@ -58,6 +60,50 @@ class ImageMetadataStore
                 refreshRateSecs?.let { preferences[REFRESH_RATE_KEY] = it }
             }
         }
+
+        /**
+         * Checks if the stored image URL is still valid based on refresh rate
+         * @return Flow of Boolean indicating if a valid, non-expired image URL exists
+         */
+        val hasValidImageUrlFlow: Flow<Boolean> =
+            context.imageDataStore.data.map { preferences ->
+                val url = preferences[IMAGE_URL_KEY] ?: return@map false
+                val timestamp = preferences[TIMESTAMP_KEY] ?: return@map false
+                val refreshRate = preferences[REFRESH_RATE_KEY] ?: return@map false
+
+                // Calculate if the image is expired based on timestamp + refresh rate
+                val expirationTime = timestamp + (refreshRate * 1000) // Convert seconds to milliseconds
+                val currentTime = Instant.now().toEpochMilli()
+
+                // Image is valid if current time is before expiration
+                url.isNotEmpty() && currentTime < expirationTime
+            }
+
+        /**
+         * Checks synchronously if a valid, non-expired image URL exists
+         * @return true if valid image URL exists and is not expired
+         */
+        fun hasValidImageUrlSync(): Boolean {
+            return runBlocking {
+                return@runBlocking hasValidImageUrlFlow.first()
+            }
+        }
+
+        /**
+         * Returns the amount of time in milliseconds until the current image expires
+         * @return Positive value if image is still valid, negative if already expired, null if no valid image
+         */
+        val timeUntilExpirationFlow: Flow<Long?> =
+            context.imageDataStore.data.map { preferences ->
+                val timestamp = preferences[TIMESTAMP_KEY] ?: return@map null
+                val refreshRate = preferences[REFRESH_RATE_KEY] ?: return@map null
+
+                // Calculate time until expiration
+                val expirationTime = timestamp + (refreshRate * 1000) // Convert seconds to milliseconds
+                val currentTime = Instant.now().toEpochMilli()
+
+                expirationTime - currentTime
+            }
 
         /**
          * Clear stored image metadata
