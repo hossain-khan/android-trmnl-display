@@ -56,31 +56,65 @@ import java.util.Locale
 /**
  * A screen that displays the refresh logs of the TRMNL display.
  * This is meant to validate how often the refresh rate is set and when the image is updated.
+ *
+ * The screen provides functionality to:
+ * - View chronological logs of display refresh attempts
+ * - See detailed information about successful and failed refresh operations
+ * - Clear logs (via action button)
+ * - Add test logs (debug builds only)
  */
 @Parcelize
 data object DisplayRefreshLogScreen : Screen {
+    /**
+     * Represents the UI state for the [DisplayRefreshLogScreen].
+     */
     data class State(
         val logs: List<TrmnlRefreshLog>,
         val eventSink: (Event) -> Unit,
     ) : CircuitUiState
 
+    /**
+     * Events that can be triggered from the DisplayRefreshLogScreen UI.
+     */
     sealed class Event : CircuitUiEvent {
+        /**
+         * Event triggered when the user presses the back button.
+         */
         data object BackPressed : Event()
 
+        /**
+         * Event triggered when the user requests to clear all logs.
+         */
         data object ClearLogs : Event()
 
+        /**
+         * Event triggered when a test success log should be added (debug only).
+         */
         data object AddSuccessLog : Event()
 
+        /**
+         * Event triggered when a test failure log should be added (debug only).
+         */
         data object AddFailLog : Event()
     }
 }
 
+/**
+ * Presenter for the DisplayRefreshLogScreen.
+ * Manages the screen's state and handles events from the UI.
+ */
 class DisplayRefreshLogPresenter
     @AssistedInject
     constructor(
         @Assisted private val navigator: Navigator,
         private val activityLogManager: TrmnlRefreshLogManager,
     ) : Presenter<DisplayRefreshLogScreen.State> {
+        /**
+         * Creates and returns the state for the DisplayRefreshLogScreen.
+         * Collects logs from the log manager and sets up event handling.
+         *
+         * @return The current UI state.
+         */
         @Composable
         override fun present(): DisplayRefreshLogScreen.State {
             val logs by activityLogManager.logsFlow.collectAsState(initial = emptyList())
@@ -120,6 +154,9 @@ class DisplayRefreshLogPresenter
             )
         }
 
+        /**
+         * Factory interface for creating DisplayRefreshLogPresenter instances.
+         */
         @CircuitInject(DisplayRefreshLogScreen::class, AppScope::class)
         @AssistedFactory
         fun interface Factory {
@@ -127,6 +164,10 @@ class DisplayRefreshLogPresenter
         }
     }
 
+/**
+ * Main composable function for rendering the DisplayRefreshLogScreen.
+ * Sets up the screen's structure including toolbar, log list, and debug controls.
+ */
 @CircuitInject(DisplayRefreshLogScreen::class, AppScope::class)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -192,6 +233,10 @@ fun DisplayRefreshLogContent(
     }
 }
 
+/**
+ * Composable function that renders a single log entry as a card.
+ * Displays different information based on whether the log represents a success or failure.
+ */
 @Composable
 private fun LogItem(
     log: TrmnlRefreshLog,
@@ -265,8 +310,9 @@ private fun LogItem(
     }
 }
 
-
-
+/**
+ * Debug controls for manually adding test logs. Only visible in debug builds.
+ */
 @Composable
 private fun DebugControls(
     onAddSuccessLog: () -> Unit,
