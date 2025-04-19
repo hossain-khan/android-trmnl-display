@@ -1,6 +1,7 @@
 package dev.hossain.trmnl
 
 import android.app.Activity
+import android.content.Context
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -20,6 +21,7 @@ import com.slack.circuitx.gesturenavigation.GestureNavigationDecorationFactory
 import com.squareup.anvil.annotations.ContributesMultibinding
 import dev.hossain.trmnl.di.ActivityKey
 import dev.hossain.trmnl.di.AppScope
+import dev.hossain.trmnl.di.ApplicationContext
 import dev.hossain.trmnl.ui.display.TrmnlMirrorDisplayScreen
 import dev.hossain.trmnl.ui.theme.CircuitAppTheme
 import dev.hossain.trmnl.work.TrmnlImageRefreshWorker
@@ -33,6 +35,7 @@ import javax.inject.Inject
 class MainActivity
     @Inject
     constructor(
+        @ApplicationContext private val context: Context,
         private val circuit: Circuit,
         private val trmnlImageUpdateManager: TrmnlImageUpdateManager,
     ) : ComponentActivity() {
@@ -73,7 +76,7 @@ class MainActivity
         private fun listenForWorkUpdates() {
             // Listen for work results
             WorkManager
-                .getInstance(this)
+                .getInstance(context)
                 .getWorkInfosForUniqueWorkLiveData(IMAGE_REFRESH_WORK_NAME)
                 .observe(this) { workInfos ->
                     workInfos.forEach { workInfo ->

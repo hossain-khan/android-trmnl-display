@@ -81,8 +81,7 @@ class TrmnlImageRefreshWorker(
             val refreshRate = response.refreshRateSecs
             refreshRate?.let {
                 Timber.tag(TAG).d("Adapting refresh rate to $refreshRate seconds")
-                // You can reschedule the worker with this new interval
-                // (implementation in WorkManager setup)
+                tokenManager.saveRefreshRateSeconds(it)
             }
 
             Timber.tag(TAG).i("Image refresh successful, new URL: ${response.imageUrl}")
