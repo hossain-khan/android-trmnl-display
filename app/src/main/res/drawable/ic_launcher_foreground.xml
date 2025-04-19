@@ -6,27 +6,27 @@
   <group android:scaleX="0.5107143"
       android:scaleY="0.5107143"
       android:translateX="26.910715"
-      android:translateY="26.390543">
+      android:translateY="26.910715">
     <path
-        android:pathData="M34.07,16.34L57.66,25.22L53.28,36.95L29.69,28.07L34.07,16.34Z"
+        android:pathData="M33.84,15.57L57.43,24.45L53.05,36.19L29.46,27.31L33.84,15.57Z"
         android:fillColor="#ffffff"/>
     <path
-        android:pathData="M71.89,13.44L79.68,37.5L67.81,41.37L60.02,17.31L71.89,13.44Z"
+        android:pathData="M71.66,12.68L79.45,36.74L67.58,40.6L59.79,16.55L71.66,12.68Z"
         android:fillColor="#ffffff"/>
     <path
-        android:pathData="M97.73,41.34L83.85,62.46L73.43,55.56L87.31,34.44L97.73,41.34Z"
+        android:pathData="M97.5,40.58L83.62,61.69L73.2,54.8L87.08,33.67L97.5,40.58Z"
         android:fillColor="#ffffff"/>
     <path
-        android:pathData="M92.12,79.01L67.02,81.28L65.9,68.8L91,66.53L92.12,79.01Z"
+        android:pathData="M91.89,78.25L66.79,80.51L65.67,68.03L90.77,65.76L91.89,78.25Z"
         android:fillColor="#ffffff"/>
     <path
-        android:pathData="M59.29,98.09L41.87,79.81L50.89,71.15L68.31,89.43L59.29,98.09Z"
+        android:pathData="M59.06,97.32L41.64,79.04L50.66,70.39L68.08,88.67L59.06,97.32Z"
         android:fillColor="#ffffff"/>
     <path
-        android:pathData="M23.96,84.23L27.34,59.16L39.71,60.84L36.33,85.91L23.96,84.23Z"
+        android:pathData="M23.73,83.47L27.11,58.4L39.48,60.08L36.1,85.15L23.73,83.47Z"
         android:fillColor="#ffffff"/>
     <path
-        android:pathData="M12.73,47.82L34.36,34.84L40.76,45.59L19.13,58.57L12.73,47.82Z"
+        android:pathData="M12.5,47.06L34.13,34.08L40.53,44.83L18.9,57.81L12.5,47.06Z"
         android:fillColor="#ffffff"/>
   </group>
 </vector>
