@@ -24,8 +24,6 @@ class TrmnlWorkManager
         @ApplicationContext private val context: Context,
         private val tokenManager: TokenManager,
     ) {
-        private val workManager = WorkManager.getInstance(context)
-
         companion object {
             internal const val IMAGE_REFRESH_WORK_NAME = "trmnl_image_refresh_work"
         }
@@ -61,7 +59,7 @@ class TrmnlWorkManager
                         TimeUnit.MILLISECONDS,
                     ).build()
 
-            workManager.enqueueUniquePeriodicWork(
+            WorkManager.getInstance(context).enqueueUniquePeriodicWork(
                 IMAGE_REFRESH_WORK_NAME,
                 ExistingPeriodicWorkPolicy.UPDATE,
                 workRequest,
@@ -95,14 +93,14 @@ class TrmnlWorkManager
                         TimeUnit.MILLISECONDS,
                     ).build()
 
-            workManager.enqueue(workRequest)
+            WorkManager.getInstance(context).enqueue(workRequest)
         }
 
         /**
          * Cancel scheduled image refresh work
          */
         fun cancelImageRefreshWork() {
-            workManager.cancelUniqueWork(IMAGE_REFRESH_WORK_NAME)
+            WorkManager.getInstance(context).cancelUniqueWork(IMAGE_REFRESH_WORK_NAME)
         }
 
         /**
