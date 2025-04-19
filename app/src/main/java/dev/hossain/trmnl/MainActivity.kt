@@ -26,7 +26,7 @@ import dev.hossain.trmnl.ui.display.TrmnlMirrorDisplayScreen
 import dev.hossain.trmnl.ui.theme.CircuitAppTheme
 import dev.hossain.trmnl.work.TrmnlImageRefreshWorker
 import dev.hossain.trmnl.work.TrmnlImageUpdateManager
-import dev.hossain.trmnl.work.TrmnlWorkManager.Companion.IMAGE_REFRESH_WORK_NAME
+import dev.hossain.trmnl.work.TrmnlWorkManager.Companion.IMAGE_REFRESH_PERIODIC_WORK_NAME
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -77,7 +77,7 @@ class MainActivity
             // Listen for work results
             WorkManager
                 .getInstance(context)
-                .getWorkInfosForUniqueWorkLiveData(IMAGE_REFRESH_WORK_NAME)
+                .getWorkInfosForUniqueWorkLiveData(IMAGE_REFRESH_PERIODIC_WORK_NAME)
                 .observe(this) { workInfos ->
                     workInfos.forEach { workInfo ->
                         Timber.d("Received WorkInfo: $workInfo")
