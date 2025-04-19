@@ -7,8 +7,6 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
-import com.squareup.anvil.annotations.optional.SingleIn
-import dev.hossain.trmnl.di.AppScope
 import dev.hossain.trmnl.di.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
@@ -28,7 +26,6 @@ private val Context.imageDataStore: DataStore<Preferences> by preferencesDataSto
  *
  * @see ImageMetadata
  */
-@SingleIn(AppScope::class)
 class ImageMetadataStore
     @Inject
     constructor(
