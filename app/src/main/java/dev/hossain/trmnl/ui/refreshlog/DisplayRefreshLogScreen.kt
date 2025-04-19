@@ -52,6 +52,7 @@ import dev.hossain.trmnl.BuildConfig
 import dev.hossain.trmnl.data.log.TrmnlRefreshLog
 import dev.hossain.trmnl.data.log.TrmnlRefreshLogManager
 import dev.hossain.trmnl.di.AppScope
+import dev.hossain.trmnl.work.TrmnlWorkManager
 import kotlinx.coroutines.launch
 import kotlinx.parcelize.Parcelize
 import java.text.SimpleDateFormat
@@ -101,6 +102,11 @@ data object DisplayRefreshLogScreen : Screen {
          * Event triggered when a test failure log should be added (debug only).
          */
         data object AddFailLog : Event()
+
+        /**
+         * Event triggered when the refresh worker should be started (debug only).
+         */
+        data object StartRefreshWorker : Event()
     }
 }
 
@@ -113,6 +119,7 @@ class DisplayRefreshLogPresenter
     constructor(
         @Assisted private val navigator: Navigator,
         private val activityLogManager: TrmnlRefreshLogManager,
+        private val trmnlWorkManager: TrmnlWorkManager,
     ) : Presenter<DisplayRefreshLogScreen.State> {
         /**
          * Creates and returns the state for the DisplayRefreshLogScreen.
@@ -153,6 +160,10 @@ class DisplayRefreshLogPresenter
                                     )
                                 )
                             }
+                        }
+
+                        DisplayRefreshLogScreen.Event.StartRefreshWorker -> {
+                            trmnlWorkManager.startOneTimeImageRefreshWork()
                         }
                     }
                 },
@@ -206,6 +217,9 @@ fun DisplayRefreshLogContent(
                     },
                     onAddFailLog = {
                         state.eventSink(DisplayRefreshLogScreen.Event.AddFailLog)
+                    },
+                    onStartRefreshWorker = {
+                        state.eventSink(DisplayRefreshLogScreen.Event.StartRefreshWorker)
                     },
                     // Use a modifier that takes navigation bar padding into account
                     modifier = Modifier.navigationBarsPadding()
@@ -324,6 +338,7 @@ private fun LogItem(
 private fun DebugControls(
     onAddSuccessLog: () -> Unit,
     onAddFailLog: () -> Unit,
+    onStartRefreshWorker: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -332,7 +347,7 @@ private fun DebugControls(
             .padding(16.dp)
     ) {
         Text(
-            text = "Debug Controls",
+            text = "Debug Controls (for testing)",
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.padding(bottom = 8.dp)
@@ -358,6 +373,15 @@ private fun DebugControls(
             ) {
                 Text("Add Fail Log")
             }
+        }
+        Button(
+            onClick = onStartRefreshWorker,
+            modifier = Modifier.fillMaxWidth(),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.tertiary
+            )
+        ) {
+            Text("Start Refresh Worker")
         }
     }
 }
