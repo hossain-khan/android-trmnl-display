@@ -105,13 +105,18 @@ class TrmnlMirrorDisplayPresenter
             var error by remember { mutableStateOf<String?>(null) }
             val scope = rememberCoroutineScope()
 
-            // Collect updates from the image update manager
+            // Collect updates from the image update manager to get the latest image URL
+            // Latest image URL is received from WorkManager work requests.
             LaunchedEffect(Unit) {
                 trmnlImageUpdateManager.imageUpdateFlow.collect { newImageUrl ->
                     if (newImageUrl != null) {
                         imageUrl = newImageUrl
                         isLoading = false
                         error = null
+                    } else {
+                        Timber.w("Failed to get cached image URL from WorkManager")
+                        isLoading = true
+                        error = "Failed to load image"
                     }
                 }
             }
