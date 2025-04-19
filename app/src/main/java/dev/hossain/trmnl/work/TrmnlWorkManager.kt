@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.work.BackoffPolicy
 import androidx.work.Constraints
 import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.ExistingWorkPolicy
 import androidx.work.NetworkType
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
@@ -93,7 +94,13 @@ class TrmnlWorkManager
                         TimeUnit.MILLISECONDS,
                     ).build()
 
-            WorkManager.getInstance(context).enqueue(workRequest)
+            WorkManager
+                .getInstance(context)
+                .enqueueUniqueWork(
+                    uniqueWorkName = IMAGE_REFRESH_WORK_NAME,
+                    existingWorkPolicy = ExistingWorkPolicy.REPLACE,
+                    request = workRequest,
+                )
         }
 
         /**

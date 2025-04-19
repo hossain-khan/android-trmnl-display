@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.squareup.anvil.annotations.optional.SingleIn
@@ -27,6 +28,7 @@ class TokenManager
     ) {
         companion object {
             private val ACCESS_TOKEN_KEY = stringPreferencesKey("access_token")
+            private val REFRESH_RATE_KEY = longPreferencesKey("refresh_rate_seconds")
         }
 
         /**
@@ -35,6 +37,14 @@ class TokenManager
         val accessTokenFlow: Flow<String?> =
             context.tokenDataStore.data.map { preferences ->
                 preferences[ACCESS_TOKEN_KEY]
+            }
+
+        /**
+         * Gets the refresh rate in seconds as a Flow
+         */
+        val refreshRateSecondsFlow: Flow<Long?> =
+            context.tokenDataStore.data.map { preferences ->
+                preferences[REFRESH_RATE_KEY]
             }
 
         /**
@@ -47,11 +57,29 @@ class TokenManager
         }
 
         /**
+         * Saves the refresh rate in seconds to DataStore
+         */
+        suspend fun saveRefreshRateSeconds(seconds: Long) {
+            context.tokenDataStore.edit { preferences ->
+                preferences[REFRESH_RATE_KEY] = seconds
+            }
+        }
+
+        /**
          * Gets the access token synchronously (blocking)
          */
         fun getAccessTokenSync(): String? {
             return runBlocking {
                 return@runBlocking accessTokenFlow.first()
+            }
+        }
+
+        /**
+         * Gets the refresh rate in seconds synchronously (blocking)
+         */
+        fun getRefreshRateSecondsSync(): Long? {
+            return runBlocking {
+                return@runBlocking refreshRateSecondsFlow.first()
             }
         }
 
@@ -80,6 +108,24 @@ class TokenManager
         suspend fun clearAccessToken() {
             context.tokenDataStore.edit { preferences ->
                 preferences.remove(ACCESS_TOKEN_KEY)
+            }
+        }
+
+        /**
+         * Clears the refresh rate settings
+         */
+        suspend fun clearRefreshRateSeconds() {
+            context.tokenDataStore.edit { preferences ->
+                preferences.remove(REFRESH_RATE_KEY)
+            }
+        }
+
+        /**
+         * Clears all stored preferences
+         */
+        suspend fun clearAll() {
+            context.tokenDataStore.edit { preferences ->
+                preferences.clear()
             }
         }
     }
