@@ -340,10 +340,7 @@ private fun DebugControls(
     modifier: Modifier = Modifier,
 ) {
     Column(
-        modifier =
-            modifier
-                .fillMaxWidth()
-                .padding(16.dp),
+        modifier = modifier.fillMaxWidth().padding(16.dp),
     ) {
         Text(
             text = "Debug Controls (for testing)",
@@ -374,6 +371,7 @@ private fun DebugControls(
                 Text("Add Fail Log")
             }
         }
+
         Button(
             onClick = onStartRefreshWorker,
             modifier = Modifier.fillMaxWidth(),
@@ -383,6 +381,19 @@ private fun DebugControls(
                 ),
         ) {
             Text("Start Refresh Worker")
+        }
+
+        Button(
+            onClick = {
+                // TODO Add check image URL function if needed
+            },
+            modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+            colors =
+                ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.secondary,
+                ),
+        ) {
+            Text("Check Work Status")
         }
     }
 }
