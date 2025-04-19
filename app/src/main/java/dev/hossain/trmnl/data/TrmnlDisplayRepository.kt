@@ -17,6 +17,13 @@ class TrmnlDisplayRepository
         private val apiService: TrmnlApiService,
         private val imageMetadataStore: ImageMetadataStore,
     ) {
+        /**
+         * Fetches display data from the server using the provided access token.
+         * If the app is in debug mode, it uses mock data instead.
+         *
+         * @param accessToken The access token for authentication.
+         * @return A [TrmnlDisplayInfo] object containing the display data.
+         */
         suspend fun getDisplayData(accessToken: String): TrmnlDisplayInfo {
             if (BuildConfig.DEBUG) {
                 // Avoid using real API in debug mode
@@ -45,6 +52,9 @@ class TrmnlDisplayRepository
             return displayInfo
         }
 
+        /**
+         * Check the server status by making a request to the log endpoint.
+         */
         suspend fun checkServerStatus(): Boolean {
             val response = apiService.getLog("RANDOM-ID", "RANDOM-TOKEN")
             Timber.d("Device log status response: $response")
@@ -53,6 +63,9 @@ class TrmnlDisplayRepository
             return true
         }
 
+        /**
+         * Generates fake display info for debugging purposes without wasting an API request.
+         */
         private suspend fun fakeTrmnlDisplayInfo(): TrmnlDisplayInfo {
             Timber.d("DEBUG: Using mock data for display info")
             val mockImageUrl = "https://picsum.photos/300/200?grayscale"
