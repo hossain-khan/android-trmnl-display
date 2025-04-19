@@ -68,32 +68,35 @@ class TrmnlWorkManager
             )
         }
 
-    /**
-     * Start a one-time image refresh work immediately
-     */
-    fun startOneTimeImageRefreshWork() {
-        Timber.d("Starting one-time image refresh work")
+        /**
+         * Start a one-time image refresh work immediately
+         */
+        fun startOneTimeImageRefreshWork() {
+            Timber.d("Starting one-time image refresh work")
 
-        if (tokenManager.hasTokenSync().not()) {
-            Timber.w("Token not set, skipping one-time image refresh work")
-            return
+            if (tokenManager.hasTokenSync().not()) {
+                Timber.w("Token not set, skipping one-time image refresh work")
+                return
+            }
+
+            val constraints =
+                Constraints
+                    .Builder()
+                    .setRequiredNetworkType(NetworkType.CONNECTED)
+                    .build()
+
+            val workRequest =
+                androidx.work
+                    .OneTimeWorkRequestBuilder<TrmnlImageRefreshWorker>()
+                    .setConstraints(constraints)
+                    .setBackoffCriteria(
+                        BackoffPolicy.EXPONENTIAL,
+                        WorkRequest.DEFAULT_BACKOFF_DELAY_MILLIS,
+                        TimeUnit.MILLISECONDS,
+                    ).build()
+
+            workManager.enqueue(workRequest)
         }
-
-        val constraints = Constraints
-            .Builder()
-            .setRequiredNetworkType(NetworkType.CONNECTED)
-            .build()
-
-        val workRequest = androidx.work.OneTimeWorkRequestBuilder<TrmnlImageRefreshWorker>()
-            .setConstraints(constraints)
-            .setBackoffCriteria(
-                BackoffPolicy.EXPONENTIAL,
-                WorkRequest.DEFAULT_BACKOFF_DELAY_MILLIS,
-                TimeUnit.MILLISECONDS,
-            ).build()
-
-        workManager.enqueue(workRequest)
-    }
 
         /**
          * Cancel scheduled image refresh work

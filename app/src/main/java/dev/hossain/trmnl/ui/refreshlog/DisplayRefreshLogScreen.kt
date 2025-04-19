@@ -5,17 +5,17 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.navigationBars
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -29,9 +29,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -146,18 +144,17 @@ class DisplayRefreshLogPresenter
                         DisplayRefreshLogScreen.Event.AddFailLog -> {
                             scope.launch {
                                 activityLogManager.addLog(
-                                    TrmnlRefreshLog.createFailure(error = "Test failure")
+                                    TrmnlRefreshLog.createFailure(error = "Test failure"),
                                 )
                             }
                         }
                         DisplayRefreshLogScreen.Event.AddSuccessLog -> {
                             scope.launch {
-
                                 activityLogManager.addLog(
                                     TrmnlRefreshLog.createSuccess(
                                         imageUrl = "https://debug.example.com/image.png",
-                                        refreshRateSeconds = 300L
-                                    )
+                                        refreshRateSeconds = 300L,
+                                    ),
                                 )
                             }
                         }
@@ -222,17 +219,18 @@ fun DisplayRefreshLogContent(
                         state.eventSink(DisplayRefreshLogScreen.Event.StartRefreshWorker)
                     },
                     // Use a modifier that takes navigation bar padding into account
-                    modifier = Modifier.navigationBarsPadding()
+                    modifier = Modifier.navigationBarsPadding(),
                 )
             }
         },
         // Use WindowInsets.navigationBars to ensure content doesn't overlap with the navigation bar
-        contentWindowInsets = WindowInsets.navigationBars
+        contentWindowInsets = WindowInsets.navigationBars,
     ) { innerPadding ->
         Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding),
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding),
         ) {
             if (state.logs.isEmpty()) {
                 Text(
@@ -339,27 +337,28 @@ private fun DebugControls(
     onAddSuccessLog: () -> Unit,
     onAddFailLog: () -> Unit,
     onStartRefreshWorker: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(16.dp)
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .padding(16.dp),
     ) {
         Text(
             text = "Debug Controls (for testing)",
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(bottom = 8.dp)
+            modifier = Modifier.padding(bottom = 8.dp),
         )
 
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly
+            horizontalArrangement = Arrangement.SpaceEvenly,
         ) {
             Button(
                 onClick = onAddSuccessLog,
-                modifier = Modifier.weight(1f).padding(end = 8.dp)
+                modifier = Modifier.weight(1f).padding(end = 8.dp),
             ) {
                 Text("Add Success Log")
             }
@@ -367,9 +366,10 @@ private fun DebugControls(
             Button(
                 onClick = onAddFailLog,
                 modifier = Modifier.weight(1f).padding(start = 8.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.error
-                )
+                colors =
+                    ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.error,
+                    ),
             ) {
                 Text("Add Fail Log")
             }
@@ -377,9 +377,10 @@ private fun DebugControls(
         Button(
             onClick = onStartRefreshWorker,
             modifier = Modifier.fillMaxWidth(),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.tertiary
-            )
+            colors =
+                ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.tertiary,
+                ),
         ) {
             Text("Start Refresh Worker")
         }
