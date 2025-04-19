@@ -5,7 +5,7 @@ import android.app.Application
 import android.content.Intent
 import androidx.annotation.Keep
 import androidx.core.app.AppComponentFactory
-import dev.hossain.trmnl.TrmnlDisplayApp
+import dev.hossain.trmnl.TrmnlDisplayMirrorApp
 import javax.inject.Provider
 
 /**
@@ -26,7 +26,7 @@ import javax.inject.Provider
  * ```
  */
 @Keep
-class ComposeAppComponentFactory : AppComponentFactory() {
+class TrmnlAppComponentFactory : AppComponentFactory() {
     /**
      * Retrieves an instance of the specified class (typically an Activity) from the provided
      * Dagger providers map. If a provider exists for the class, it uses that provider to
@@ -83,7 +83,7 @@ class ComposeAppComponentFactory : AppComponentFactory() {
     ): Application {
         val app = super.instantiateApplicationCompat(classLoader, className)
         // Retrieve the Dagger app component and the activity providers from it
-        activityProviders = (app as TrmnlDisplayApp).appComponent().activityProviders
+        activityProviders = (app as TrmnlDisplayMirrorApp).appComponent().activityProviders
         return app
     }
 
