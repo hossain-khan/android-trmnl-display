@@ -24,8 +24,6 @@ class TrmnlWorkManager
         @ApplicationContext private val context: Context,
         private val tokenManager: TokenManager,
     ) {
-        private val workManager = WorkManager.getInstance(context)
-
         companion object {
             internal const val IMAGE_REFRESH_WORK_NAME = "trmnl_image_refresh_work"
         }
@@ -61,7 +59,7 @@ class TrmnlWorkManager
                         TimeUnit.MILLISECONDS,
                     ).build()
 
-            workManager.enqueueUniquePeriodicWork(
+            WorkManager.getInstance(context).enqueueUniquePeriodicWork(
                 IMAGE_REFRESH_WORK_NAME,
                 ExistingPeriodicWorkPolicy.UPDATE,
                 workRequest,
@@ -69,10 +67,40 @@ class TrmnlWorkManager
         }
 
         /**
+         * Start a one-time image refresh work immediately
+         */
+        fun startOneTimeImageRefreshWork() {
+            Timber.d("Starting one-time image refresh work")
+
+            if (tokenManager.hasTokenSync().not()) {
+                Timber.w("Token not set, skipping one-time image refresh work")
+                return
+            }
+
+            val constraints =
+                Constraints
+                    .Builder()
+                    .setRequiredNetworkType(NetworkType.CONNECTED)
+                    .build()
+
+            val workRequest =
+                androidx.work
+                    .OneTimeWorkRequestBuilder<TrmnlImageRefreshWorker>()
+                    .setConstraints(constraints)
+                    .setBackoffCriteria(
+                        BackoffPolicy.EXPONENTIAL,
+                        WorkRequest.DEFAULT_BACKOFF_DELAY_MILLIS,
+                        TimeUnit.MILLISECONDS,
+                    ).build()
+
+            WorkManager.getInstance(context).enqueue(workRequest)
+        }
+
+        /**
          * Cancel scheduled image refresh work
          */
         fun cancelImageRefreshWork() {
-            workManager.cancelUniqueWork(IMAGE_REFRESH_WORK_NAME)
+            WorkManager.getInstance(context).cancelUniqueWork(IMAGE_REFRESH_WORK_NAME)
         }
 
         /**
