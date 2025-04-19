@@ -50,6 +50,7 @@ import com.slack.circuit.runtime.screen.Screen
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
+import dev.hossain.trmnl.data.ImageMetadataStore
 import dev.hossain.trmnl.data.TrmnlDisplayRepository
 import dev.hossain.trmnl.di.AppScope
 import dev.hossain.trmnl.ui.FullScreenMode
@@ -63,6 +64,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import kotlinx.parcelize.Parcelize
+import timber.log.Timber
 import kotlin.coroutines.cancellation.CancellationException
 
 /**
@@ -96,6 +98,7 @@ class TrmnlMirrorDisplayPresenter
         private val displayRepository: TrmnlDisplayRepository,
         private val tokenManager: TokenManager,
         private val trmnlWorkManager: TrmnlWorkManager,
+        private val imageMetadataStore: ImageMetadataStore,
     ) : Presenter<TrmnlMirrorDisplayScreen.State> {
         @Composable
         override fun present(): TrmnlMirrorDisplayScreen.State {
@@ -105,7 +108,7 @@ class TrmnlMirrorDisplayPresenter
             val scope = rememberCoroutineScope()
 
             LaunchedEffect(Unit) {
-                loadImage(scope, tokenManager, displayRepository) { newImageUrl, newError ->
+                loadImage(scope, tokenManager, displayRepository, imageMetadataStore) { newImageUrl, newError ->
                     imageUrl = newImageUrl
                     error = newError
                     isLoading = false
@@ -127,6 +130,7 @@ class TrmnlMirrorDisplayPresenter
                                 try {
                                     tokenManager.accessTokenFlow.firstOrNull()?.let { token ->
                                         if (token.isNotBlank()) {
+                                            Timber.d("Manually refreshing display data from API")
                                             val response = displayRepository.getDisplayData(token)
                                             imageUrl = response.imageUrl
 
@@ -137,12 +141,14 @@ class TrmnlMirrorDisplayPresenter
                                             }
                                         } else {
                                             error = "No access token found"
+                                            Timber.w("Refresh failed: No access token found")
                                         }
                                     }
                                 } catch (e: CancellationException) {
                                     throw e
                                 } catch (e: Exception) {
                                     error = e.message ?: "Error refreshing display"
+                                    Timber.e(e, "Error refreshing display data")
                                 } finally {
                                     isLoading = false
                                 }
@@ -166,33 +172,55 @@ class TrmnlMirrorDisplayPresenter
             scope: CoroutineScope,
             tokenManager: TokenManager,
             displayRepository: TrmnlDisplayRepository,
+            imageMetadataStore: ImageMetadataStore,
             onComplete: (String?, String?) -> Unit,
         ) {
             scope.launch {
-                tokenManager.accessTokenFlow.collect { token ->
-                    if (token.isNullOrBlank()) {
-                        // No token stored, navigate to config screen
-                        navigator.goTo(AppConfigScreen(returnToMirrorAfterSave = true))
-                        return@collect
-                    }
+                // First check if there's a valid token
+                val token = tokenManager.accessTokenFlow.firstOrNull()
+                if (token.isNullOrBlank()) {
+                    // No token stored, navigate to config screen
+                    Timber.d("No access token found, navigating to configuration screen")
+                    navigator.goTo(AppConfigScreen(returnToMirrorAfterSave = true))
+                    return@launch
+                }
 
-                    try {
-                        val response = displayRepository.getDisplayData(token)
-                        val imageUrl = response.imageUrl
-                        var error: String? = null
+                try {
+                    // Check if we have a valid cached image URL
+                    val hasValidImage = imageMetadataStore.hasValidImageUrlFlow.firstOrNull() ?: false
 
-                        if (response.status == 500) {
-                            error = response.error ?: "Unknown error"
-                        } else if (imageUrl.isNullOrEmpty()) {
-                            error = "No image URL provided in the response"
+                    if (hasValidImage) {
+                        // We have a valid cached image, use it
+                        val metadata = imageMetadataStore.imageMetadataFlow.firstOrNull()
+                        if (metadata != null) {
+                            Timber.d("Using cached valid image URL: ${metadata.url}")
+                            onComplete(metadata.url, null)
+                            return@launch
                         }
-
-                        onComplete(imageUrl, error)
-                    } catch (e: CancellationException) {
-                        throw e
-                    } catch (e: Exception) {
-                        onComplete(null, e.message ?: "Unknown error")
                     }
+
+                    // No valid cached image, fetch from API
+                    Timber.d("No valid cached image found, fetching from API")
+                    val response = displayRepository.getDisplayData(token)
+                    val imageUrl = response.imageUrl
+                    var error: String? = null
+
+                    if (response.status == 500) {
+                        error = response.error ?: "Unknown error"
+                        Timber.e("API error (status 500): $error")
+                    } else if (imageUrl.isNullOrEmpty()) {
+                        error = "No image URL provided in the response"
+                        Timber.e("API returned empty image URL")
+                    } else {
+                        Timber.d("Successfully fetched new image from API: $imageUrl")
+                    }
+
+                    onComplete(imageUrl, error)
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    Timber.e(e, "Error loading image")
+                    onComplete(null, e.message ?: "Unknown error")
                 }
             }
         }
