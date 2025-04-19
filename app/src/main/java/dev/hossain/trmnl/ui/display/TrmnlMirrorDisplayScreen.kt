@@ -115,20 +115,6 @@ class TrmnlMirrorDisplayPresenter
                 }
             }
 
-            LaunchedEffect(Unit) {
-                val isScheduled = trmnlWorkManager.isImageRefreshWorkScheduledSync()
-                Timber.d("Is image refresh work scheduled: $isScheduled")
-
-                // Re-schedules periodic work for image refresh, just in case it was not scheduled
-                val refreshValue = tokenManager.refreshRateSecondsFlow.firstOrNull()
-                if (refreshValue != null) {
-                    Timber.d("Scheduling image refresh work with interval: $refreshValue seconds")
-                    trmnlWorkManager.scheduleImageRefreshWork(refreshValue)
-                } else {
-                    Timber.d("No image refresh rate found, NOT scheduling work")
-                }
-            }
-
             return TrmnlMirrorDisplayScreen.State(
                 imageUrl = imageUrl,
                 isLoading = isLoading,
