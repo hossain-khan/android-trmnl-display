@@ -32,15 +32,21 @@ class TrmnlWorkManager
         /**
          * Schedule periodic image refresh work
          */
-        fun scheduleImageRefreshWork(intervalSeconds: Long = DEFAULT_REFRESH_RATE_SEC) {
+        fun scheduleImageRefreshWork(intervalSeconds: Long? = null) {
+            // Use provided value or fall back to stored value or default
+            val effectiveInterval =
+                intervalSeconds
+                    ?: tokenManager.getRefreshRateSecondsSync()
+                    ?: DEFAULT_REFRESH_RATE_SEC
+
             // Convert seconds to minutes and ensure minimum interval
-            val intervalMinutes = (intervalSeconds / 60).coerceAtLeast(15).toLong()
+            val intervalMinutes = (effectiveInterval / 60).coerceAtLeast(15)
+
+            Timber.d("Scheduling work: $effectiveInterval seconds → $intervalMinutes minutes")
 
             if (tokenManager.hasTokenSync().not()) {
                 Timber.w("Token not set, skipping image refresh work scheduling")
                 return
-            } else {
-                Timber.d("Scheduling image refresh work with interval: $intervalMinutes minutes")
             }
 
             val constraints =
@@ -49,21 +55,21 @@ class TrmnlWorkManager
                     .setRequiredNetworkType(NetworkType.CONNECTED)
                     .build()
 
-            val workRequest =
+            val periodicWorkRequest =
                 PeriodicWorkRequestBuilder<TrmnlImageRefreshWorker>(
-                    intervalMinutes,
-                    TimeUnit.MINUTES,
+                    repeatInterval = intervalMinutes,
+                    repeatIntervalTimeUnit = TimeUnit.MINUTES,
                 ).setConstraints(constraints)
                     .setBackoffCriteria(
-                        BackoffPolicy.EXPONENTIAL,
-                        WorkRequest.DEFAULT_BACKOFF_DELAY_MILLIS,
+                        BackoffPolicy.LINEAR,
+                        WorkRequest.MIN_BACKOFF_MILLIS,
                         TimeUnit.MILLISECONDS,
                     ).build()
 
             WorkManager.getInstance(context).enqueueUniquePeriodicWork(
-                IMAGE_REFRESH_WORK_NAME,
-                ExistingPeriodicWorkPolicy.UPDATE,
-                workRequest,
+                uniqueWorkName = IMAGE_REFRESH_WORK_NAME,
+                existingPeriodicWorkPolicy = ExistingPeriodicWorkPolicy.UPDATE,
+                request = periodicWorkRequest,
             )
         }
 
@@ -113,12 +119,13 @@ class TrmnlWorkManager
         /**
          * Update the refresh interval based on server response
          */
-        fun updateRefreshInterval(newIntervalSeconds: Long) {
+        suspend fun updateRefreshInterval(newIntervalSeconds: Long) {
             Timber.d("Updating refresh interval to $newIntervalSeconds seconds")
-            // Convert seconds to minutes and ensure minimum interval
-            val intervalMinutes = (newIntervalSeconds / 60).coerceAtLeast(15).toLong()
+
+            // Save the refresh rate to TokenManager
+            tokenManager.saveRefreshRateSeconds(newIntervalSeconds)
 
             // Reschedule with new interval
-            scheduleImageRefreshWork(intervalMinutes)
+            scheduleImageRefreshWork(newIntervalSeconds)
         }
     }
