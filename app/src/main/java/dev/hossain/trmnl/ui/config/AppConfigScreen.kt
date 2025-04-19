@@ -1,7 +1,6 @@
 package dev.hossain.trmnl.ui.config
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -9,6 +8,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
@@ -60,6 +61,9 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 import kotlinx.parcelize.Parcelize
 
+/**
+ * Screen for configuring the TRMNL token and other things.
+ */
 @Parcelize
 data class AppConfigScreen(
     val returnToMirrorAfterSave: Boolean = false,
@@ -212,6 +216,7 @@ fun AppConfigContent(
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
     val context = LocalContext.current
+    val scrollState = rememberScrollState()
 
     // Create masked version of the token for display
     val maskedToken =
@@ -232,144 +237,138 @@ fun AppConfigContent(
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
     ) { innerPadding ->
-        Box(
+        Column(
             modifier =
                 Modifier
                     .fillMaxSize()
-                    .padding(innerPadding),
-            contentAlignment = Alignment.Center,
+                    .verticalScroll(scrollState)
+                    .padding(innerPadding)
+                    .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
         ) {
-            Column(
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center,
-            ) {
-                Text(
-                    text = "Terminal API Configuration",
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.Bold,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth(),
-                )
+            Text(
+                text = "Terminal API Configuration",
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth(),
+            )
 
-                Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
-                // Use masked token for display but keep actual token for validation
-                OutlinedTextField(
-                    value = state.accessToken,
-                    onValueChange = { state.eventSink(AppConfigScreen.Event.AccessTokenChanged(it)) },
-                    label = { Text("Access Token") },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true,
-                    visualTransformation =
-                        if (state.accessToken.length > 4) {
-                            VisualTransformation { text ->
-                                val maskedText =
-                                    buildString {
-                                        text.text.forEachIndexed { index, char ->
-                                            append(
-                                                when {
-                                                    index < 2 || index >= text.text.length - 2 -> char
-                                                    else -> '*'
-                                                },
-                                            )
-                                        }
+            // Use masked token for display but keep actual token for validation
+            OutlinedTextField(
+                value = state.accessToken,
+                onValueChange = { state.eventSink(AppConfigScreen.Event.AccessTokenChanged(it)) },
+                label = { Text("Access Token") },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                visualTransformation =
+                    if (state.accessToken.length > 4) {
+                        VisualTransformation { text ->
+                            val maskedText =
+                                buildString {
+                                    text.text.forEachIndexed { index, char ->
+                                        append(
+                                            when {
+                                                index < 2 || index >= text.text.length - 2 -> char
+                                                else -> '*'
+                                            },
+                                        )
                                     }
-                                TransformedText(
-                                    AnnotatedString(maskedText),
-                                    OffsetMapping.Identity,
-                                )
-                            }
-                        } else {
-                            VisualTransformation.None
-                        },
-                )
+                                }
+                            TransformedText(
+                                AnnotatedString(maskedText),
+                                OffsetMapping.Identity,
+                            )
+                        }
+                    } else {
+                        VisualTransformation.None
+                    },
+            )
 
-                Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-                Button(
-                    onClick = { state.eventSink(AppConfigScreen.Event.ValidateToken) },
-                    enabled = state.accessToken.isNotBlank() && !state.isLoading,
+            Button(
+                onClick = { state.eventSink(AppConfigScreen.Event.ValidateToken) },
+                enabled = state.accessToken.isNotBlank() && !state.isLoading,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text("Validate Token")
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Show validation result
+            state.validationResult?.let { result ->
+                Card(
                     modifier = Modifier.fillMaxWidth(),
                 ) {
-                    Text("Validate Token")
-                }
+                    when (result) {
+                        is ValidationResult.Success -> {
+                            Column(
+                                modifier = Modifier.padding(16.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                            ) {
+                                Text(
+                                    "✅ Token Valid",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    color = MaterialTheme.colorScheme.primary,
+                                )
 
-                Spacer(modifier = Modifier.height(16.dp))
+                                Text(
+                                    "Token: $maskedToken",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                )
 
-                // Show validation result
-                state.validationResult?.let { result ->
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                    ) {
-                        when (result) {
-                            is ValidationResult.Success -> {
-                                Column(
-                                    modifier = Modifier.padding(16.dp),
-                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                // Image preview using Coil with improved caching
+                                AsyncImage(
+                                    model = CoilRequestUtils.createCachedImageRequest(context, result.imageUrl),
+                                    contentDescription = "Preview image",
+                                    contentScale = ContentScale.Fit,
+                                    modifier =
+                                        Modifier
+                                            .size(240.dp)
+                                            .padding(4.dp),
+                                )
+
+                                Spacer(modifier = Modifier.height(16.dp))
+
+                                Button(
+                                    onClick = { state.eventSink(AppConfigScreen.Event.SaveAndContinue) },
+                                    modifier = Modifier.fillMaxWidth(),
                                 ) {
-                                    Text(
-                                        "✅ Token Valid",
-                                        style = MaterialTheme.typography.titleMedium,
-                                        color = MaterialTheme.colorScheme.primary,
-                                    )
-
-                                    Text(
-                                        "Token: $maskedToken",
-                                        style = MaterialTheme.typography.bodyMedium,
-                                    )
-
-                                    // Image preview using Coil with improved caching
-                                    AsyncImage(
-                                        model = CoilRequestUtils.createCachedImageRequest(context, result.imageUrl),
-                                        contentDescription = "Preview image",
-                                        contentScale = ContentScale.Fit,
-                                        modifier =
-                                            Modifier
-                                                .size(240.dp)
-                                                .padding(4.dp),
-                                    )
-
-                                    Spacer(modifier = Modifier.height(16.dp))
-
-                                    Button(
-                                        onClick = { state.eventSink(AppConfigScreen.Event.SaveAndContinue) },
-                                        modifier = Modifier.fillMaxWidth(),
-                                    ) {
-                                        Text("Save and Continue")
-                                    }
+                                    Text("Save and Continue")
                                 }
                             }
-                            is ValidationResult.Failure -> {
-                                // Error state remains the same
-                                Column(
-                                    modifier = Modifier.padding(16.dp),
-                                    horizontalAlignment = Alignment.CenterHorizontally,
-                                ) {
-                                    Text(
-                                        "❌ Validation Failed",
-                                        style = MaterialTheme.typography.titleMedium,
-                                        color = MaterialTheme.colorScheme.error,
-                                    )
-                                    Spacer(modifier = Modifier.height(8.dp))
-                                    Text(
-                                        result.message,
-                                        textAlign = TextAlign.Center,
-                                        color = MaterialTheme.colorScheme.error,
-                                    )
-                                }
+                        }
+                        is ValidationResult.Failure -> {
+                            // Error state remains the same
+                            Column(
+                                modifier = Modifier.padding(16.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                            ) {
+                                Text(
+                                    "❌ Validation Failed",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    color = MaterialTheme.colorScheme.error,
+                                )
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Text(
+                                    result.message,
+                                    textAlign = TextAlign.Center,
+                                    color = MaterialTheme.colorScheme.error,
+                                )
                             }
                         }
                     }
                 }
+            }
 
-                if (state.isLoading) {
-                    Spacer(modifier = Modifier.height(16.dp))
-                    CircularProgressIndicator()
-                }
+            if (state.isLoading) {
+                Spacer(modifier = Modifier.height(16.dp))
+                CircularProgressIndicator()
             }
         }
     }

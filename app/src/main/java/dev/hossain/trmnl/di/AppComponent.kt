@@ -5,7 +5,7 @@ import android.content.Context
 import com.squareup.anvil.annotations.MergeComponent
 import com.squareup.anvil.annotations.optional.SingleIn
 import dagger.BindsInstance
-import dev.hossain.trmnl.TrmnlDisplayApp
+import dev.hossain.trmnl.TrmnlDisplayMirrorApp
 import javax.inject.Provider
 
 @MergeComponent(
@@ -17,9 +17,9 @@ interface AppComponent {
     val activityProviders: Map<Class<out Activity>, @JvmSuppressWildcards Provider<Activity>>
 
     /**
-     * Injects dependencies into [TrmnlDisplayApp].
+     * Injects dependencies into [TrmnlDisplayMirrorApp].
      */
-    fun inject(app: TrmnlDisplayApp)
+    fun inject(app: TrmnlDisplayMirrorApp)
 
     @MergeComponent.Factory
     interface Factory {

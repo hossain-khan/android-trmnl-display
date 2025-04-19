@@ -11,7 +11,7 @@ import javax.inject.Inject
 /**
  * Application class for the app with key initializations.
  */
-class TrmnlDisplayApp :
+class TrmnlDisplayMirrorApp :
     Application(),
     Configuration.Provider {
     private val appComponent: AppComponent by lazy { AppComponent.create(this) }
