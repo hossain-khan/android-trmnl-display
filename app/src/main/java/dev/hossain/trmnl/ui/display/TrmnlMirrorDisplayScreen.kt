@@ -53,7 +53,7 @@ import dagger.assisted.AssistedInject
 import dev.hossain.trmnl.data.TrmnlDisplayRepository
 import dev.hossain.trmnl.di.AppScope
 import dev.hossain.trmnl.ui.FullScreenMode
-import dev.hossain.trmnl.ui.activitylog.ActivityLogScreen
+import dev.hossain.trmnl.ui.refreshlog.DisplayRefreshLogScreen
 import dev.hossain.trmnl.ui.config.AppConfigScreen
 import dev.hossain.trmnl.util.CoilRequestUtils
 import dev.hossain.trmnl.util.TokenManager
@@ -155,7 +155,7 @@ class TrmnlMirrorDisplayPresenter
                             navigator.pop()
                         }
                         TrmnlMirrorDisplayScreen.Event.ViewLogsRequested -> {
-                            navigator.goTo(ActivityLogScreen)
+                            navigator.goTo(DisplayRefreshLogScreen)
                         }
                     }
                 },
