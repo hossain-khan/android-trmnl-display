@@ -22,6 +22,12 @@ private val Context.imageDataStore: DataStore<Preferences> by preferencesDataSto
     name = "trmnl_image_metadata",
 )
 
+/**
+ * Store for image metadata, including URL, timestamp, and refresh rate.
+ * These are used as cache to avoid unnecessary network calls.
+ *
+ * @see ImageMetadata
+ */
 @SingleIn(AppScope::class)
 class ImageMetadataStore
     @Inject
