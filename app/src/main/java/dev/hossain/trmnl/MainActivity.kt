@@ -26,6 +26,7 @@ import dev.hossain.trmnl.ui.display.TrmnlMirrorDisplayScreen
 import dev.hossain.trmnl.ui.theme.CircuitAppTheme
 import dev.hossain.trmnl.work.TrmnlImageRefreshWorker
 import dev.hossain.trmnl.work.TrmnlImageUpdateManager
+import dev.hossain.trmnl.work.TrmnlWorkManager.Companion.IMAGE_REFRESH_ONETIME_WORK_NAME
 import dev.hossain.trmnl.work.TrmnlWorkManager.Companion.IMAGE_REFRESH_PERIODIC_WORK_NAME
 import timber.log.Timber
 import javax.inject.Inject
@@ -95,11 +96,36 @@ class MainActivity
                                     )
 
                                 if (newImageUrl != null) {
-                                    Timber.d("New image URL: $newImageUrl")
-                                    // Update the image URL in your UI
+                                    Timber.d("New image URL from periodic work: $newImageUrl")
+                                    // Update the image URL via the manager
                                     trmnlImageUpdateManager.updateImage(newImageUrl)
                                 }
                             }
+                        }
+                    }
+                }
+
+            // Also listen for one-time work results
+            WorkManager
+                .getInstance(context)
+                .getWorkInfosForUniqueWorkLiveData(IMAGE_REFRESH_ONETIME_WORK_NAME)
+                .observe(this) { workInfos ->
+                    workInfos.forEach { workInfo ->
+                        Timber.d("Received one-time WorkInfo: $workInfo")
+                        if (workInfo.state == WorkInfo.State.SUCCEEDED) {
+                            val newImageUrl =
+                                workInfo.outputData.getString(
+                                    TrmnlImageRefreshWorker.KEY_NEW_IMAGE_URL,
+                                )
+
+                            if (newImageUrl != null) {
+                                Timber.d("New image URL from one-time work: $newImageUrl")
+                                trmnlImageUpdateManager.updateImage(newImageUrl)
+                            }
+                        } else if (workInfo.state == WorkInfo.State.FAILED) {
+                            val error = workInfo.outputData.getString(TrmnlImageRefreshWorker.KEY_ERROR)
+                            Timber.e("One-time work failed: $error")
+                            // Optionally update UI with error state
                         }
                     }
                 }
