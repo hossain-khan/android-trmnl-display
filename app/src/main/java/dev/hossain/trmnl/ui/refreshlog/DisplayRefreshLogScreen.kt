@@ -1,4 +1,4 @@
-package dev.hossain.trmnl.ui.activitylog
+package dev.hossain.trmnl.ui.refreshlog
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -48,8 +48,12 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
+/**
+ * A screen that displays the refresh logs of the TRMNL display.
+ * This is meant to validate how often the refresh rate is set and when the image is updated.
+ */
 @Parcelize
-data object ActivityLogScreen : Screen {
+data object DisplayRefreshLogScreen : Screen {
     data class State(
         val logs: List<TrmnlRefreshLog>,
         val eventSink: (Event) -> Unit,
@@ -62,23 +66,23 @@ data object ActivityLogScreen : Screen {
     }
 }
 
-class ActivityLogPresenter
+class DisplayRefreshLogPresenter
     @AssistedInject
     constructor(
         @Assisted private val navigator: Navigator,
         private val activityLogManager: TrmnlRefreshLogManager,
-    ) : Presenter<ActivityLogScreen.State> {
+    ) : Presenter<DisplayRefreshLogScreen.State> {
         @Composable
-        override fun present(): ActivityLogScreen.State {
+        override fun present(): DisplayRefreshLogScreen.State {
             val logs by activityLogManager.logsFlow.collectAsState(initial = emptyList())
             val scope = rememberCoroutineScope()
 
-            return ActivityLogScreen.State(
+            return DisplayRefreshLogScreen.State(
                 logs = logs,
                 eventSink = { event ->
                     when (event) {
-                        ActivityLogScreen.Event.BackPressed -> navigator.pop()
-                        ActivityLogScreen.Event.ClearLogs -> {
+                        DisplayRefreshLogScreen.Event.BackPressed -> navigator.pop()
+                        DisplayRefreshLogScreen.Event.ClearLogs -> {
                             scope.launch {
                                 activityLogManager.clearLogs()
                             }
@@ -88,18 +92,18 @@ class ActivityLogPresenter
             )
         }
 
-        @CircuitInject(ActivityLogScreen::class, AppScope::class)
+        @CircuitInject(DisplayRefreshLogScreen::class, AppScope::class)
         @AssistedFactory
         fun interface Factory {
-            fun create(navigator: Navigator): ActivityLogPresenter
+            fun create(navigator: Navigator): DisplayRefreshLogPresenter
         }
     }
 
-@CircuitInject(ActivityLogScreen::class, AppScope::class)
+@CircuitInject(DisplayRefreshLogScreen::class, AppScope::class)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ActivityLogContent(
-    state: ActivityLogScreen.State,
+fun DisplayRefreshLogContent(
+    state: DisplayRefreshLogScreen.State,
     modifier: Modifier = Modifier,
 ) {
     Scaffold(
@@ -108,12 +112,12 @@ fun ActivityLogContent(
             TopAppBar(
                 title = { Text("Activity Logs") },
                 navigationIcon = {
-                    IconButton(onClick = { state.eventSink(ActivityLogScreen.Event.BackPressed) }) {
+                    IconButton(onClick = { state.eventSink(DisplayRefreshLogScreen.Event.BackPressed) }) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Back")
                     }
                 },
                 actions = {
-                    IconButton(onClick = { state.eventSink(ActivityLogScreen.Event.ClearLogs) }) {
+                    IconButton(onClick = { state.eventSink(DisplayRefreshLogScreen.Event.ClearLogs) }) {
                         Icon(Icons.Default.Clear, contentDescription = "Clear logs")
                     }
                 },
