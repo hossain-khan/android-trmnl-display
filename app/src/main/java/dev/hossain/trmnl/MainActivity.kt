@@ -31,6 +31,10 @@ import dev.hossain.trmnl.work.TrmnlWorkManager.Companion.IMAGE_REFRESH_PERIODIC_
 import timber.log.Timber
 import javax.inject.Inject
 
+/**
+ * Main activity for the TRMNL display mirror app.
+ * This activity sets up the Circuit framework and handles navigation.
+ */
 @ContributesMultibinding(AppScope::class, boundType = Activity::class)
 @ActivityKey(MainActivity::class)
 class MainActivity
@@ -45,6 +49,7 @@ class MainActivity
             enableEdgeToEdge()
             super.onCreate(savedInstanceState)
 
+            // Setup listener for TRMNL display image updates
             listenForWorkUpdates()
 
             setContent {
@@ -74,6 +79,15 @@ class MainActivity
             }
         }
 
+        /**
+         * Sets up observers for WorkManager work updates.
+         *
+         * This function:
+         * 1. Listens for periodic image refresh work results
+         * 2. Listens for one-time image refresh work results
+         * 3. Updates the application with new images when available
+         * 4. Logs work status and errors
+         */
         private fun listenForWorkUpdates() {
             // Listen for work results
             WorkManager
