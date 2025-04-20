@@ -98,29 +98,21 @@ class MainActivity
                     workInfos.forEach { workInfo ->
                         if (workInfo.state == WorkInfo.State.SUCCEEDED) {
                             Timber.d("Periodic work succeeded: $workInfo")
-                            val hasNewImage =
-                                workInfo.outputData.getBoolean(
-                                    TrmnlImageRefreshWorker.KEY_HAS_NEW_IMAGE,
-                                    false,
+                            val newImageUrl =
+                                workInfo.outputData.getString(
+                                    TrmnlImageRefreshWorker.KEY_NEW_IMAGE_URL,
                                 )
 
-                            if (hasNewImage) {
-                                val newImageUrl =
-                                    workInfo.outputData.getString(
-                                        TrmnlImageRefreshWorker.KEY_NEW_IMAGE_URL,
-                                    )
-
-                                if (newImageUrl != null) {
-                                    Timber.d("New image URL from periodic work: $newImageUrl")
-                                    // Update the image URL via the manager
-                                    trmnlImageUpdateManager.updateImage(
-                                        ImageMetadata(
-                                            url = newImageUrl,
-                                            timestamp = System.currentTimeMillis(),
-                                            refreshRateSecs = null,
-                                        ),
-                                    )
-                                }
+                            if (newImageUrl != null) {
+                                Timber.d("New image URL from periodic work: $newImageUrl")
+                                // Update the image URL via the manager
+                                trmnlImageUpdateManager.updateImage(
+                                    ImageMetadata(
+                                        url = newImageUrl,
+                                        timestamp = System.currentTimeMillis(),
+                                        refreshRateSecs = null,
+                                    ),
+                                )
                             }
                         }
                     }
