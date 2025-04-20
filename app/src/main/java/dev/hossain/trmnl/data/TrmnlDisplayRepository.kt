@@ -1,7 +1,7 @@
 package dev.hossain.trmnl.data
 
 import com.squareup.anvil.annotations.optional.SingleIn
-import dev.hossain.trmnl.data.AppConfig.FAKE_API_RESPONSE
+import dev.hossain.trmnl.data.DevConfig.FAKE_API_RESPONSE
 import dev.hossain.trmnl.di.AppScope
 import dev.hossain.trmnl.network.TrmnlApiService
 import timber.log.Timber
