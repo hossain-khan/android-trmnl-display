@@ -11,8 +11,8 @@ import dev.hossain.trmnl.data.log.TrmnlRefreshLogManager
 import dev.hossain.trmnl.di.WorkerModule
 import dev.hossain.trmnl.ui.display.TrmnlMirrorDisplayScreen
 import dev.hossain.trmnl.util.TokenManager
-import dev.hossain.trmnl.work.TrmnlImageRefreshWorker.RefreshResult.FAILURE
-import dev.hossain.trmnl.work.TrmnlImageRefreshWorker.RefreshResult.SUCCESS
+import dev.hossain.trmnl.work.TrmnlImageRefreshWorker.RefreshWorkResult.FAILURE
+import dev.hossain.trmnl.work.TrmnlImageRefreshWorker.RefreshWorkResult.SUCCESS
 import kotlinx.coroutines.flow.firstOrNull
 import timber.log.Timber
 import javax.inject.Inject
@@ -44,7 +44,7 @@ class TrmnlImageRefreshWorker(
     }
 
     @Keep
-    enum class RefreshResult {
+    enum class RefreshWorkResult {
         SUCCESS,
         FAILURE,
     }
