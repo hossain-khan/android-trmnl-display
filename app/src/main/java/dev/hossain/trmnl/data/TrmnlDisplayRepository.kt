@@ -42,7 +42,7 @@ class TrmnlDisplayRepository
                 )
 
             // If response was successful and has an image URL, save to data store
-            if (response.status != 500 && !displayInfo.imageUrl.isNullOrEmpty()) {
+            if (response.status == 0 && displayInfo.imageUrl.isNotEmpty()) {
                 imageMetadataStore.saveImageMetadata(
                     displayInfo.imageUrl,
                     displayInfo.refreshRateSecs,

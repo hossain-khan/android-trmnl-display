@@ -13,7 +13,6 @@ import androidx.work.WorkManager
 import androidx.work.WorkQuery
 import androidx.work.WorkRequest
 import com.squareup.anvil.annotations.optional.SingleIn
-import dev.hossain.trmnl.data.AppConfig.DEFAULT_REFRESH_RATE_SEC
 import dev.hossain.trmnl.di.AppScope
 import dev.hossain.trmnl.di.ApplicationContext
 import dev.hossain.trmnl.util.TokenManager
@@ -40,12 +39,14 @@ class TrmnlWorkManager
         companion object {
             internal const val IMAGE_REFRESH_PERIODIC_WORK_NAME = "trmnl_image_refresh_work_periodic"
             internal const val IMAGE_REFRESH_ONETIME_WORK_NAME = "trmnl_image_refresh_work_onetime"
+
+            private const val WORK_MANAGER_MINIMUM_INTERVAL_MINUTES = 15L
         }
 
         /**
          * Schedule periodic image refresh work
          */
-        fun scheduleImageRefreshWork(intervalSeconds: Long? = null) {
+        fun scheduleImageRefreshWork(intervalSeconds: Long) {
             // Check if we already have work scheduled
             val workInfos =
                 WorkManager
@@ -65,16 +66,10 @@ class TrmnlWorkManager
                 Timber.d("No existing work found, will create new work")
             }
 
-            // Use provided value or fall back to stored value or default
-            val effectiveInterval =
-                intervalSeconds
-                    ?: tokenManager.getRefreshRateSecondsSync()
-                    ?: DEFAULT_REFRESH_RATE_SEC
-
             // Convert seconds to minutes and ensure minimum interval
-            val intervalMinutes = (effectiveInterval / 60).coerceAtLeast(15)
+            val intervalMinutes = (intervalSeconds / 60).coerceAtLeast(WORK_MANAGER_MINIMUM_INTERVAL_MINUTES)
 
-            Timber.d("Scheduling work: $effectiveInterval seconds → $intervalMinutes minutes")
+            Timber.d("Scheduling work: $intervalSeconds seconds → $intervalMinutes minutes")
 
             if (tokenManager.hasTokenSync().not()) {
                 Timber.w("Token not set, skipping image refresh work scheduling")
