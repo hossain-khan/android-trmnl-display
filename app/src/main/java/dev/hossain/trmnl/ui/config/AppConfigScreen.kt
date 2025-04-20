@@ -20,6 +20,7 @@ import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -77,6 +78,8 @@ import dev.hossain.trmnl.work.TrmnlWorkManager.Companion.IMAGE_REFRESH_PERIODIC_
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 import kotlinx.parcelize.Parcelize
+import java.time.Instant
+import java.time.format.DateTimeFormatter
 
 /**
  * Screen for configuring the TRMNL token and other things.
@@ -268,7 +271,7 @@ fun AppConfigContent(
                     .fillMaxSize()
                     .verticalScroll(scrollState)
                     .padding(innerPadding)
-                    .padding(16.dp),
+                    .padding(horizontal = 32.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
         ) {
@@ -405,13 +408,13 @@ fun AppConfigContent(
 @Composable
 private fun WorkScheduleStatusCard(
     modifier: Modifier = Modifier,
-    // This is an unconventional way to get the WorkManager instance, leaving as hack.
     workManager: WorkManager = WorkManager.getInstance(LocalContext.current),
     workName: String = IMAGE_REFRESH_PERIODIC_WORK_NAME,
 ) {
     val context = LocalContext.current
     var workInfo by remember { mutableStateOf<WorkInfo?>(null) }
     var isLoading by remember { mutableStateOf(true) }
+    val scope = rememberCoroutineScope()
 
     // Fetch work info
     LaunchedEffect(workName) {
@@ -459,6 +462,7 @@ private fun WorkScheduleStatusCard(
                     color = MaterialTheme.colorScheme.error,
                 )
             } else {
+                // Display existing status information
                 val statusText =
                     when (workInfo?.state) {
                         WorkInfo.State.ENQUEUED -> "Scheduled"
@@ -510,12 +514,10 @@ private fun WorkScheduleStatusCard(
 
                 // Show next schedule time if available
                 val nextScheduleTimeMillis = workInfo?.nextScheduleTimeMillis ?: 0L
-                if (nextScheduleTimeMillis > 0) {
-                    val formatter =
-                        java.time.format.DateTimeFormatter
-                            .ofPattern("yyyy-MM-dd HH:mm:ss")
+                if (nextScheduleTimeMillis > 0 && nextScheduleTimeMillis != Long.MAX_VALUE) {
+                    val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
                     val nextRunTime =
-                        java.time.Instant
+                        Instant
                             .ofEpochMilli(nextScheduleTimeMillis)
                             .atZone(java.time.ZoneId.systemDefault())
                             .format(formatter)
@@ -551,6 +553,35 @@ private fun WorkScheduleStatusCard(
                         style = MaterialTheme.typography.bodySmall,
                         modifier = Modifier.padding(start = 28.dp, top = 2.dp),
                     )
+
+                    // Add a button to cancel the work if it's scheduled
+                    if (workInfo?.state == WorkInfo.State.ENQUEUED ||
+                        workInfo?.state == WorkInfo.State.RUNNING ||
+                        workInfo?.state == WorkInfo.State.BLOCKED
+                    ) {
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        Button(
+                            onClick = {
+                                scope.launch {
+                                    workManager.cancelUniqueWork(workName)
+                                }
+                            },
+                            colors =
+                                ButtonDefaults.buttonColors(
+                                    containerColor = MaterialTheme.colorScheme.error,
+                                ),
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Clear,
+                                contentDescription = "Cancel scheduled work",
+                                modifier = Modifier.size(20.dp),
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Cancel Scheduled Refresh")
+                        }
+                    }
                 }
             }
         }
