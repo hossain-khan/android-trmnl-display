@@ -7,6 +7,7 @@ import androidx.work.Constraints
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.ExistingWorkPolicy
 import androidx.work.NetworkType
+import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
@@ -30,7 +31,7 @@ import javax.inject.Inject
  * @param tokenManager The token manager for managing authentication tokens.
  */
 @SingleIn(AppScope::class)
-class TrmnlWorkManager
+class TrmnlWorkScheduler
     @Inject
     constructor(
         @ApplicationContext private val context: Context,
@@ -38,7 +39,9 @@ class TrmnlWorkManager
     ) {
         companion object {
             internal const val IMAGE_REFRESH_PERIODIC_WORK_NAME = "trmnl_image_refresh_work_periodic"
+            internal const val IMAGE_REFRESH_PERIODIC_WORK_TAG = "trmnl_image_refresh_work_periodic_tag"
             internal const val IMAGE_REFRESH_ONETIME_WORK_NAME = "trmnl_image_refresh_work_onetime"
+            internal const val IMAGE_REFRESH_ONETIME_WORK_TAG = "trmnl_image_refresh_work_onetime_tag"
 
             private const val WORK_MANAGER_MINIMUM_INTERVAL_MINUTES = 15L
         }
@@ -89,9 +92,10 @@ class TrmnlWorkManager
                 ).setConstraints(constraints)
                     .setBackoffCriteria(
                         BackoffPolicy.LINEAR,
-                        WorkRequest.MIN_BACKOFF_MILLIS,
+                        WorkRequest.DEFAULT_BACKOFF_DELAY_MILLIS,
                         TimeUnit.MILLISECONDS,
-                    ).build()
+                    ).addTag(IMAGE_REFRESH_PERIODIC_WORK_TAG)
+                    .build()
 
             WorkManager.getInstance(context).enqueueUniquePeriodicWork(
                 uniqueWorkName = IMAGE_REFRESH_PERIODIC_WORK_NAME,
@@ -118,14 +122,14 @@ class TrmnlWorkManager
                     .build()
 
             val workRequest =
-                androidx.work
-                    .OneTimeWorkRequestBuilder<TrmnlImageRefreshWorker>()
+                OneTimeWorkRequestBuilder<TrmnlImageRefreshWorker>()
                     .setConstraints(constraints)
                     .setBackoffCriteria(
                         BackoffPolicy.EXPONENTIAL,
                         WorkRequest.DEFAULT_BACKOFF_DELAY_MILLIS,
                         TimeUnit.MILLISECONDS,
-                    ).build()
+                    ).addTag(IMAGE_REFRESH_ONETIME_WORK_TAG)
+                    .build()
 
             WorkManager
                 .getInstance(context)

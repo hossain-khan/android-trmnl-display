@@ -62,7 +62,7 @@ import dev.hossain.trmnl.ui.settings.AppSettingsScreen
 import dev.hossain.trmnl.util.CoilRequestUtils
 import dev.hossain.trmnl.util.TokenManager
 import dev.hossain.trmnl.work.TrmnlImageUpdateManager
-import dev.hossain.trmnl.work.TrmnlWorkManager
+import dev.hossain.trmnl.work.TrmnlWorkScheduler
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
@@ -101,7 +101,7 @@ class TrmnlMirrorDisplayPresenter
     constructor(
         @Assisted private val navigator: Navigator,
         private val tokenManager: TokenManager,
-        private val trmnlWorkManager: TrmnlWorkManager,
+        private val trmnlWorkScheduler: TrmnlWorkScheduler,
         private val imageMetadataStore: ImageMetadataStore,
         private val trmnlImageUpdateManager: TrmnlImageUpdateManager,
     ) : Presenter<TrmnlMirrorDisplayScreen.State> {
@@ -156,7 +156,7 @@ class TrmnlMirrorDisplayPresenter
                 } else {
                     // No valid image, start a refresh work
                     Timber.d("No valid cached image, starting one-time refresh work")
-                    trmnlWorkManager.startOneTimeImageRefreshWork()
+                    trmnlWorkScheduler.startOneTimeImageRefreshWork()
                 }
             }
 
@@ -176,7 +176,7 @@ class TrmnlMirrorDisplayPresenter
 
                                 if (tokenManager.hasTokenSync()) {
                                     Timber.d("Manually refreshing via WorkManager")
-                                    trmnlWorkManager.startOneTimeImageRefreshWork()
+                                    trmnlWorkScheduler.startOneTimeImageRefreshWork()
                                 } else {
                                     error = "No access token found"
                                     isLoading = false

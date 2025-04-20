@@ -15,7 +15,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -50,7 +49,7 @@ import dev.hossain.trmnl.BuildConfig
 import dev.hossain.trmnl.data.log.TrmnlRefreshLog
 import dev.hossain.trmnl.data.log.TrmnlRefreshLogManager
 import dev.hossain.trmnl.di.AppScope
-import dev.hossain.trmnl.work.TrmnlWorkManager
+import dev.hossain.trmnl.work.TrmnlWorkScheduler
 import kotlinx.coroutines.launch
 import kotlinx.parcelize.Parcelize
 import java.text.SimpleDateFormat
@@ -117,7 +116,7 @@ class DisplayRefreshLogPresenter
     constructor(
         @Assisted private val navigator: Navigator,
         private val activityLogManager: TrmnlRefreshLogManager,
-        private val trmnlWorkManager: TrmnlWorkManager,
+        private val trmnlWorkScheduler: TrmnlWorkScheduler,
     ) : Presenter<DisplayRefreshLogScreen.State> {
         /**
          * Creates and returns the state for the DisplayRefreshLogScreen.
@@ -160,7 +159,7 @@ class DisplayRefreshLogPresenter
                         }
 
                         DisplayRefreshLogScreen.Event.StartRefreshWorker -> {
-                            trmnlWorkManager.startOneTimeImageRefreshWork()
+                            trmnlWorkScheduler.startOneTimeImageRefreshWork()
                         }
                     }
                 },

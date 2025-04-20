@@ -33,7 +33,7 @@ class TrmnlImageRefreshWorker(
     private val displayRepository: TrmnlDisplayRepository,
     private val tokenManager: TokenManager,
     private val refreshLogManager: TrmnlRefreshLogManager,
-    private val trmnlWorkManager: TrmnlWorkManager,
+    private val trmnlWorkScheduler: TrmnlWorkScheduler,
 ) : CoroutineWorker(appContext, params) {
     companion object {
         private const val TAG = "TrmnlWorker"
@@ -50,7 +50,7 @@ class TrmnlImageRefreshWorker(
     }
 
     override suspend fun doWork(): Result {
-        Timber.tag(TAG).d("Starting image refresh work")
+        Timber.tag(TAG).d("Starting image refresh work ($tags)")
         try {
             // Get current token
             val token = tokenManager.accessTokenFlow.firstOrNull()
@@ -102,13 +102,13 @@ class TrmnlImageRefreshWorker(
                 if (tokenManager.shouldUpdateRefreshRate(newRefreshRateSec)) {
                     Timber.tag(TAG).d("Refresh rate changed, updating periodic work and saving new rate")
                     tokenManager.saveRefreshRateSeconds(newRefreshRateSec)
-                    trmnlWorkManager.scheduleImageRefreshWork(newRefreshRateSec)
+                    trmnlWorkScheduler.scheduleImageRefreshWork(newRefreshRateSec)
                 } else {
                     Timber.tag(TAG).d("Refresh rate is unchanged, not updating")
                 }
             }
 
-            Timber.tag(TAG).i("Image refresh successful, new URL: ${response.imageUrl}")
+            Timber.tag(TAG).i("Image refresh successful for work($tags), got new URL: ${response.imageUrl}")
             return Result.success(
                 workDataOf(
                     KEY_REFRESH_RESULT to SUCCESS.name,
@@ -116,7 +116,7 @@ class TrmnlImageRefreshWorker(
                 ),
             )
         } catch (e: Exception) {
-            Timber.tag(TAG).e(e, "Error during image refresh: ${e.message}")
+            Timber.tag(TAG).e(e, "Error during image refresh work($tags): ${e.message}")
             refreshLogManager.addFailureLog(e.message ?: "Unknown error during refresh")
             return Result.failure(
                 workDataOf(
@@ -139,7 +139,7 @@ class TrmnlImageRefreshWorker(
             private val displayRepository: TrmnlDisplayRepository,
             private val tokenManager: TokenManager,
             private val refreshLogManager: TrmnlRefreshLogManager,
-            private val trmnlWorkManager: TrmnlWorkManager,
+            private val trmnlWorkScheduler: TrmnlWorkScheduler,
         ) {
             fun create(
                 appContext: Context,
@@ -151,7 +151,7 @@ class TrmnlImageRefreshWorker(
                     displayRepository = displayRepository,
                     tokenManager = tokenManager,
                     refreshLogManager = refreshLogManager,
-                    trmnlWorkManager = trmnlWorkManager,
+                    trmnlWorkScheduler = trmnlWorkScheduler,
                 )
         }
 }

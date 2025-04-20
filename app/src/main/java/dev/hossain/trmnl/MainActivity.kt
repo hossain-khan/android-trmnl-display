@@ -10,6 +10,7 @@ import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.runtime.remember
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
+import androidx.work.WorkQuery
 import com.slack.circuit.backstack.rememberSaveableBackStack
 import com.slack.circuit.foundation.Circuit
 import com.slack.circuit.foundation.CircuitCompositionLocals
@@ -27,8 +28,8 @@ import dev.hossain.trmnl.ui.display.TrmnlMirrorDisplayScreen
 import dev.hossain.trmnl.ui.theme.TrmnlDisplayAppTheme
 import dev.hossain.trmnl.work.TrmnlImageRefreshWorker
 import dev.hossain.trmnl.work.TrmnlImageUpdateManager
-import dev.hossain.trmnl.work.TrmnlWorkManager.Companion.IMAGE_REFRESH_ONETIME_WORK_NAME
-import dev.hossain.trmnl.work.TrmnlWorkManager.Companion.IMAGE_REFRESH_PERIODIC_WORK_NAME
+import dev.hossain.trmnl.work.TrmnlWorkScheduler.Companion.IMAGE_REFRESH_ONETIME_WORK_NAME
+import dev.hossain.trmnl.work.TrmnlWorkScheduler.Companion.IMAGE_REFRESH_PERIODIC_WORK_NAME
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -92,20 +93,23 @@ class MainActivity
         private fun listenForWorkUpdates() {
             val workManager = WorkManager.getInstance(context)
 
-            // Create a reusable observer function
-            fun observeWork(workName: String) {
-                workManager.getWorkInfosForUniqueWorkLiveData(workName).observe(this) { workInfos ->
+            workManager
+                .getWorkInfosLiveData(
+                    WorkQuery.fromUniqueWorkNames(IMAGE_REFRESH_PERIODIC_WORK_NAME, IMAGE_REFRESH_ONETIME_WORK_NAME),
+                ).observe(this) { workInfos ->
+                    // ⚠️ DEV NOTE: On app launch, previously ran work info is broadcasted here,
+                    // so it may result in inconsistent behavior where it remembers last result.
                     workInfos.forEach { workInfo ->
                         when (workInfo.state) {
                             WorkInfo.State.SUCCEEDED -> {
-                                Timber.d("$workName work succeeded: $workInfo")
+                                Timber.d("${workInfo.tags} work ${workInfo.state.name.lowercase()}: $workInfo")
                                 val newImageUrl =
                                     workInfo.outputData.getString(
                                         TrmnlImageRefreshWorker.KEY_NEW_IMAGE_URL,
                                     )
 
                                 if (newImageUrl != null) {
-                                    Timber.d("New image URL from $workName: $newImageUrl")
+                                    Timber.i("New image URL from ${workInfo.tags}: $newImageUrl")
                                     trmnlImageUpdateManager.updateImage(
                                         ImageMetadata(
                                             url = newImageUrl,
@@ -117,7 +121,7 @@ class MainActivity
                             }
                             WorkInfo.State.FAILED -> {
                                 val error = workInfo.outputData.getString(TrmnlImageRefreshWorker.KEY_ERROR_MESSAGE)
-                                Timber.e("$workName work failed: $error")
+                                Timber.e("${workInfo.tags} work failed: $error")
                                 trmnlImageUpdateManager.updateImage(
                                     ImageMetadata(
                                         url = "",
@@ -127,14 +131,11 @@ class MainActivity
                                     ),
                                 )
                             }
-                            else -> { /* No action needed for other states */ }
+                            else -> {
+                                Timber.d("${workInfo.tags} work state updated: ${workInfo.state}")
+                            }
                         }
                     }
                 }
-            }
-
-            // Observe both work types
-            observeWork(IMAGE_REFRESH_PERIODIC_WORK_NAME)
-            observeWork(IMAGE_REFRESH_ONETIME_WORK_NAME)
         }
     }
