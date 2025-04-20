@@ -10,8 +10,9 @@ import javax.inject.Inject
 /**
  * Repository class responsible for fetching and mapping display data.
  *
- * ⚠️ NOTE: By default, [FAKE_API_RESPONSE] is set to `true` and it will
- * not make any network calls. Set it to `false` to enable real API calls.
+ * ⚠️ NOTE: [FAKE_API_RESPONSE] is set to `true` in debug builds, meaning it will
+ * use mock data and avoid network calls. In release builds, it is set to `false`
+ * to enable real API calls.
  */
 @SingleIn(AppScope::class)
 class TrmnlDisplayRepository
