@@ -50,7 +50,7 @@ class TrmnlImageRefreshWorker(
     }
 
     override suspend fun doWork(): Result {
-        Timber.tag(TAG).d("Starting image refresh work")
+        Timber.tag(TAG).d("Starting image refresh work ($tags)")
         try {
             // Get current token
             val token = tokenManager.accessTokenFlow.firstOrNull()
@@ -116,7 +116,7 @@ class TrmnlImageRefreshWorker(
                 ),
             )
         } catch (e: Exception) {
-            Timber.tag(TAG).e(e, "Error during image refresh: ${e.message}")
+            Timber.tag(TAG).e(e, "Error during image refresh work($tags): ${e.message}")
             refreshLogManager.addFailureLog(e.message ?: "Unknown error during refresh")
             return Result.failure(
                 workDataOf(
