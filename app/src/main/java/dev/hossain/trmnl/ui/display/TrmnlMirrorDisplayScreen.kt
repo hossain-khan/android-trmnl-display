@@ -232,7 +232,10 @@ fun TrmnlMirrorDisplayContent(
         if (state.isLoading) {
             CircularProgressIndicator()
         } else if (state.errorMessage != null) {
-            Text(text = "Error: ${state.errorMessage}")
+            Text(
+                text = "Error: ${state.errorMessage}",
+                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+            )
         } else {
             AsyncImage(
                 model = CoilRequestUtils.createCachedImageRequest(context, state.imageUrl),
