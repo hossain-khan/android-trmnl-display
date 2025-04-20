@@ -30,6 +30,7 @@ class TrmnlImageRefreshWorker(
     private val displayRepository: TrmnlDisplayRepository,
     private val tokenManager: TokenManager,
     private val refreshLogManager: TrmnlRefreshLogManager,
+    private val trmnlWorkManager: TrmnlWorkManager,
 ) : CoroutineWorker(appContext, params) {
     companion object {
         private const val TAG = "TrmnlWorker"
@@ -84,14 +85,19 @@ class TrmnlImageRefreshWorker(
                 )
             }
 
-            // Log success
+            // ✅ Log success and update image
             refreshLogManager.addSuccessLog(response.imageUrl, response.refreshRateSecs)
 
             // Check if we should adapt refresh rate
             val refreshRate = response.refreshRateSecs
-            refreshRate?.let {
-                Timber.tag(TAG).d("Adapting refresh rate to $refreshRate seconds")
-                tokenManager.saveRefreshRateSeconds(it)
+            refreshRate?.let { newRefreshRateSec ->
+                if (tokenManager.shouldUpdateRefreshRate(newRefreshRateSec)) {
+                    Timber.tag(TAG).d("Refresh rate changed, updating periodic work and saving new rate")
+                    tokenManager.saveRefreshRateSeconds(newRefreshRateSec)
+                    trmnlWorkManager.scheduleImageRefreshWork(newRefreshRateSec)
+                } else {
+                    Timber.tag(TAG).d("Refresh rate is unchanged, not updating")
+                }
             }
 
             Timber.tag(TAG).i("Image refresh successful, new URL: ${response.imageUrl}")
@@ -126,6 +132,7 @@ class TrmnlImageRefreshWorker(
             private val displayRepository: TrmnlDisplayRepository,
             private val tokenManager: TokenManager,
             private val refreshLogManager: TrmnlRefreshLogManager,
+            private val trmnlWorkManager: TrmnlWorkManager,
         ) {
             fun create(
                 appContext: Context,
@@ -137,6 +144,7 @@ class TrmnlImageRefreshWorker(
                     displayRepository = displayRepository,
                     tokenManager = tokenManager,
                     refreshLogManager = refreshLogManager,
+                    trmnlWorkManager = trmnlWorkManager,
                 )
         }
 }

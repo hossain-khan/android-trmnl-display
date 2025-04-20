@@ -28,7 +28,7 @@ class TokenManager
     ) {
         companion object {
             private val ACCESS_TOKEN_KEY = stringPreferencesKey("access_token")
-            private val REFRESH_RATE_KEY = longPreferencesKey("refresh_rate_seconds")
+            private val REFRESH_RATE_SEC_KEY = longPreferencesKey("refresh_rate_seconds")
         }
 
         /**
@@ -44,7 +44,7 @@ class TokenManager
          */
         val refreshRateSecondsFlow: Flow<Long?> =
             context.tokenDataStore.data.map { preferences ->
-                preferences[REFRESH_RATE_KEY]
+                preferences[REFRESH_RATE_SEC_KEY]
             }
 
         /**
@@ -61,7 +61,7 @@ class TokenManager
          */
         suspend fun saveRefreshRateSeconds(seconds: Long) {
             context.tokenDataStore.edit { preferences ->
-                preferences[REFRESH_RATE_KEY] = seconds
+                preferences[REFRESH_RATE_SEC_KEY] = seconds
             }
         }
 
@@ -116,7 +116,7 @@ class TokenManager
          */
         suspend fun clearRefreshRateSeconds() {
             context.tokenDataStore.edit { preferences ->
-                preferences.remove(REFRESH_RATE_KEY)
+                preferences.remove(REFRESH_RATE_SEC_KEY)
             }
         }
 
@@ -127,5 +127,10 @@ class TokenManager
             context.tokenDataStore.edit { preferences ->
                 preferences.clear()
             }
+        }
+
+        suspend fun shouldUpdateRefreshRate(newRefreshRateSec: Long): Boolean {
+            val currentRefreshRate = refreshRateSecondsFlow.first()
+            return currentRefreshRate != null && newRefreshRateSec != currentRefreshRate
         }
     }
