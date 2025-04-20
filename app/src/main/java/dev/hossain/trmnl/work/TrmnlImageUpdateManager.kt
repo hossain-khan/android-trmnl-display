@@ -24,12 +24,18 @@ class TrmnlImageUpdateManager
         val imageUpdateFlow: StateFlow<ImageMetadata?> = _imageUpdateFlow.asStateFlow()
 
         /**
-         * Updates the image URL and notifies observers through the flow
+         * Updates the image URL and notifies observers through the flow.
+         * Only accepts updates with newer timestamps than the current image.
          * @param imageMetadata The new image URL with additional metadata
          */
         fun updateImage(imageMetadata: ImageMetadata) {
-            Timber.d("Updating image URL in TrmnlImageUpdateManager: $imageMetadata")
-            _imageUpdateFlow.value = imageMetadata
+            val currentImageMetadata = _imageUpdateFlow.value
+            if (currentImageMetadata == null || imageMetadata.timestamp > currentImageMetadata.timestamp) {
+                Timber.d("Updating image URL in TrmnlImageUpdateManager: $imageMetadata")
+                _imageUpdateFlow.value = imageMetadata
+            } else {
+                Timber.d("Discarded older image update: $imageMetadata")
+            }
         }
 
         /**
