@@ -75,8 +75,8 @@ import dev.hossain.trmnl.ui.settings.AppSettingsScreen.ValidationResult
 import dev.hossain.trmnl.util.CoilRequestUtils
 import dev.hossain.trmnl.util.TokenManager
 import dev.hossain.trmnl.work.TrmnlImageUpdateManager
-import dev.hossain.trmnl.work.TrmnlWorkManager
-import dev.hossain.trmnl.work.TrmnlWorkManager.Companion.IMAGE_REFRESH_PERIODIC_WORK_NAME
+import dev.hossain.trmnl.work.TrmnlWorkScheduler
+import dev.hossain.trmnl.work.TrmnlWorkScheduler.Companion.IMAGE_REFRESH_PERIODIC_WORK_NAME
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 import kotlinx.parcelize.Parcelize
@@ -128,7 +128,7 @@ class AppSettingsPresenter
         @Assisted private val screen: AppSettingsScreen,
         private val displayRepository: TrmnlDisplayRepository,
         private val tokenManager: TokenManager,
-        private val trmnlWorkManager: TrmnlWorkManager,
+        private val trmnlWorkScheduler: TrmnlWorkScheduler,
         private val trmnlImageUpdateManager: TrmnlImageUpdateManager,
     ) : Presenter<AppSettingsScreen.State> {
         @Composable
@@ -208,7 +208,7 @@ class AppSettingsPresenter
                             if (result is ValidationResult.Success) {
                                 scope.launch {
                                     tokenManager.saveAccessToken(accessToken)
-                                    trmnlWorkManager.updateRefreshInterval(result.refreshRateSecs)
+                                    trmnlWorkScheduler.updateRefreshInterval(result.refreshRateSecs)
 
                                     if (screen.returnToMirrorAfterSave) {
                                         navigator.goTo(TrmnlMirrorDisplayScreen)

@@ -33,7 +33,7 @@ class TrmnlImageRefreshWorker(
     private val displayRepository: TrmnlDisplayRepository,
     private val tokenManager: TokenManager,
     private val refreshLogManager: TrmnlRefreshLogManager,
-    private val trmnlWorkManager: TrmnlWorkManager,
+    private val trmnlWorkScheduler: TrmnlWorkScheduler,
 ) : CoroutineWorker(appContext, params) {
     companion object {
         private const val TAG = "TrmnlWorker"
@@ -102,7 +102,7 @@ class TrmnlImageRefreshWorker(
                 if (tokenManager.shouldUpdateRefreshRate(newRefreshRateSec)) {
                     Timber.tag(TAG).d("Refresh rate changed, updating periodic work and saving new rate")
                     tokenManager.saveRefreshRateSeconds(newRefreshRateSec)
-                    trmnlWorkManager.scheduleImageRefreshWork(newRefreshRateSec)
+                    trmnlWorkScheduler.scheduleImageRefreshWork(newRefreshRateSec)
                 } else {
                     Timber.tag(TAG).d("Refresh rate is unchanged, not updating")
                 }
@@ -139,7 +139,7 @@ class TrmnlImageRefreshWorker(
             private val displayRepository: TrmnlDisplayRepository,
             private val tokenManager: TokenManager,
             private val refreshLogManager: TrmnlRefreshLogManager,
-            private val trmnlWorkManager: TrmnlWorkManager,
+            private val trmnlWorkScheduler: TrmnlWorkScheduler,
         ) {
             fun create(
                 appContext: Context,
@@ -151,7 +151,7 @@ class TrmnlImageRefreshWorker(
                     displayRepository = displayRepository,
                     tokenManager = tokenManager,
                     refreshLogManager = refreshLogManager,
-                    trmnlWorkManager = trmnlWorkManager,
+                    trmnlWorkScheduler = trmnlWorkScheduler,
                 )
         }
 }

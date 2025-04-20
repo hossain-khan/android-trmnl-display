@@ -30,7 +30,7 @@ import javax.inject.Inject
  * @param tokenManager The token manager for managing authentication tokens.
  */
 @SingleIn(AppScope::class)
-class TrmnlWorkManager
+class TrmnlWorkScheduler
     @Inject
     constructor(
         @ApplicationContext private val context: Context,

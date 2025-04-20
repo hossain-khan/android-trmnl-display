@@ -27,8 +27,8 @@ import dev.hossain.trmnl.ui.display.TrmnlMirrorDisplayScreen
 import dev.hossain.trmnl.ui.theme.TrmnlDisplayAppTheme
 import dev.hossain.trmnl.work.TrmnlImageRefreshWorker
 import dev.hossain.trmnl.work.TrmnlImageUpdateManager
-import dev.hossain.trmnl.work.TrmnlWorkManager.Companion.IMAGE_REFRESH_ONETIME_WORK_NAME
-import dev.hossain.trmnl.work.TrmnlWorkManager.Companion.IMAGE_REFRESH_PERIODIC_WORK_NAME
+import dev.hossain.trmnl.work.TrmnlWorkScheduler.Companion.IMAGE_REFRESH_ONETIME_WORK_NAME
+import dev.hossain.trmnl.work.TrmnlWorkScheduler.Companion.IMAGE_REFRESH_PERIODIC_WORK_NAME
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -95,6 +95,8 @@ class MainActivity
             // Create a reusable observer function
             fun observeWork(workName: String) {
                 workManager.getWorkInfosForUniqueWorkLiveData(workName).observe(this) { workInfos ->
+                    // ⚠️ DEV NOTE: On app launch, previously ran work info is broadcasted here,
+                    // so it may result in inconsistent behavior where it remembers last result.
                     workInfos.forEach { workInfo ->
                         when (workInfo.state) {
                             WorkInfo.State.SUCCEEDED -> {
