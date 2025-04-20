@@ -1,4 +1,4 @@
-package dev.hossain.trmnl.ui.config
+package dev.hossain.trmnl.ui.settings
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -70,7 +70,7 @@ import dev.hossain.trmnl.data.AppConfig.DEFAULT_REFRESH_RATE_SEC
 import dev.hossain.trmnl.data.ImageMetadata
 import dev.hossain.trmnl.data.TrmnlDisplayRepository
 import dev.hossain.trmnl.di.AppScope
-import dev.hossain.trmnl.ui.config.AppConfigScreen.ValidationResult
+import dev.hossain.trmnl.ui.settings.AppConfigScreen.ValidationResult
 import dev.hossain.trmnl.ui.display.TrmnlMirrorDisplayScreen
 import dev.hossain.trmnl.util.CoilRequestUtils
 import dev.hossain.trmnl.util.TokenManager
