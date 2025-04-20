@@ -115,7 +115,7 @@ class TrmnlMirrorDisplayPresenter
                         isLoading = false
                         error = null
                     } else {
-                        Timber.w("Failed to get cached image URL from WorkManager")
+                        Timber.w("Failed to get cached image URL from TRMNL Image Update Manager `imageUpdateFlow`")
                         isLoading = true
                         error = "Failed to load image"
                     }
@@ -135,7 +135,7 @@ class TrmnlMirrorDisplayPresenter
                 val hasValidImage = imageMetadataStore.hasValidImageUrlFlow.firstOrNull() ?: false
                 if (hasValidImage) {
                     // Initial loading state will be updated when imageUpdateFlow emits
-                    Timber.d("Valid cached image exists")
+                    Timber.d("Valid cached image URL exists in ImageMetadataStore")
                     trmnlImageUpdateManager.initialize()
                 } else {
                     // No valid image, start a refresh work

@@ -37,7 +37,7 @@ class TrmnlImageUpdateManager
         suspend fun initialize() {
             imageMetadataStore.imageMetadataFlow.collect { metadata ->
                 if (metadata != null && _imageUpdateFlow.value == null) {
-                    Timber.d("Initializing image URL from cache: ${metadata.url}")
+                    Timber.d("Initializing image URL from ImageMetadataStore cache: ${metadata.url}")
                     _imageUpdateFlow.value = metadata.url
                 }
             }
