@@ -115,27 +115,14 @@ class TrmnlMirrorDisplayPresenter
             LaunchedEffect(Unit) {
                 trmnlImageUpdateManager.imageUpdateFlow.collect { imageMetadata ->
                     Timber.d("Received new image URL from TRMNL Image Update Manager: $imageMetadata")
-                    if (imageMetadata != null) {
+                    if (imageMetadata != null && imageMetadata.errorMessage == null) {
                         imageUrl = imageMetadata.url
                         isLoading = false
                         error = null
                     } else {
                         Timber.w("Failed to get cached image URL from TRMNL Image Update Manager `imageUpdateFlow`")
-                        isLoading = true
-                        error = "Failed to load image"
-                    }
-                }
-            }
-
-            LaunchedEffect(Unit) {
-                trmnlImageUpdateManager.imageUpdateStatusFlow.collect {
-                    if (it != null) {
-                        Timber.d("Received image update status: $it")
-                        error = "Failed to refresh image"
                         isLoading = false
-                    } else {
-                        error = null
-                        isLoading = false
+                        error = imageMetadata?.errorMessage ?: "Failed to load image. Please re-validate token."
                     }
                 }
             }
