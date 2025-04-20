@@ -470,7 +470,7 @@ private fun WorkScheduleStatusCard(
                         WorkInfo.State.SUCCEEDED -> "Completed successfully"
                         WorkInfo.State.FAILED -> "Failed"
                         WorkInfo.State.BLOCKED -> "Waiting for conditions"
-                        WorkInfo.State.CANCELLED -> "Cancelled"
+                        WorkInfo.State.CANCELLED -> "Cancelled\nValidate and continue to reschedule"
                         null -> "Unknown"
                     }
 
@@ -579,7 +579,7 @@ private fun WorkScheduleStatusCard(
                                 modifier = Modifier.size(20.dp),
                             )
                             Spacer(modifier = Modifier.width(8.dp))
-                            Text("Cancel Scheduled Refresh")
+                            Text("Cancel Periodic Refresh Job")
                         }
                     }
                 }
