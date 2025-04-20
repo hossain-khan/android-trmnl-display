@@ -107,7 +107,7 @@ class MainActivity
                                     )
 
                                 if (newImageUrl != null) {
-                                    Timber.d("New image URL from $workName: $newImageUrl")
+                                    Timber.i("New image URL from $workName: $newImageUrl")
                                     trmnlImageUpdateManager.updateImage(
                                         ImageMetadata(
                                             url = newImageUrl,
@@ -129,7 +129,9 @@ class MainActivity
                                     ),
                                 )
                             }
-                            else -> { /* No action needed for other states */ }
+                            else -> {
+                                Timber.d("$workName work state updated: ${workInfo.state}")
+                            }
                         }
                     }
                 }
