@@ -1,6 +1,7 @@
 package dev.hossain.trmnl.work
 
 import android.content.Context
+import androidx.annotation.Keep
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
@@ -10,6 +11,8 @@ import dev.hossain.trmnl.data.log.TrmnlRefreshLogManager
 import dev.hossain.trmnl.di.WorkerModule
 import dev.hossain.trmnl.ui.display.TrmnlMirrorDisplayScreen
 import dev.hossain.trmnl.util.TokenManager
+import dev.hossain.trmnl.work.TrmnlImageRefreshWorker.RefreshWorkResult.FAILURE
+import dev.hossain.trmnl.work.TrmnlImageRefreshWorker.RefreshWorkResult.SUCCESS
 import kotlinx.coroutines.flow.firstOrNull
 import timber.log.Timber
 import javax.inject.Inject
@@ -37,8 +40,13 @@ class TrmnlImageRefreshWorker(
 
         const val KEY_REFRESH_RESULT = "refresh_result"
         const val KEY_NEW_IMAGE_URL = "new_image_url"
-        const val KEY_ERROR = "error"
-        const val KEY_HAS_NEW_IMAGE = "has_new_image"
+        const val KEY_ERROR_MESSAGE = "error_message"
+    }
+
+    @Keep
+    enum class RefreshWorkResult {
+        SUCCESS,
+        FAILURE,
     }
 
     override suspend fun doWork(): Result {
@@ -52,8 +60,8 @@ class TrmnlImageRefreshWorker(
                 refreshLogManager.addFailureLog("No access token found")
                 return Result.failure(
                     workDataOf(
-                        KEY_REFRESH_RESULT to "failure",
-                        KEY_ERROR to "No access token found",
+                        KEY_REFRESH_RESULT to FAILURE.name,
+                        KEY_ERROR_MESSAGE to "No access token found",
                     ),
                 )
             }
@@ -67,8 +75,8 @@ class TrmnlImageRefreshWorker(
                 refreshLogManager.addFailureLog(response.error ?: "Unknown server error")
                 return Result.failure(
                     workDataOf(
-                        KEY_REFRESH_RESULT to "failure",
-                        KEY_ERROR to (response.error ?: "Unknown server error"),
+                        KEY_REFRESH_RESULT to FAILURE.name,
+                        KEY_ERROR_MESSAGE to (response.error ?: "Unknown server error"),
                     ),
                 )
             }
@@ -79,8 +87,8 @@ class TrmnlImageRefreshWorker(
                 refreshLogManager.addFailureLog("No image URL provided in response")
                 return Result.failure(
                     workDataOf(
-                        KEY_REFRESH_RESULT to "failure",
-                        KEY_ERROR to "No image URL provided in response",
+                        KEY_REFRESH_RESULT to FAILURE.name,
+                        KEY_ERROR_MESSAGE to "No image URL provided in response",
                     ),
                 )
             }
@@ -103,9 +111,8 @@ class TrmnlImageRefreshWorker(
             Timber.tag(TAG).i("Image refresh successful, new URL: ${response.imageUrl}")
             return Result.success(
                 workDataOf(
-                    KEY_REFRESH_RESULT to "success",
+                    KEY_REFRESH_RESULT to SUCCESS.name,
                     KEY_NEW_IMAGE_URL to response.imageUrl,
-                    KEY_HAS_NEW_IMAGE to true,
                 ),
             )
         } catch (e: Exception) {
@@ -113,8 +120,8 @@ class TrmnlImageRefreshWorker(
             refreshLogManager.addFailureLog(e.message ?: "Unknown error during refresh")
             return Result.failure(
                 workDataOf(
-                    KEY_REFRESH_RESULT to "failure",
-                    KEY_ERROR to (e.message ?: "Unknown error during refresh"),
+                    KEY_REFRESH_RESULT to FAILURE.name,
+                    KEY_ERROR_MESSAGE to (e.message ?: "Unknown error during refresh"),
                 ),
             )
         }

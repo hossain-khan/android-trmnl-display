@@ -57,8 +57,8 @@ import dev.hossain.trmnl.R
 import dev.hossain.trmnl.data.ImageMetadataStore
 import dev.hossain.trmnl.di.AppScope
 import dev.hossain.trmnl.ui.FullScreenMode
-import dev.hossain.trmnl.ui.settings.AppSettingsScreen
 import dev.hossain.trmnl.ui.refreshlog.DisplayRefreshLogScreen
+import dev.hossain.trmnl.ui.settings.AppSettingsScreen
 import dev.hossain.trmnl.util.CoilRequestUtils
 import dev.hossain.trmnl.util.TokenManager
 import dev.hossain.trmnl.work.TrmnlImageUpdateManager

@@ -90,29 +90,22 @@ class MainActivity
          * 4. Logs work status and errors
          */
         private fun listenForWorkUpdates() {
-            // Listen for work results
-            WorkManager
-                .getInstance(context)
-                .getWorkInfosForUniqueWorkLiveData(IMAGE_REFRESH_PERIODIC_WORK_NAME)
-                .observe(this) { workInfos ->
-                    workInfos.forEach { workInfo ->
-                        if (workInfo.state == WorkInfo.State.SUCCEEDED) {
-                            Timber.d("Periodic work succeeded: $workInfo")
-                            val hasNewImage =
-                                workInfo.outputData.getBoolean(
-                                    TrmnlImageRefreshWorker.KEY_HAS_NEW_IMAGE,
-                                    false,
-                                )
+            val workManager = WorkManager.getInstance(context)
 
-                            if (hasNewImage) {
+            // Create a reusable observer function
+            fun observeWork(workName: String) {
+                workManager.getWorkInfosForUniqueWorkLiveData(workName).observe(this) { workInfos ->
+                    workInfos.forEach { workInfo ->
+                        when (workInfo.state) {
+                            WorkInfo.State.SUCCEEDED -> {
+                                Timber.d("$workName work succeeded: $workInfo")
                                 val newImageUrl =
                                     workInfo.outputData.getString(
                                         TrmnlImageRefreshWorker.KEY_NEW_IMAGE_URL,
                                     )
 
                                 if (newImageUrl != null) {
-                                    Timber.d("New image URL from periodic work: $newImageUrl")
-                                    // Update the image URL via the manager
+                                    Timber.d("New image URL from $workName: $newImageUrl")
                                     trmnlImageUpdateManager.updateImage(
                                         ImageMetadata(
                                             url = newImageUrl,
@@ -122,48 +115,26 @@ class MainActivity
                                     )
                                 }
                             }
-                        }
-                    }
-                }
-
-            // Also listen for one-time work results
-            WorkManager
-                .getInstance(context)
-                .getWorkInfosForUniqueWorkLiveData(IMAGE_REFRESH_ONETIME_WORK_NAME)
-                .observe(this) { workInfos ->
-                    // ⚠️ DEV NOTE: Previously ran work info is broadcasted here,
-                    // so it may result in inconsistent behavior where it remembers last result.
-                    workInfos.forEach { workInfo ->
-                        if (workInfo.state == WorkInfo.State.SUCCEEDED) {
-                            Timber.d("One-time work succeeded: $workInfo")
-                            val newImageUrl =
-                                workInfo.outputData.getString(
-                                    TrmnlImageRefreshWorker.KEY_NEW_IMAGE_URL,
-                                )
-
-                            if (newImageUrl != null) {
-                                Timber.d("New image URL from one-time work: $newImageUrl")
+                            WorkInfo.State.FAILED -> {
+                                val error = workInfo.outputData.getString(TrmnlImageRefreshWorker.KEY_ERROR_MESSAGE)
+                                Timber.e("$workName work failed: $error")
                                 trmnlImageUpdateManager.updateImage(
                                     ImageMetadata(
-                                        url = newImageUrl,
+                                        url = "",
                                         timestamp = System.currentTimeMillis(),
                                         refreshRateSecs = null,
+                                        errorMessage = error,
                                     ),
                                 )
                             }
-                        } else if (workInfo.state == WorkInfo.State.FAILED) {
-                            val error = workInfo.outputData.getString(TrmnlImageRefreshWorker.KEY_ERROR)
-                            Timber.e("One-time work failed: $error")
-                            trmnlImageUpdateManager.updateImage(
-                                ImageMetadata(
-                                    url = "",
-                                    timestamp = System.currentTimeMillis(),
-                                    refreshRateSecs = null,
-                                    errorMessage = error,
-                                ),
-                            )
+                            else -> { /* No action needed for other states */ }
                         }
                     }
                 }
+            }
+
+            // Observe both work types
+            observeWork(IMAGE_REFRESH_PERIODIC_WORK_NAME)
+            observeWork(IMAGE_REFRESH_ONETIME_WORK_NAME)
         }
     }

@@ -76,7 +76,7 @@ class TrmnlDisplayRepository
          */
         private suspend fun fakeTrmnlDisplayInfo(): TrmnlDisplayInfo {
             Timber.d("DEBUG: Using mock data for display info")
-            val mockImageUrl = "https://picsum.photos/300/200?grayscale"
+            val mockImageUrl = "https://picsum.photos/300/200?grayscale&time=${System.currentTimeMillis()}"
             val mockRefreshRate = 600L
 
             // Save mock data to the data store
