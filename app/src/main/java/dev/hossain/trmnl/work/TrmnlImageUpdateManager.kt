@@ -23,6 +23,9 @@ class TrmnlImageUpdateManager
         private val _imageUpdateFlow = MutableStateFlow<ImageMetadata?>(null)
         val imageUpdateFlow: StateFlow<ImageMetadata?> = _imageUpdateFlow.asStateFlow()
 
+        private val _imageUpdateStatusFlow = MutableStateFlow<String?>(null)
+        val imageUpdateStatusFlow: StateFlow<String?> = _imageUpdateStatusFlow.asStateFlow()
+
         /**
          * Updates the image URL and notifies observers through the flow
          * @param imageMetadata The new image URL with additional metadata
@@ -30,6 +33,11 @@ class TrmnlImageUpdateManager
         fun updateImage(imageMetadata: ImageMetadata) {
             Timber.d("Updating image URL in TrmnlImageUpdateManager: $imageMetadata")
             _imageUpdateFlow.value = imageMetadata
+        }
+
+        fun updateStatus(status: String) {
+            Timber.d("Updating image status in TrmnlImageUpdateManager: $status")
+            _imageUpdateStatusFlow.value = status
         }
 
         /**

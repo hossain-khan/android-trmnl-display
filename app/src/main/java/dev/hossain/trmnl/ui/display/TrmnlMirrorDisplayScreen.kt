@@ -74,8 +74,9 @@ import timber.log.Timber
 data object TrmnlMirrorDisplayScreen : Screen {
     data class State(
         val imageUrl: String?,
+        val overlayControlsVisible: Boolean,
         val isLoading: Boolean = false,
-        val error: String? = null,
+        val errorMessage: String? = null,
         val eventSink: (Event) -> Unit,
     ) : CircuitUiState
 
@@ -87,6 +88,8 @@ data object TrmnlMirrorDisplayScreen : Screen {
         data object ViewLogsRequested : Event()
 
         data object BackPressed : Event()
+
+        data object ToggleOverlayControls : Event()
     }
 }
 
@@ -102,6 +105,7 @@ class TrmnlMirrorDisplayPresenter
         @Composable
         override fun present(): TrmnlMirrorDisplayScreen.State {
             var imageUrl by remember { mutableStateOf<String?>(null) }
+            var overlayControlsVisible by remember { mutableStateOf(false) }
             var isLoading by remember { mutableStateOf(true) }
             var error by remember { mutableStateOf<String?>(null) }
             val scope = rememberCoroutineScope()
@@ -120,6 +124,27 @@ class TrmnlMirrorDisplayPresenter
                         isLoading = true
                         error = "Failed to load image"
                     }
+                }
+            }
+
+            LaunchedEffect(Unit) {
+                trmnlImageUpdateManager.imageUpdateStatusFlow.collect {
+                    if (it != null) {
+                        Timber.d("Received image update status: $it")
+                        error = "Failed to refresh image"
+                        isLoading = false
+                    } else {
+                        error = null
+                        isLoading = false
+                    }
+                }
+            }
+
+            // Auto-hide timer for overlay controls
+            LaunchedEffect(overlayControlsVisible) {
+                if (overlayControlsVisible) {
+                    delay(3_000) // Hide controls after 3 seconds
+                    overlayControlsVisible = false
                 }
             }
 
@@ -147,11 +172,13 @@ class TrmnlMirrorDisplayPresenter
 
             return TrmnlMirrorDisplayScreen.State(
                 imageUrl = imageUrl,
+                overlayControlsVisible = overlayControlsVisible,
                 isLoading = isLoading,
-                error = error,
+                errorMessage = error,
                 eventSink = { event ->
                     when (event) {
                         TrmnlMirrorDisplayScreen.Event.RefreshRequested -> {
+                            overlayControlsVisible = false
                             // Simply trigger the worker for refresh
                             scope.launch {
                                 isLoading = true
@@ -176,6 +203,10 @@ class TrmnlMirrorDisplayPresenter
                         TrmnlMirrorDisplayScreen.Event.ViewLogsRequested -> {
                             navigator.goTo(DisplayRefreshLogScreen)
                         }
+
+                        TrmnlMirrorDisplayScreen.Event.ToggleOverlayControls -> {
+                            overlayControlsVisible = !overlayControlsVisible
+                        }
                     }
                 },
             )
@@ -199,17 +230,6 @@ fun TrmnlMirrorDisplayContent(
     // Apply fullscreen mode and keep screen on
     FullScreenMode(enabled = true, keepScreenOn = true)
 
-    // State to track if controls are visible
-    var controlsVisible by remember { mutableStateOf(false) }
-
-    // Auto-hide timer
-    LaunchedEffect(controlsVisible) {
-        if (controlsVisible) {
-            delay(3000) // Hide controls after 3 seconds
-            controlsVisible = false
-        }
-    }
-
     Box(
         modifier =
             modifier
@@ -218,14 +238,14 @@ fun TrmnlMirrorDisplayContent(
                     interactionSource = remember { MutableInteractionSource() },
                     indication = null, // No visual indication when clicked
                 ) {
-                    controlsVisible = !controlsVisible
+                    state.eventSink(TrmnlMirrorDisplayScreen.Event.ToggleOverlayControls)
                 },
         contentAlignment = Alignment.Center,
     ) {
         if (state.isLoading) {
             CircularProgressIndicator()
-        } else if (state.error != null) {
-            Text(text = "Error: ${state.error}")
+        } else if (state.errorMessage != null) {
+            Text(text = "Error: ${state.errorMessage}")
         } else {
             AsyncImage(
                 model = CoilRequestUtils.createCachedImageRequest(context, state.imageUrl),
@@ -237,7 +257,7 @@ fun TrmnlMirrorDisplayContent(
 
         // Floating action buttons that appear when controls are visible
         AnimatedVisibility(
-            visible = controlsVisible,
+            visible = state.overlayControlsVisible,
             enter = fadeIn() + slideInVertically { it },
             exit = fadeOut() + slideOutVertically { it },
         ) {
