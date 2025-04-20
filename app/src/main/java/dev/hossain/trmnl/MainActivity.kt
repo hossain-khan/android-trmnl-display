@@ -152,7 +152,7 @@ class MainActivity
                                 )
                             }
                         } else if (workInfo.state == WorkInfo.State.FAILED) {
-                            val error = workInfo.outputData.getString(TrmnlImageRefreshWorker.KEY_ERROR)
+                            val error = workInfo.outputData.getString(TrmnlImageRefreshWorker.KEY_ERROR_MESSAGE)
                             Timber.e("One-time work failed: $error")
                             trmnlImageUpdateManager.updateImage(
                                 ImageMetadata(

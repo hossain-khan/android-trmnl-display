@@ -70,8 +70,8 @@ import dev.hossain.trmnl.data.AppConfig.DEFAULT_REFRESH_RATE_SEC
 import dev.hossain.trmnl.data.ImageMetadata
 import dev.hossain.trmnl.data.TrmnlDisplayRepository
 import dev.hossain.trmnl.di.AppScope
-import dev.hossain.trmnl.ui.settings.AppSettingsScreen.ValidationResult
 import dev.hossain.trmnl.ui.display.TrmnlMirrorDisplayScreen
+import dev.hossain.trmnl.ui.settings.AppSettingsScreen.ValidationResult
 import dev.hossain.trmnl.util.CoilRequestUtils
 import dev.hossain.trmnl.util.TokenManager
 import dev.hossain.trmnl.work.TrmnlImageUpdateManager
