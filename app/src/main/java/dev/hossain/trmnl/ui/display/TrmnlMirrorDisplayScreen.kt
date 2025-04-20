@@ -23,6 +23,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.runtime.Composable
@@ -219,57 +220,59 @@ fun TrmnlMirrorDisplayContent(
     // Apply fullscreen mode and keep screen on
     FullScreenMode(enabled = true, keepScreenOn = true)
 
-    Box(
-        modifier =
-            modifier
-                .fillMaxSize()
-                .clickable(
-                    interactionSource = remember { MutableInteractionSource() },
-                    indication = null, // No visual indication when clicked
+    Surface {
+        Box(
+            modifier =
+                modifier
+                    .fillMaxSize()
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null, // No visual indication when clicked
+                    ) {
+                        state.eventSink(TrmnlMirrorDisplayScreen.Event.ToggleOverlayControls)
+                    },
+            contentAlignment = Alignment.Center,
+        ) {
+            if (state.isLoading) {
+                CircularProgressIndicator()
+            } else if (state.errorMessage != null) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center,
+                    modifier = Modifier.padding(16.dp),
                 ) {
-                    state.eventSink(TrmnlMirrorDisplayScreen.Event.ToggleOverlayControls)
-                },
-        contentAlignment = Alignment.Center,
-    ) {
-        if (state.isLoading) {
-            CircularProgressIndicator()
-        } else if (state.errorMessage != null) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center,
-                modifier = Modifier.padding(16.dp),
-            ) {
-                Icon(
-                    painter = painterResource(R.drawable.trmnl_logo_plain),
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurface,
-                    modifier =
-                        Modifier
-                            .size(64.dp)
-                            .padding(bottom = 8.dp),
-                )
-                Text(
-                    text = "Error: ${state.errorMessage}",
-                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                    Icon(
+                        painter = painterResource(R.drawable.trmnl_logo_plain),
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurface,
+                        modifier =
+                            Modifier
+                                .size(64.dp)
+                                .padding(bottom = 8.dp),
+                    )
+                    Text(
+                        text = "Error: ${state.errorMessage}",
+                        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                    )
+                }
+            } else {
+                AsyncImage(
+                    model = CoilRequestUtils.createCachedImageRequest(context, state.imageUrl),
+                    contentDescription = "Terminal Display",
+                    contentScale = ContentScale.Fit,
+                    modifier = Modifier.fillMaxSize(),
                 )
             }
-        } else {
-            AsyncImage(
-                model = CoilRequestUtils.createCachedImageRequest(context, state.imageUrl),
-                contentDescription = "Terminal Display",
-                contentScale = ContentScale.Fit,
-                modifier = Modifier.fillMaxSize(),
-            )
-        }
 
-        // Floating action buttons that appear when controls are visible
-        AnimatedVisibility(
-            visible = state.overlayControlsVisible,
-            enter = fadeIn() + slideInVertically { it },
-            exit = fadeOut() + slideOutVertically { it },
-        ) {
-            OverlaySettingsView(state)
+            // Floating action buttons that appear when controls are visible
+            AnimatedVisibility(
+                visible = state.overlayControlsVisible,
+                enter = fadeIn() + slideInVertically { it },
+                exit = fadeOut() + slideOutVertically { it },
+            ) {
+                OverlaySettingsView(state)
+            }
         }
     }
 }
