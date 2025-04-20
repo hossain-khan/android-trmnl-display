@@ -271,9 +271,10 @@ private fun OverlaySettingsView(
             CardDefaults.cardElevation(
                 defaultElevation = 4.dp,
             ),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.8f)
-        )
+        colors =
+            CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.8f),
+            ),
     ) {
         Column(
             modifier =

@@ -2,18 +2,29 @@ package dev.hossain.trmnl.ui.config
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -39,6 +50,9 @@ import androidx.compose.ui.text.input.TransformedText
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.asFlow
+import androidx.work.WorkInfo
+import androidx.work.WorkManager
 import coil3.compose.AsyncImage
 import com.slack.circuit.codegen.annotations.CircuitInject
 import com.slack.circuit.runtime.CircuitUiEvent
@@ -57,6 +71,7 @@ import dev.hossain.trmnl.ui.display.TrmnlMirrorDisplayScreen
 import dev.hossain.trmnl.util.CoilRequestUtils
 import dev.hossain.trmnl.util.TokenManager
 import dev.hossain.trmnl.work.TrmnlWorkManager
+import dev.hossain.trmnl.work.TrmnlWorkManager.Companion.IMAGE_REFRESH_PERIODIC_WORK_NAME
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 import kotlinx.parcelize.Parcelize
@@ -369,6 +384,164 @@ fun AppConfigContent(
             if (state.isLoading) {
                 Spacer(modifier = Modifier.height(16.dp))
                 CircularProgressIndicator()
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+            WorkScheduleStatusCard(modifier = Modifier.fillMaxWidth())
+        }
+    }
+}
+
+@Composable
+private fun WorkScheduleStatusCard(
+    modifier: Modifier = Modifier,
+    // This is an unconventional way to get the WorkManager instance, leaving as hack.
+    workManager: WorkManager = WorkManager.getInstance(LocalContext.current),
+    workName: String = IMAGE_REFRESH_PERIODIC_WORK_NAME,
+) {
+    val context = LocalContext.current
+    var workInfo by remember { mutableStateOf<WorkInfo?>(null) }
+    var isLoading by remember { mutableStateOf(true) }
+
+    // Fetch work info
+    LaunchedEffect(workName) {
+        isLoading = true
+        workManager
+            .getWorkInfosForUniqueWorkLiveData(workName)
+            .asFlow()
+            .collect { workInfoList ->
+                workInfo = workInfoList.firstOrNull()
+                isLoading = false
+            }
+    }
+
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        colors =
+            CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.9f),
+            ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            horizontalAlignment = Alignment.Start,
+        ) {
+            Text(
+                text = "TRMNL Display Image Refresh Schedule Status",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(bottom = 8.dp),
+            )
+
+            if (isLoading) {
+                CircularProgressIndicator(
+                    modifier =
+                        Modifier
+                            .size(24.dp)
+                            .align(Alignment.CenterHorizontally)
+                            .padding(top = 8.dp),
+                )
+            } else if (workInfo == null) {
+                Text(
+                    text = "No scheduled refresh work found.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.error,
+                )
+            } else {
+                val statusText =
+                    when (workInfo?.state) {
+                        WorkInfo.State.ENQUEUED -> "Scheduled"
+                        WorkInfo.State.RUNNING -> "Running now"
+                        WorkInfo.State.SUCCEEDED -> "Completed successfully"
+                        WorkInfo.State.FAILED -> "Failed"
+                        WorkInfo.State.BLOCKED -> "Waiting for conditions"
+                        WorkInfo.State.CANCELLED -> "Cancelled"
+                        null -> "Unknown"
+                    }
+
+                val statusColor =
+                    when (workInfo?.state) {
+                        WorkInfo.State.ENQUEUED -> MaterialTheme.colorScheme.primary
+                        WorkInfo.State.RUNNING -> MaterialTheme.colorScheme.tertiary
+                        WorkInfo.State.SUCCEEDED -> MaterialTheme.colorScheme.primary
+                        WorkInfo.State.FAILED -> MaterialTheme.colorScheme.error
+                        WorkInfo.State.BLOCKED -> MaterialTheme.colorScheme.secondary
+                        WorkInfo.State.CANCELLED -> MaterialTheme.colorScheme.error
+                        null -> MaterialTheme.colorScheme.onSurface
+                    }
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(vertical = 4.dp),
+                ) {
+                    Icon(
+                        imageVector =
+                            when (workInfo?.state) {
+                                WorkInfo.State.ENQUEUED -> Icons.Default.Refresh
+                                WorkInfo.State.RUNNING -> Icons.Default.PlayArrow
+                                WorkInfo.State.SUCCEEDED -> Icons.Default.CheckCircle
+                                WorkInfo.State.FAILED -> Icons.Default.Warning
+                                WorkInfo.State.BLOCKED -> Icons.Default.Clear
+                                WorkInfo.State.CANCELLED -> Icons.Default.Clear
+                                null -> Icons.Default.Refresh
+                            },
+                        contentDescription = null,
+                        tint = statusColor,
+                        modifier = Modifier.size(20.dp),
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "Status: $statusText",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = statusColor,
+                    )
+                }
+
+                // Show next schedule time if available
+                val nextScheduleTimeMillis = workInfo?.nextScheduleTimeMillis ?: 0L
+                if (nextScheduleTimeMillis > 0) {
+                    val formatter =
+                        java.time.format.DateTimeFormatter
+                            .ofPattern("yyyy-MM-dd HH:mm:ss")
+                    val nextRunTime =
+                        java.time.Instant
+                            .ofEpochMilli(nextScheduleTimeMillis)
+                            .atZone(java.time.ZoneId.systemDefault())
+                            .format(formatter)
+
+                    val timeUntil = nextScheduleTimeMillis - System.currentTimeMillis()
+                    val timeUntilText =
+                        when {
+                            timeUntil <= 0 -> "any moment now"
+                            timeUntil < 60000 -> "in ${timeUntil / 1000} seconds"
+                            timeUntil < 3600000 -> "in ${timeUntil / 60000} minutes"
+                            else -> "in ${timeUntil / 3600000} hours"
+                        }
+
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(vertical = 4.dp),
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.DateRange,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(20.dp),
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "Next refresh: $timeUntilText",
+                            style = MaterialTheme.typography.bodyMedium,
+                        )
+                    }
+
+                    Text(
+                        text = "Scheduled for: $nextRunTime",
+                        style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier.padding(start = 28.dp, top = 2.dp),
+                    )
+                }
             }
         }
     }
