@@ -10,7 +10,6 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -18,6 +17,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
@@ -191,7 +192,6 @@ class TrmnlMirrorDisplayPresenter
 fun TrmnlMirrorDisplayContent(
     state: TrmnlMirrorDisplayScreen.State,
     modifier: Modifier = Modifier,
-    windowSizeClass: WindowSizeClass = currentWindowAdaptiveInfo().windowSizeClass,
 ) {
     // Apply fullscreen mode and keep screen on
     FullScreenMode(enabled = true, keepScreenOn = true)
@@ -233,98 +233,123 @@ fun TrmnlMirrorDisplayContent(
             )
         }
 
-        // Shows larger button on tablets
-        // https://developer.android.com/develop/ui/compose/layouts/adaptive/support-different-display-sizes
-        // https://developer.android.com/develop/ui/compose/layouts/adaptive/use-window-size-classes
-        val isExpandedWidth =
-            windowSizeClass.isWidthAtLeastBreakpoint(WIDTH_DP_EXPANDED_LOWER_BOUND) ||
-                windowSizeClass.isWidthAtLeastBreakpoint(WIDTH_DP_MEDIUM_LOWER_BOUND)
-
-        // Choose text style based on window width
-        val fabTextStyle =
-            if (isExpandedWidth) {
-                MaterialTheme.typography.titleLarge
-            } else {
-                MaterialTheme.typography.bodyLarge
-            }
-
         // Floating action buttons that appear when controls are visible
         AnimatedVisibility(
             visible = controlsVisible,
             enter = fadeIn() + slideInVertically { it },
             exit = fadeOut() + slideOutVertically { it },
         ) {
-            Column(
-                modifier =
-                    Modifier
-                        .align(Alignment.BottomEnd)
-                        .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                ExtendedFloatingActionButton(
-                    onClick = {
-                        state.eventSink(TrmnlMirrorDisplayScreen.Event.ConfigureRequested)
-                    },
-                    icon = {
-                        Icon(
-                            imageVector = Icons.Default.Settings,
-                            contentDescription = null,
-                            modifier = if (isExpandedWidth) Modifier.size(32.dp) else Modifier,
-                        )
-                    },
-                    text = {
-                        Text(
-                            "Configure Token",
-                            style = fabTextStyle,
-                            fontWeight = FontWeight.Bold,
-                        )
-                    },
-                )
+            OverlaySettingsView(state)
+        }
+    }
+}
 
-                Spacer(modifier = Modifier.size(8.dp))
+@Composable
+private fun OverlaySettingsView(
+    state: TrmnlMirrorDisplayScreen.State,
+    windowSizeClass: WindowSizeClass = currentWindowAdaptiveInfo().windowSizeClass,
+) {
+    // Shows larger button on tablets
+    // https://developer.android.com/develop/ui/compose/layouts/adaptive/support-different-display-sizes
+    // https://developer.android.com/develop/ui/compose/layouts/adaptive/use-window-size-classes
+    val isExpandedWidth =
+        windowSizeClass.isWidthAtLeastBreakpoint(WIDTH_DP_EXPANDED_LOWER_BOUND) ||
+            windowSizeClass.isWidthAtLeastBreakpoint(WIDTH_DP_MEDIUM_LOWER_BOUND)
 
-                ExtendedFloatingActionButton(
-                    onClick = {
-                        state.eventSink(TrmnlMirrorDisplayScreen.Event.RefreshRequested)
-                    },
-                    icon = {
-                        Icon(
-                            imageVector = Icons.Default.Refresh,
-                            contentDescription = null,
-                            modifier = if (isExpandedWidth) Modifier.size(32.dp) else Modifier,
-                        )
-                    },
-                    text = {
-                        Text(
-                            "Refresh Image",
-                            style = fabTextStyle,
-                            fontWeight = FontWeight.Bold,
-                        )
-                    },
-                )
+    // Choose text style based on window width
+    val fabTextStyle =
+        if (isExpandedWidth) {
+            MaterialTheme.typography.titleLarge
+        } else {
+            MaterialTheme.typography.bodyLarge
+        }
 
-                Spacer(modifier = Modifier.size(8.dp))
+    Card(
+        modifier =
+            Modifier
+                .padding(16.dp),
+        elevation =
+            CardDefaults.cardElevation(
+                defaultElevation = 4.dp,
+            ),
+        colors =
+            CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.8f),
+            ),
+    ) {
+        Column(
+            modifier =
+                Modifier
+                    .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Text(
+                text = "Display Configurations",
+                style = MaterialTheme.typography.displaySmall,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(bottom = 8.dp),
+            )
 
-                ExtendedFloatingActionButton(
-                    onClick = {
-                        state.eventSink(TrmnlMirrorDisplayScreen.Event.ViewLogsRequested)
-                    },
-                    icon = {
-                        Icon(
-                            imageVector = Icons.Default.DateRange,
-                            contentDescription = null,
-                            modifier = if (isExpandedWidth) Modifier.size(32.dp) else Modifier,
-                        )
-                    },
-                    text = {
-                        Text(
-                            "View Refresh Logs",
-                            style = fabTextStyle,
-                            fontWeight = FontWeight.Bold,
-                        )
-                    },
-                )
-            }
+            ExtendedFloatingActionButton(
+                onClick = {
+                    state.eventSink(TrmnlMirrorDisplayScreen.Event.ConfigureRequested)
+                },
+                icon = {
+                    Icon(
+                        imageVector = Icons.Default.Settings,
+                        contentDescription = null,
+                        modifier = if (isExpandedWidth) Modifier.size(32.dp) else Modifier,
+                    )
+                },
+                text = {
+                    Text(
+                        "Configure API Token",
+                        style = fabTextStyle,
+                        fontWeight = FontWeight.Bold,
+                    )
+                },
+            )
+
+            ExtendedFloatingActionButton(
+                onClick = {
+                    state.eventSink(TrmnlMirrorDisplayScreen.Event.RefreshRequested)
+                },
+                icon = {
+                    Icon(
+                        imageVector = Icons.Default.Refresh,
+                        contentDescription = null,
+                        modifier = if (isExpandedWidth) Modifier.size(32.dp) else Modifier,
+                    )
+                },
+                text = {
+                    Text(
+                        "Refresh TRMNL Image",
+                        style = fabTextStyle,
+                        fontWeight = FontWeight.Bold,
+                    )
+                },
+            )
+
+            ExtendedFloatingActionButton(
+                onClick = {
+                    state.eventSink(TrmnlMirrorDisplayScreen.Event.ViewLogsRequested)
+                },
+                icon = {
+                    Icon(
+                        imageVector = Icons.Default.DateRange,
+                        contentDescription = null,
+                        modifier = if (isExpandedWidth) Modifier.size(32.dp) else Modifier,
+                    )
+                },
+                text = {
+                    Text(
+                        "View Refresh Logs",
+                        style = fabTextStyle,
+                        fontWeight = FontWeight.Bold,
+                    )
+                },
+            )
         }
     }
 }
