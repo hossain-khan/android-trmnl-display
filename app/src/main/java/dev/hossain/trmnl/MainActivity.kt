@@ -131,6 +131,8 @@ class MainActivity
                 .getInstance(context)
                 .getWorkInfosForUniqueWorkLiveData(IMAGE_REFRESH_ONETIME_WORK_NAME)
                 .observe(this) { workInfos ->
+                    // ⚠️ DEV NOTE: Previously ran work info is broadcasted here,
+                    // so it may result in inconsistent behavior where it remembers last result.
                     workInfos.forEach { workInfo ->
                         if (workInfo.state == WorkInfo.State.SUCCEEDED) {
                             Timber.d("One-time work succeeded: $workInfo")
