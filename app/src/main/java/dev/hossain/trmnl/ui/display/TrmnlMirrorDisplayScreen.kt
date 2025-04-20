@@ -10,7 +10,6 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -18,6 +17,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
@@ -262,74 +263,88 @@ private fun OverlaySettingsView(
             MaterialTheme.typography.bodyLarge
         }
 
-    Column(
+    Card(
         modifier =
-            Modifier.Companion
+            Modifier
                 .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
+        elevation =
+            CardDefaults.cardElevation(
+                defaultElevation = 4.dp,
+            ),
     ) {
-        ExtendedFloatingActionButton(
-            onClick = {
-                state.eventSink(TrmnlMirrorDisplayScreen.Event.ConfigureRequested)
-            },
-            icon = {
-                Icon(
-                    imageVector = Icons.Default.Settings,
-                    contentDescription = null,
-                    modifier = if (isExpandedWidth) Modifier.size(32.dp) else Modifier,
-                )
-            },
-            text = {
-                Text(
-                    "Configure Token",
-                    style = fabTextStyle,
-                    fontWeight = FontWeight.Bold,
-                )
-            },
-        )
+        Column(
+            modifier =
+                Modifier
+                    .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Text(
+                text = "Display Configurations",
+                style = MaterialTheme.typography.displaySmall,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(bottom = 8.dp),
+            )
 
-        Spacer(modifier = Modifier.size(8.dp))
+            ExtendedFloatingActionButton(
+                onClick = {
+                    state.eventSink(TrmnlMirrorDisplayScreen.Event.ConfigureRequested)
+                },
+                icon = {
+                    Icon(
+                        imageVector = Icons.Default.Settings,
+                        contentDescription = null,
+                        modifier = if (isExpandedWidth) Modifier.size(32.dp) else Modifier,
+                    )
+                },
+                text = {
+                    Text(
+                        "Configure Token",
+                        style = fabTextStyle,
+                        fontWeight = FontWeight.Bold,
+                    )
+                },
+            )
 
-        ExtendedFloatingActionButton(
-            onClick = {
-                state.eventSink(TrmnlMirrorDisplayScreen.Event.RefreshRequested)
-            },
-            icon = {
-                Icon(
-                    imageVector = Icons.Default.Refresh,
-                    contentDescription = null,
-                    modifier = if (isExpandedWidth) Modifier.size(32.dp) else Modifier,
-                )
-            },
-            text = {
-                Text(
-                    "Refresh Image",
-                    style = fabTextStyle,
-                    fontWeight = FontWeight.Bold,
-                )
-            },
-        )
+            ExtendedFloatingActionButton(
+                onClick = {
+                    state.eventSink(TrmnlMirrorDisplayScreen.Event.RefreshRequested)
+                },
+                icon = {
+                    Icon(
+                        imageVector = Icons.Default.Refresh,
+                        contentDescription = null,
+                        modifier = if (isExpandedWidth) Modifier.size(32.dp) else Modifier,
+                    )
+                },
+                text = {
+                    Text(
+                        "Refresh TRMNL Image",
+                        style = fabTextStyle,
+                        fontWeight = FontWeight.Bold,
+                    )
+                },
+            )
 
-        Spacer(modifier = Modifier.size(8.dp))
-
-        ExtendedFloatingActionButton(
-            onClick = {
-                state.eventSink(TrmnlMirrorDisplayScreen.Event.ViewLogsRequested)
-            },
-            icon = {
-                Icon(
-                    imageVector = Icons.Default.DateRange,
-                    contentDescription = null,
-                    modifier = if (isExpandedWidth) Modifier.size(32.dp) else Modifier,
-                )
-            },
-            text = {
-                Text(
-                    "View Refresh Logs",
-                    style = fabTextStyle,
-                    fontWeight = FontWeight.Bold,
-                )
-            },
-        )
+            ExtendedFloatingActionButton(
+                onClick = {
+                    state.eventSink(TrmnlMirrorDisplayScreen.Event.ViewLogsRequested)
+                },
+                icon = {
+                    Icon(
+                        imageVector = Icons.Default.DateRange,
+                        contentDescription = null,
+                        modifier = if (isExpandedWidth) Modifier.size(32.dp) else Modifier,
+                    )
+                },
+                text = {
+                    Text(
+                        "View Refresh Logs",
+                        style = fabTextStyle,
+                        fontWeight = FontWeight.Bold,
+                    )
+                },
+            )
+        }
     }
 }
