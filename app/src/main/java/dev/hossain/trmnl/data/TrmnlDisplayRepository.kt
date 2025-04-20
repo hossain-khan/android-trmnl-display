@@ -13,6 +13,8 @@ import javax.inject.Inject
  * ⚠️ NOTE: [FAKE_API_RESPONSE] is set to `true` in debug builds, meaning it will
  * use mock data and avoid network calls. In release builds, it is set to `false`
  * to enable real API calls.
+ *
+ * You can override this behavior by updating [DevConfig.FAKE_API_RESPONSE] for local development.
  */
 @SingleIn(AppScope::class)
 class TrmnlDisplayRepository
