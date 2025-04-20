@@ -1,7 +1,7 @@
 package dev.hossain.trmnl.data
 
 import com.squareup.anvil.annotations.optional.SingleIn
-import dev.hossain.trmnl.BuildConfig
+import dev.hossain.trmnl.data.DevConfig.FAKE_API_RESPONSE
 import dev.hossain.trmnl.di.AppScope
 import dev.hossain.trmnl.network.TrmnlApiService
 import timber.log.Timber
@@ -9,6 +9,12 @@ import javax.inject.Inject
 
 /**
  * Repository class responsible for fetching and mapping display data.
+ *
+ * ⚠️ NOTE: [FAKE_API_RESPONSE] is set to `true` in debug builds, meaning it will
+ * use mock data and avoid network calls. In release builds, it is set to `false`
+ * to enable real API calls.
+ *
+ * You can override this behavior by updating [DevConfig.FAKE_API_RESPONSE] for local development.
  */
 @SingleIn(AppScope::class)
 class TrmnlDisplayRepository
@@ -25,7 +31,7 @@ class TrmnlDisplayRepository
          * @return A [TrmnlDisplayInfo] object containing the display data.
          */
         suspend fun getDisplayData(accessToken: String): TrmnlDisplayInfo {
-            if (BuildConfig.DEBUG) {
+            if (FAKE_API_RESPONSE) {
                 // Avoid using real API in debug mode
                 return fakeTrmnlDisplayInfo()
             }
@@ -65,6 +71,8 @@ class TrmnlDisplayRepository
 
         /**
          * Generates fake display info for debugging purposes without wasting an API request.
+         *
+         * ℹ️ This is only used when [FAKE_API_RESPONSE] is set to `true`.
          */
         private suspend fun fakeTrmnlDisplayInfo(): TrmnlDisplayInfo {
             Timber.d("DEBUG: Using mock data for display info")
