@@ -56,6 +56,7 @@ import dev.hossain.trmnl.ui.config.AppConfigScreen.ValidationResult
 import dev.hossain.trmnl.ui.display.TrmnlMirrorDisplayScreen
 import dev.hossain.trmnl.util.CoilRequestUtils
 import dev.hossain.trmnl.util.TokenManager
+import dev.hossain.trmnl.work.TrmnlImageUpdateManager
 import dev.hossain.trmnl.work.TrmnlWorkManager
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
@@ -107,6 +108,7 @@ class AppConfigPresenter
         private val displayRepository: TrmnlDisplayRepository,
         private val tokenManager: TokenManager,
         private val trmnlWorkManager: TrmnlWorkManager,
+        private val trmnlImageUpdateManager: TrmnlImageUpdateManager,
     ) : Presenter<AppConfigScreen.State> {
         @Composable
         override fun present(): AppConfigScreen.State {
@@ -150,6 +152,7 @@ class AppConfigPresenter
                                         validationResult = ValidationResult.Failure(errorMessage)
                                     } else if (response.imageUrl.isNotBlank()) {
                                         // Success case - we have an image URL
+                                        trmnlImageUpdateManager.updateImage(response.imageUrl)
                                         validationResult =
                                             ValidationResult.Success(
                                                 response.imageUrl,

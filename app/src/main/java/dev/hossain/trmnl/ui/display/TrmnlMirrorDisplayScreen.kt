@@ -135,6 +135,7 @@ class TrmnlMirrorDisplayPresenter
                 if (hasValidImage) {
                     // Initial loading state will be updated when imageUpdateFlow emits
                     Timber.d("Valid cached image exists")
+                    trmnlImageUpdateManager.initialize()
                 } else {
                     // No valid image, start a refresh work
                     Timber.d("No valid cached image, starting one-time refresh work")
