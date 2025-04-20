@@ -149,14 +149,20 @@ class MainActivity
 
             // Observe work by tag instead of unique work name
             fun observeWorkByTag(tag: String) {
+                Timber.d("Setting up observer for work tag: $tag")
                 workManager.getWorkInfosByTagLiveData(tag).observe(this) { workInfos ->
-                    workInfos.forEach { workInfo ->
-                        // Log detailed information about work state and data
-                        Timber.d("$tag work state updated: ${workInfo.state}")
-                        Timber.d("$tag work progress data: ${workInfo.progress.keyValueMap}")
-                        Timber.d("$tag work output data: ${workInfo.outputData.keyValueMap}")
+                    if (workInfos.isEmpty()) {
+                        Timber.d("No work infos found for tag: $tag")
+                        return@observe
+                    }
 
-                        // First check in the progress data (for both periodic and one-time work)
+                    for (workInfo in workInfos) {
+                        // Improved logging for debugging
+                        Timber.d("$tag work [${workInfo.id}] state: ${workInfo.state}")
+                        Timber.d("$tag work [${workInfo.id}] progress: ${workInfo.progress.keyValueMap}")
+                        Timber.d("$tag work [${workInfo.id}] output: ${workInfo.outputData.keyValueMap}")
+
+                        // Handle work progress data (while running)
                         val progressUrl = workInfo.progress.getString(TrmnlImageRefreshWorker.KEY_NEW_IMAGE_URL)
                         if (progressUrl != null) {
                             Timber.i("New image URL from $tag progress data: $progressUrl")
@@ -167,21 +173,23 @@ class MainActivity
                                     refreshRateSecs = null,
                                 ),
                             )
-                            return@forEach // Found valid data, no need to check further
+                            continue // Process the next work info if available
                         }
 
-                        // Then check in the output data (mainly for one-time work)
-                        val outputUrl = workInfo.outputData.getString(TrmnlImageRefreshWorker.KEY_NEW_IMAGE_URL)
-                        if (outputUrl != null) {
-                            Timber.i("New image URL from $tag output data: $outputUrl")
-                            trmnlImageUpdateManager.updateImage(
-                                ImageMetadata(
-                                    url = outputUrl,
-                                    timestamp = System.currentTimeMillis(),
-                                    refreshRateSecs = null,
-                                ),
-                            )
-                            return@forEach // Found valid data, no need to check further
+                        // Handle work output data (after completion)
+                        if (workInfo.state == WorkInfo.State.SUCCEEDED) {
+                            val outputUrl = workInfo.outputData.getString(TrmnlImageRefreshWorker.KEY_NEW_IMAGE_URL)
+                            if (outputUrl != null) {
+                                Timber.i("New image URL from $tag output data: $outputUrl")
+                                trmnlImageUpdateManager.updateImage(
+                                    ImageMetadata(
+                                        url = outputUrl,
+                                        timestamp = System.currentTimeMillis(),
+                                        refreshRateSecs = null,
+                                    ),
+                                )
+                                continue // Process the next work info if available
+                            }
                         }
 
                         // Handle failure state
@@ -199,6 +207,15 @@ class MainActivity
                         }
                     }
                 }
+            }
+
+            // For debugging, check if tags are registered
+            workManager.getWorkInfosByTagLiveData(IMAGE_REFRESH_PERIODIC_WORK_TAG).observe(this) { workInfos ->
+                Timber.d("Periodic work check - Found ${workInfos.size} work infos")
+            }
+
+            workManager.getWorkInfosByTagLiveData(IMAGE_REFRESH_ONETIME_WORK_TAG).observe(this) { workInfos ->
+                Timber.d("One-time work check - Found ${workInfos.size} work infos")
             }
 
             // Observe both work types by their tags
