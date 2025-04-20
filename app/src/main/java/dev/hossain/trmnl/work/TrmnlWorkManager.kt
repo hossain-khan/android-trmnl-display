@@ -23,6 +23,13 @@ import timber.log.Timber
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
+/**
+ * Manages the scheduling and execution of background work using WorkManager.
+ * This includes scheduling periodic image refresh work and handling one-time work requests.
+ *
+ * @param context The application context.
+ * @param tokenManager The token manager for managing authentication tokens.
+ */
 @SingleIn(AppScope::class)
 class TrmnlWorkManager
     @Inject

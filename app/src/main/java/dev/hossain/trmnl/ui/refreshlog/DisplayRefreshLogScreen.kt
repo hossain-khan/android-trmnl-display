@@ -382,18 +382,5 @@ private fun DebugControls(
         ) {
             Text("Start Refresh Worker")
         }
-
-        Button(
-            onClick = {
-                // TODO Add check image URL function if needed
-            },
-            modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-            colors =
-                ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.secondary,
-                ),
-        ) {
-            Text("Check Work Status")
-        }
     }
 }

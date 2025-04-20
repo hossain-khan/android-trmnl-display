@@ -95,8 +95,8 @@ class MainActivity
                 .getWorkInfosForUniqueWorkLiveData(IMAGE_REFRESH_PERIODIC_WORK_NAME)
                 .observe(this) { workInfos ->
                     workInfos.forEach { workInfo ->
-                        Timber.d("Received WorkInfo: $workInfo")
                         if (workInfo.state == WorkInfo.State.SUCCEEDED) {
+                            Timber.d("Periodic work succeeded: $workInfo")
                             val hasNewImage =
                                 workInfo.outputData.getBoolean(
                                     TrmnlImageRefreshWorker.KEY_HAS_NEW_IMAGE,
@@ -125,8 +125,8 @@ class MainActivity
                 .getWorkInfosForUniqueWorkLiveData(IMAGE_REFRESH_ONETIME_WORK_NAME)
                 .observe(this) { workInfos ->
                     workInfos.forEach { workInfo ->
-                        Timber.d("Received one-time WorkInfo: $workInfo")
                         if (workInfo.state == WorkInfo.State.SUCCEEDED) {
+                            Timber.d("One-time work succeeded: $workInfo")
                             val newImageUrl =
                                 workInfo.outputData.getString(
                                     TrmnlImageRefreshWorker.KEY_NEW_IMAGE_URL,
