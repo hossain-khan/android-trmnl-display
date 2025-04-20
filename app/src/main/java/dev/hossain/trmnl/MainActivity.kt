@@ -99,8 +99,8 @@ class MainActivity
                     // so it may result in inconsistent behavior where it remembers last result.
                     workInfos.forEach { workInfo ->
                         when (workInfo.state) {
-                            WorkInfo.State.SUCCEEDED -> {
-                                Timber.d("$workName work succeeded: $workInfo")
+                            WorkInfo.State.SUCCEEDED, WorkInfo.State.ENQUEUED -> {
+                                Timber.d("$workName work ${workInfo.state.name.lowercase()}: $workInfo")
                                 val newImageUrl =
                                     workInfo.outputData.getString(
                                         TrmnlImageRefreshWorker.KEY_NEW_IMAGE_URL,
