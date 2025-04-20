@@ -36,6 +36,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.window.core.layout.WindowSizeClass
@@ -51,6 +52,7 @@ import com.slack.circuit.runtime.screen.Screen
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
+import dev.hossain.trmnl.R
 import dev.hossain.trmnl.data.ImageMetadataStore
 import dev.hossain.trmnl.di.AppScope
 import dev.hossain.trmnl.ui.FullScreenMode
@@ -232,10 +234,26 @@ fun TrmnlMirrorDisplayContent(
         if (state.isLoading) {
             CircularProgressIndicator()
         } else if (state.errorMessage != null) {
-            Text(
-                text = "Error: ${state.errorMessage}",
-                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-            )
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center,
+                modifier = Modifier.padding(16.dp),
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.trmnl_logo_plain),
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurface,
+                    modifier =
+                        Modifier
+                            .size(64.dp)
+                            .padding(bottom = 8.dp),
+                )
+                Text(
+                    text = "Error: ${state.errorMessage}",
+                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                )
+            }
         } else {
             AsyncImage(
                 model = CoilRequestUtils.createCachedImageRequest(context, state.imageUrl),
