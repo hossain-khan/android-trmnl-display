@@ -109,9 +109,10 @@ class TrmnlMirrorDisplayPresenter
             // Collect updates from the image update manager to get the latest image URL
             // Latest image URL is received from WorkManager work requests.
             LaunchedEffect(Unit) {
-                trmnlImageUpdateManager.imageUpdateFlow.collect { newImageUrl ->
-                    if (newImageUrl != null) {
-                        imageUrl = newImageUrl
+                trmnlImageUpdateManager.imageUpdateFlow.collect { imageMetadata ->
+                    Timber.d("Received new image URL from TRMNL Image Update Manager: $imageMetadata")
+                    if (imageMetadata != null) {
+                        imageUrl = imageMetadata.url
                         isLoading = false
                         error = null
                     } else {
@@ -193,6 +194,8 @@ fun TrmnlMirrorDisplayContent(
     state: TrmnlMirrorDisplayScreen.State,
     modifier: Modifier = Modifier,
 ) {
+    val context = LocalContext.current
+
     // Apply fullscreen mode and keep screen on
     FullScreenMode(enabled = true, keepScreenOn = true)
 
@@ -224,7 +227,6 @@ fun TrmnlMirrorDisplayContent(
         } else if (state.error != null) {
             Text(text = "Error: ${state.error}")
         } else {
-            val context = LocalContext.current
             AsyncImage(
                 model = CoilRequestUtils.createCachedImageRequest(context, state.imageUrl),
                 contentDescription = "Terminal Display",

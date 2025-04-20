@@ -19,6 +19,7 @@ import com.slack.circuit.overlay.ContentWithOverlays
 import com.slack.circuit.sharedelements.SharedElementTransitionLayout
 import com.slack.circuitx.gesturenavigation.GestureNavigationDecorationFactory
 import com.squareup.anvil.annotations.ContributesMultibinding
+import dev.hossain.trmnl.data.ImageMetadata
 import dev.hossain.trmnl.di.ActivityKey
 import dev.hossain.trmnl.di.AppScope
 import dev.hossain.trmnl.di.ApplicationContext
@@ -112,7 +113,13 @@ class MainActivity
                                 if (newImageUrl != null) {
                                     Timber.d("New image URL from periodic work: $newImageUrl")
                                     // Update the image URL via the manager
-                                    trmnlImageUpdateManager.updateImage(newImageUrl)
+                                    trmnlImageUpdateManager.updateImage(
+                                        ImageMetadata(
+                                            url = newImageUrl,
+                                            timestamp = System.currentTimeMillis(),
+                                            refreshRateSecs = null,
+                                        ),
+                                    )
                                 }
                             }
                         }
@@ -134,7 +141,13 @@ class MainActivity
 
                             if (newImageUrl != null) {
                                 Timber.d("New image URL from one-time work: $newImageUrl")
-                                trmnlImageUpdateManager.updateImage(newImageUrl)
+                                trmnlImageUpdateManager.updateImage(
+                                    ImageMetadata(
+                                        url = newImageUrl,
+                                        timestamp = System.currentTimeMillis(),
+                                        refreshRateSecs = null,
+                                    ),
+                                )
                             }
                         } else if (workInfo.state == WorkInfo.State.FAILED) {
                             val error = workInfo.outputData.getString(TrmnlImageRefreshWorker.KEY_ERROR)
