@@ -151,47 +151,42 @@ class MainActivity
             fun observeWorkByTag(tag: String) {
                 workManager.getWorkInfosByTagLiveData(tag).observe(this) { workInfos ->
                     workInfos.forEach { workInfo ->
+                        // Log detailed information about work state and data
                         Timber.d("$tag work state updated: ${workInfo.state}")
+                        Timber.d("$tag work progress data: ${workInfo.progress.keyValueMap}")
+                        Timber.d("$tag work output data: ${workInfo.outputData.keyValueMap}")
 
-                        // Check for output data in the main output or progress data
-                        val outputData = workInfo.outputData
-                        val progressData = workInfo.progress
+                        // First check in the progress data (for both periodic and one-time work)
+                        val progressUrl = workInfo.progress.getString(TrmnlImageRefreshWorker.KEY_NEW_IMAGE_URL)
+                        if (progressUrl != null) {
+                            Timber.i("New image URL from $tag progress data: $progressUrl")
+                            trmnlImageUpdateManager.updateImage(
+                                ImageMetadata(
+                                    url = progressUrl,
+                                    timestamp = System.currentTimeMillis(),
+                                    refreshRateSecs = null,
+                                ),
+                            )
+                            return@forEach // Found valid data, no need to check further
+                        }
 
-                        // First check for data in the progress - this works for periodic work
-                        if (!progressData.keyValueMap.isEmpty() &&
-                            progressData.keyValueMap.containsKey(TrmnlImageRefreshWorker.KEY_NEW_IMAGE_URL)
-                        ) {
-                            val newImageUrl = progressData.getString(TrmnlImageRefreshWorker.KEY_NEW_IMAGE_URL)
-                            if (newImageUrl != null) {
-                                Timber.i("New image URL from $tag progress data: $newImageUrl")
-                                trmnlImageUpdateManager.updateImage(
-                                    ImageMetadata(
-                                        url = newImageUrl,
-                                        timestamp = System.currentTimeMillis(),
-                                        refreshRateSecs = null,
-                                    ),
-                                )
-                            }
+                        // Then check in the output data (mainly for one-time work)
+                        val outputUrl = workInfo.outputData.getString(TrmnlImageRefreshWorker.KEY_NEW_IMAGE_URL)
+                        if (outputUrl != null) {
+                            Timber.i("New image URL from $tag output data: $outputUrl")
+                            trmnlImageUpdateManager.updateImage(
+                                ImageMetadata(
+                                    url = outputUrl,
+                                    timestamp = System.currentTimeMillis(),
+                                    refreshRateSecs = null,
+                                ),
+                            )
+                            return@forEach // Found valid data, no need to check further
                         }
-                        // Then check in the output data - this works for one-time work
-                        else if (!outputData.keyValueMap.isEmpty() &&
-                            outputData.keyValueMap.containsKey(TrmnlImageRefreshWorker.KEY_NEW_IMAGE_URL)
-                        ) {
-                            val newImageUrl = outputData.getString(TrmnlImageRefreshWorker.KEY_NEW_IMAGE_URL)
-                            if (newImageUrl != null) {
-                                Timber.i("New image URL from $tag output data: $newImageUrl")
-                                trmnlImageUpdateManager.updateImage(
-                                    ImageMetadata(
-                                        url = newImageUrl,
-                                        timestamp = System.currentTimeMillis(),
-                                        refreshRateSecs = null,
-                                    ),
-                                )
-                            }
-                        }
+
                         // Handle failure state
-                        else if (workInfo.state == WorkInfo.State.FAILED) {
-                            val error = outputData.getString(TrmnlImageRefreshWorker.KEY_ERROR_MESSAGE)
+                        if (workInfo.state == WorkInfo.State.FAILED) {
+                            val error = workInfo.outputData.getString(TrmnlImageRefreshWorker.KEY_ERROR_MESSAGE)
                             Timber.e("$tag work failed: $error")
                             trmnlImageUpdateManager.updateImage(
                                 ImageMetadata(

@@ -117,7 +117,7 @@ class TrmnlImageRefreshWorker(
 
             // This is a workaround to provide result from a periodic work
             // See https://github.com/hossain-khan/android-trmnl-display/pull/62#issuecomment-2817203139
-            setProgress(workData)
+            setProgressAsync(workData)
 
             return Result.success(workData)
         } catch (e: Exception) {
