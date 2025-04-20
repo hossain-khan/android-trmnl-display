@@ -1,6 +1,7 @@
 package dev.hossain.trmnl.work
 
 import com.squareup.anvil.annotations.optional.SingleIn
+import dev.hossain.trmnl.data.ImageMetadata
 import dev.hossain.trmnl.data.ImageMetadataStore
 import dev.hossain.trmnl.di.AppScope
 import jakarta.inject.Inject
@@ -19,16 +20,16 @@ class TrmnlImageUpdateManager
     constructor(
         private val imageMetadataStore: ImageMetadataStore,
     ) {
-        private val _imageUpdateFlow = MutableStateFlow<String?>(null)
-        val imageUpdateFlow: StateFlow<String?> = _imageUpdateFlow.asStateFlow()
+        private val _imageUpdateFlow = MutableStateFlow<ImageMetadata?>(null)
+        val imageUpdateFlow: StateFlow<ImageMetadata?> = _imageUpdateFlow.asStateFlow()
 
         /**
          * Updates the image URL and notifies observers through the flow
-         * @param imageUrl The new image URL
+         * @param imageMetadata The new image URL with additional metadata
          */
-        fun updateImage(imageUrl: String) {
-            Timber.d("Updating image URL in TrmnlImageUpdateManager: $imageUrl")
-            _imageUpdateFlow.value = imageUrl
+        fun updateImage(imageMetadata: ImageMetadata) {
+            Timber.d("Updating image URL in TrmnlImageUpdateManager: $imageMetadata")
+            _imageUpdateFlow.value = imageMetadata
         }
 
         /**
@@ -38,7 +39,7 @@ class TrmnlImageUpdateManager
             imageMetadataStore.imageMetadataFlow.collect { metadata ->
                 if (metadata != null && _imageUpdateFlow.value == null) {
                     Timber.d("Initializing image URL from ImageMetadataStore cache: ${metadata.url}")
-                    _imageUpdateFlow.value = metadata.url
+                    _imageUpdateFlow.value = metadata
                 }
             }
         }
