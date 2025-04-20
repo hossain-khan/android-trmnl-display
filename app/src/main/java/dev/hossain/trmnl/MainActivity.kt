@@ -24,7 +24,7 @@ import dev.hossain.trmnl.di.ActivityKey
 import dev.hossain.trmnl.di.AppScope
 import dev.hossain.trmnl.di.ApplicationContext
 import dev.hossain.trmnl.ui.display.TrmnlMirrorDisplayScreen
-import dev.hossain.trmnl.ui.theme.CircuitAppTheme
+import dev.hossain.trmnl.ui.theme.TrmnlDisplayAppTheme
 import dev.hossain.trmnl.work.TrmnlImageRefreshWorker
 import dev.hossain.trmnl.work.TrmnlImageUpdateManager
 import dev.hossain.trmnl.work.TrmnlWorkManager.Companion.IMAGE_REFRESH_ONETIME_WORK_NAME
@@ -54,7 +54,7 @@ class MainActivity
             listenForWorkUpdates()
 
             setContent {
-                CircuitAppTheme {
+                TrmnlDisplayAppTheme {
                     // See https://slackhq.github.io/circuit/navigation/
                     val backStack = rememberSaveableBackStack(root = TrmnlMirrorDisplayScreen)
                     val navigator = rememberCircuitNavigator(backStack)
