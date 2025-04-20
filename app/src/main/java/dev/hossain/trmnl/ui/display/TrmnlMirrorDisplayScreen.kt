@@ -23,6 +23,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.runtime.Composable
@@ -36,6 +37,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.window.core.layout.WindowSizeClass
@@ -51,6 +53,7 @@ import com.slack.circuit.runtime.screen.Screen
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
+import dev.hossain.trmnl.R
 import dev.hossain.trmnl.data.ImageMetadataStore
 import dev.hossain.trmnl.di.AppScope
 import dev.hossain.trmnl.ui.FullScreenMode
@@ -74,8 +77,9 @@ import timber.log.Timber
 data object TrmnlMirrorDisplayScreen : Screen {
     data class State(
         val imageUrl: String?,
+        val overlayControlsVisible: Boolean,
         val isLoading: Boolean = false,
-        val error: String? = null,
+        val errorMessage: String? = null,
         val eventSink: (Event) -> Unit,
     ) : CircuitUiState
 
@@ -87,6 +91,8 @@ data object TrmnlMirrorDisplayScreen : Screen {
         data object ViewLogsRequested : Event()
 
         data object BackPressed : Event()
+
+        data object ToggleOverlayControls : Event()
     }
 }
 
@@ -102,6 +108,7 @@ class TrmnlMirrorDisplayPresenter
         @Composable
         override fun present(): TrmnlMirrorDisplayScreen.State {
             var imageUrl by remember { mutableStateOf<String?>(null) }
+            var overlayControlsVisible by remember { mutableStateOf(false) }
             var isLoading by remember { mutableStateOf(true) }
             var error by remember { mutableStateOf<String?>(null) }
             val scope = rememberCoroutineScope()
@@ -111,15 +118,23 @@ class TrmnlMirrorDisplayPresenter
             LaunchedEffect(Unit) {
                 trmnlImageUpdateManager.imageUpdateFlow.collect { imageMetadata ->
                     Timber.d("Received new image URL from TRMNL Image Update Manager: $imageMetadata")
-                    if (imageMetadata != null) {
+                    if (imageMetadata != null && imageMetadata.errorMessage == null) {
                         imageUrl = imageMetadata.url
                         isLoading = false
                         error = null
                     } else {
                         Timber.w("Failed to get cached image URL from TRMNL Image Update Manager `imageUpdateFlow`")
-                        isLoading = true
-                        error = "Failed to load image"
+                        isLoading = false
+                        error = imageMetadata?.errorMessage ?: "Failed to load image. Please re-validate token."
                     }
+                }
+            }
+
+            // Auto-hide timer for overlay controls
+            LaunchedEffect(overlayControlsVisible) {
+                if (overlayControlsVisible) {
+                    delay(3_000) // Hide controls after 3 seconds
+                    overlayControlsVisible = false
                 }
             }
 
@@ -147,11 +162,13 @@ class TrmnlMirrorDisplayPresenter
 
             return TrmnlMirrorDisplayScreen.State(
                 imageUrl = imageUrl,
+                overlayControlsVisible = overlayControlsVisible,
                 isLoading = isLoading,
-                error = error,
+                errorMessage = error,
                 eventSink = { event ->
                     when (event) {
                         TrmnlMirrorDisplayScreen.Event.RefreshRequested -> {
+                            overlayControlsVisible = false
                             // Simply trigger the worker for refresh
                             scope.launch {
                                 isLoading = true
@@ -176,6 +193,10 @@ class TrmnlMirrorDisplayPresenter
                         TrmnlMirrorDisplayScreen.Event.ViewLogsRequested -> {
                             navigator.goTo(DisplayRefreshLogScreen)
                         }
+
+                        TrmnlMirrorDisplayScreen.Event.ToggleOverlayControls -> {
+                            overlayControlsVisible = !overlayControlsVisible
+                        }
                     }
                 },
             )
@@ -199,49 +220,59 @@ fun TrmnlMirrorDisplayContent(
     // Apply fullscreen mode and keep screen on
     FullScreenMode(enabled = true, keepScreenOn = true)
 
-    // State to track if controls are visible
-    var controlsVisible by remember { mutableStateOf(false) }
-
-    // Auto-hide timer
-    LaunchedEffect(controlsVisible) {
-        if (controlsVisible) {
-            delay(3000) // Hide controls after 3 seconds
-            controlsVisible = false
-        }
-    }
-
-    Box(
-        modifier =
-            modifier
-                .fillMaxSize()
-                .clickable(
-                    interactionSource = remember { MutableInteractionSource() },
-                    indication = null, // No visual indication when clicked
-                ) {
-                    controlsVisible = !controlsVisible
-                },
-        contentAlignment = Alignment.Center,
-    ) {
-        if (state.isLoading) {
-            CircularProgressIndicator()
-        } else if (state.error != null) {
-            Text(text = "Error: ${state.error}")
-        } else {
-            AsyncImage(
-                model = CoilRequestUtils.createCachedImageRequest(context, state.imageUrl),
-                contentDescription = "Terminal Display",
-                contentScale = ContentScale.Fit,
-                modifier = Modifier.fillMaxSize(),
-            )
-        }
-
-        // Floating action buttons that appear when controls are visible
-        AnimatedVisibility(
-            visible = controlsVisible,
-            enter = fadeIn() + slideInVertically { it },
-            exit = fadeOut() + slideOutVertically { it },
+    Surface {
+        Box(
+            modifier =
+                modifier
+                    .fillMaxSize()
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null, // No visual indication when clicked
+                    ) {
+                        state.eventSink(TrmnlMirrorDisplayScreen.Event.ToggleOverlayControls)
+                    },
+            contentAlignment = Alignment.Center,
         ) {
-            OverlaySettingsView(state)
+            if (state.isLoading) {
+                CircularProgressIndicator()
+            } else if (state.errorMessage != null) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center,
+                    modifier = Modifier.padding(16.dp),
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.trmnl_logo_plain),
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurface,
+                        modifier =
+                            Modifier
+                                .size(64.dp)
+                                .padding(bottom = 8.dp),
+                    )
+                    Text(
+                        text = "Error: ${state.errorMessage}",
+                        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                    )
+                }
+            } else {
+                AsyncImage(
+                    model = CoilRequestUtils.createCachedImageRequest(context, state.imageUrl),
+                    contentDescription = "Terminal Display",
+                    contentScale = ContentScale.Fit,
+                    modifier = Modifier.fillMaxSize(),
+                )
+            }
+
+            // Floating action buttons that appear when controls are visible
+            AnimatedVisibility(
+                visible = state.overlayControlsVisible,
+                enter = fadeIn() + slideInVertically { it },
+                exit = fadeOut() + slideOutVertically { it },
+            ) {
+                OverlaySettingsView(state)
+            }
         }
     }
 }

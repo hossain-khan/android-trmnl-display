@@ -24,7 +24,7 @@ private val LightColorScheme =
     )
 
 @Composable
-fun CircuitAppTheme(
+fun TrmnlDisplayAppTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     // Dynamic color is available on Android 12+
     dynamicColor: Boolean = true,

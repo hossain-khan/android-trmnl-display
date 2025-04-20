@@ -24,7 +24,7 @@ import dev.hossain.trmnl.di.ActivityKey
 import dev.hossain.trmnl.di.AppScope
 import dev.hossain.trmnl.di.ApplicationContext
 import dev.hossain.trmnl.ui.display.TrmnlMirrorDisplayScreen
-import dev.hossain.trmnl.ui.theme.CircuitAppTheme
+import dev.hossain.trmnl.ui.theme.TrmnlDisplayAppTheme
 import dev.hossain.trmnl.work.TrmnlImageRefreshWorker
 import dev.hossain.trmnl.work.TrmnlImageUpdateManager
 import dev.hossain.trmnl.work.TrmnlWorkManager.Companion.IMAGE_REFRESH_ONETIME_WORK_NAME
@@ -54,7 +54,7 @@ class MainActivity
             listenForWorkUpdates()
 
             setContent {
-                CircuitAppTheme {
+                TrmnlDisplayAppTheme {
                     // See https://slackhq.github.io/circuit/navigation/
                     val backStack = rememberSaveableBackStack(root = TrmnlMirrorDisplayScreen)
                     val navigator = rememberCircuitNavigator(backStack)
@@ -131,6 +131,8 @@ class MainActivity
                 .getInstance(context)
                 .getWorkInfosForUniqueWorkLiveData(IMAGE_REFRESH_ONETIME_WORK_NAME)
                 .observe(this) { workInfos ->
+                    // ⚠️ DEV NOTE: Previously ran work info is broadcasted here,
+                    // so it may result in inconsistent behavior where it remembers last result.
                     workInfos.forEach { workInfo ->
                         if (workInfo.state == WorkInfo.State.SUCCEEDED) {
                             Timber.d("One-time work succeeded: $workInfo")
@@ -152,7 +154,14 @@ class MainActivity
                         } else if (workInfo.state == WorkInfo.State.FAILED) {
                             val error = workInfo.outputData.getString(TrmnlImageRefreshWorker.KEY_ERROR)
                             Timber.e("One-time work failed: $error")
-                            // Optionally update UI with error state
+                            trmnlImageUpdateManager.updateImage(
+                                ImageMetadata(
+                                    url = "",
+                                    timestamp = System.currentTimeMillis(),
+                                    refreshRateSecs = null,
+                                    errorMessage = error,
+                                ),
+                            )
                         }
                     }
                 }

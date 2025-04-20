@@ -44,6 +44,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.OffsetMapping
@@ -64,6 +65,7 @@ import com.slack.circuit.runtime.screen.Screen
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
+import dev.hossain.trmnl.R
 import dev.hossain.trmnl.data.AppConfig.DEFAULT_REFRESH_RATE_SEC
 import dev.hossain.trmnl.data.ImageMetadata
 import dev.hossain.trmnl.data.TrmnlDisplayRepository
@@ -275,9 +277,19 @@ fun AppConfigContent(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
         ) {
+            Icon(
+                painter = painterResource(R.drawable.trmnl_logo_plain),
+                contentDescription = "TRMNL Logo",
+                tint = MaterialTheme.colorScheme.onSurface,
+                modifier =
+                    Modifier
+                        .size(64.dp)
+                        .padding(bottom = 16.dp),
+            )
+
             Text(
                 text = "Terminal API Configuration",
-                style = MaterialTheme.typography.bodyMedium,
+                style = MaterialTheme.typography.bodyLarge,
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.fillMaxWidth(),
