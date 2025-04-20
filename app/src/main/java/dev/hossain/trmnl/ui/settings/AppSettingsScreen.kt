@@ -70,7 +70,7 @@ import dev.hossain.trmnl.data.AppConfig.DEFAULT_REFRESH_RATE_SEC
 import dev.hossain.trmnl.data.ImageMetadata
 import dev.hossain.trmnl.data.TrmnlDisplayRepository
 import dev.hossain.trmnl.di.AppScope
-import dev.hossain.trmnl.ui.settings.AppConfigScreen.ValidationResult
+import dev.hossain.trmnl.ui.settings.AppSettingsScreen.ValidationResult
 import dev.hossain.trmnl.ui.display.TrmnlMirrorDisplayScreen
 import dev.hossain.trmnl.util.CoilRequestUtils
 import dev.hossain.trmnl.util.TokenManager
@@ -87,7 +87,7 @@ import java.time.format.DateTimeFormatter
  * Screen for configuring the TRMNL token and other things.
  */
 @Parcelize
-data class AppConfigScreen(
+data class AppSettingsScreen(
     val returnToMirrorAfterSave: Boolean = false,
 ) : Screen {
     data class State(
@@ -121,18 +121,18 @@ data class AppConfigScreen(
     }
 }
 
-class AppConfigPresenter
+class AppSettingsPresenter
     @AssistedInject
     constructor(
         @Assisted private val navigator: Navigator,
-        @Assisted private val screen: AppConfigScreen,
+        @Assisted private val screen: AppSettingsScreen,
         private val displayRepository: TrmnlDisplayRepository,
         private val tokenManager: TokenManager,
         private val trmnlWorkManager: TrmnlWorkManager,
         private val trmnlImageUpdateManager: TrmnlImageUpdateManager,
-    ) : Presenter<AppConfigScreen.State> {
+    ) : Presenter<AppSettingsScreen.State> {
         @Composable
-        override fun present(): AppConfigScreen.State {
+        override fun present(): AppSettingsScreen.State {
             var accessToken by remember { mutableStateOf("") }
             var isLoading by remember { mutableStateOf(false) }
             var validationResult by remember { mutableStateOf<ValidationResult?>(null) }
@@ -147,19 +147,19 @@ class AppConfigPresenter
                 }
             }
 
-            return AppConfigScreen.State(
+            return AppSettingsScreen.State(
                 accessToken = accessToken,
                 isLoading = isLoading,
                 validationResult = validationResult,
                 eventSink = { event ->
                     when (event) {
-                        is AppConfigScreen.Event.AccessTokenChanged -> {
+                        is AppSettingsScreen.Event.AccessTokenChanged -> {
                             accessToken = event.token
                             // Clear previous validation when token changes
                             validationResult = null
                         }
 
-                        AppConfigScreen.Event.ValidateToken -> {
+                        AppSettingsScreen.Event.ValidateToken -> {
                             scope.launch {
                                 isLoading = true
                                 validationResult = null
@@ -202,7 +202,7 @@ class AppConfigPresenter
                             }
                         }
 
-                        AppConfigScreen.Event.SaveAndContinue -> {
+                        AppSettingsScreen.Event.SaveAndContinue -> {
                             // Only save if validation was successful
                             val result = validationResult
                             if (result is ValidationResult.Success) {
@@ -219,7 +219,7 @@ class AppConfigPresenter
                             }
                         }
 
-                        AppConfigScreen.Event.BackPressed -> {
+                        AppSettingsScreen.Event.BackPressed -> {
                             navigator.pop()
                         }
                     }
@@ -227,21 +227,21 @@ class AppConfigPresenter
             )
         }
 
-        @CircuitInject(AppConfigScreen::class, AppScope::class)
+        @CircuitInject(AppSettingsScreen::class, AppScope::class)
         @AssistedFactory
         fun interface Factory {
             fun create(
                 navigator: Navigator,
-                screen: AppConfigScreen,
-            ): AppConfigPresenter
+                screen: AppSettingsScreen,
+            ): AppSettingsPresenter
         }
     }
 
-@CircuitInject(AppConfigScreen::class, AppScope::class)
+@CircuitInject(AppSettingsScreen::class, AppScope::class)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AppConfigContent(
-    state: AppConfigScreen.State,
+fun AppSettingsContent(
+    state: AppSettingsScreen.State,
     modifier: Modifier = Modifier,
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
@@ -300,7 +300,7 @@ fun AppConfigContent(
             // Use masked token for display but keep actual token for validation
             OutlinedTextField(
                 value = state.accessToken,
-                onValueChange = { state.eventSink(AppConfigScreen.Event.AccessTokenChanged(it)) },
+                onValueChange = { state.eventSink(AppSettingsScreen.Event.AccessTokenChanged(it)) },
                 label = { Text("Access Token") },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
@@ -331,7 +331,7 @@ fun AppConfigContent(
             Spacer(modifier = Modifier.height(16.dp))
 
             Button(
-                onClick = { state.eventSink(AppConfigScreen.Event.ValidateToken) },
+                onClick = { state.eventSink(AppSettingsScreen.Event.ValidateToken) },
                 enabled = state.accessToken.isNotBlank() && !state.isLoading,
                 modifier = Modifier.fillMaxWidth(),
             ) {
@@ -376,7 +376,7 @@ fun AppConfigContent(
                                 Spacer(modifier = Modifier.height(16.dp))
 
                                 Button(
-                                    onClick = { state.eventSink(AppConfigScreen.Event.SaveAndContinue) },
+                                    onClick = { state.eventSink(AppSettingsScreen.Event.SaveAndContinue) },
                                     modifier = Modifier.fillMaxWidth(),
                                 ) {
                                     Text("Save and Continue")

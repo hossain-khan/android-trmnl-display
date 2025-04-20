@@ -57,7 +57,7 @@ import dev.hossain.trmnl.R
 import dev.hossain.trmnl.data.ImageMetadataStore
 import dev.hossain.trmnl.di.AppScope
 import dev.hossain.trmnl.ui.FullScreenMode
-import dev.hossain.trmnl.ui.settings.AppConfigScreen
+import dev.hossain.trmnl.ui.settings.AppSettingsScreen
 import dev.hossain.trmnl.ui.refreshlog.DisplayRefreshLogScreen
 import dev.hossain.trmnl.util.CoilRequestUtils
 import dev.hossain.trmnl.util.TokenManager
@@ -143,7 +143,7 @@ class TrmnlMirrorDisplayPresenter
                 val token = tokenManager.accessTokenFlow.firstOrNull()
                 if (token.isNullOrBlank()) {
                     Timber.d("No access token found, navigating to configuration screen")
-                    navigator.goTo(AppConfigScreen(returnToMirrorAfterSave = true))
+                    navigator.goTo(AppSettingsScreen(returnToMirrorAfterSave = true))
                     return@LaunchedEffect
                 }
 
@@ -185,7 +185,7 @@ class TrmnlMirrorDisplayPresenter
                             }
                         }
                         TrmnlMirrorDisplayScreen.Event.ConfigureRequested -> {
-                            navigator.goTo(AppConfigScreen(returnToMirrorAfterSave = true))
+                            navigator.goTo(AppSettingsScreen(returnToMirrorAfterSave = true))
                         }
                         TrmnlMirrorDisplayScreen.Event.BackPressed -> {
                             navigator.pop()
