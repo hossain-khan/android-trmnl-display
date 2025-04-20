@@ -109,12 +109,17 @@ class TrmnlImageRefreshWorker(
             }
 
             Timber.tag(TAG).i("Image refresh successful, new URL: ${response.imageUrl}")
-            return Result.success(
+            val workData =
                 workDataOf(
                     KEY_REFRESH_RESULT to SUCCESS.name,
                     KEY_NEW_IMAGE_URL to response.imageUrl,
-                ),
-            )
+                )
+
+            // This is a workaround to provide result from a periodic work
+            // See https://github.com/hossain-khan/android-trmnl-display/pull/62#issuecomment-2817203139
+            setProgress(workData)
+
+            return Result.success(workData)
         } catch (e: Exception) {
             Timber.tag(TAG).e(e, "Error during image refresh: ${e.message}")
             refreshLogManager.addFailureLog(e.message ?: "Unknown error during refresh")

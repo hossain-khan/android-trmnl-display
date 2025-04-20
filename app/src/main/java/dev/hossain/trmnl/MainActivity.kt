@@ -28,7 +28,9 @@ import dev.hossain.trmnl.ui.theme.TrmnlDisplayAppTheme
 import dev.hossain.trmnl.work.TrmnlImageRefreshWorker
 import dev.hossain.trmnl.work.TrmnlImageUpdateManager
 import dev.hossain.trmnl.work.TrmnlWorkScheduler.Companion.IMAGE_REFRESH_ONETIME_WORK_NAME
+import dev.hossain.trmnl.work.TrmnlWorkScheduler.Companion.IMAGE_REFRESH_ONETIME_WORK_TAG
 import dev.hossain.trmnl.work.TrmnlWorkScheduler.Companion.IMAGE_REFRESH_PERIODIC_WORK_NAME
+import dev.hossain.trmnl.work.TrmnlWorkScheduler.Companion.IMAGE_REFRESH_PERIODIC_WORK_TAG
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -51,7 +53,7 @@ class MainActivity
             super.onCreate(savedInstanceState)
 
             // Setup listener for TRMNL display image updates
-            listenForWorkUpdates()
+            listenForWorkUpdatesV2()
 
             setContent {
                 TrmnlDisplayAppTheme {
@@ -140,5 +142,72 @@ class MainActivity
             // Observe both work types
             observeWork(IMAGE_REFRESH_PERIODIC_WORK_NAME)
             observeWork(IMAGE_REFRESH_ONETIME_WORK_NAME)
+        }
+
+        private fun listenForWorkUpdatesV2() {
+            val workManager = WorkManager.getInstance(context)
+
+            // Observe work by tag instead of unique work name
+            fun observeWorkByTag(tag: String) {
+                workManager.getWorkInfosByTagLiveData(tag).observe(this) { workInfos ->
+                    workInfos.forEach { workInfo ->
+                        Timber.d("$tag work state updated: ${workInfo.state}")
+
+                        // Check for output data in the main output or progress data
+                        val outputData = workInfo.outputData
+                        val progressData = workInfo.progress
+
+                        // First check for data in the progress - this works for periodic work
+                        if (!progressData.keyValueMap.isEmpty() &&
+                            progressData.keyValueMap.containsKey(TrmnlImageRefreshWorker.KEY_NEW_IMAGE_URL)
+                        ) {
+                            val newImageUrl = progressData.getString(TrmnlImageRefreshWorker.KEY_NEW_IMAGE_URL)
+                            if (newImageUrl != null) {
+                                Timber.i("New image URL from $tag progress data: $newImageUrl")
+                                trmnlImageUpdateManager.updateImage(
+                                    ImageMetadata(
+                                        url = newImageUrl,
+                                        timestamp = System.currentTimeMillis(),
+                                        refreshRateSecs = null,
+                                    ),
+                                )
+                            }
+                        }
+                        // Then check in the output data - this works for one-time work
+                        else if (!outputData.keyValueMap.isEmpty() &&
+                            outputData.keyValueMap.containsKey(TrmnlImageRefreshWorker.KEY_NEW_IMAGE_URL)
+                        ) {
+                            val newImageUrl = outputData.getString(TrmnlImageRefreshWorker.KEY_NEW_IMAGE_URL)
+                            if (newImageUrl != null) {
+                                Timber.i("New image URL from $tag output data: $newImageUrl")
+                                trmnlImageUpdateManager.updateImage(
+                                    ImageMetadata(
+                                        url = newImageUrl,
+                                        timestamp = System.currentTimeMillis(),
+                                        refreshRateSecs = null,
+                                    ),
+                                )
+                            }
+                        }
+                        // Handle failure state
+                        else if (workInfo.state == WorkInfo.State.FAILED) {
+                            val error = outputData.getString(TrmnlImageRefreshWorker.KEY_ERROR_MESSAGE)
+                            Timber.e("$tag work failed: $error")
+                            trmnlImageUpdateManager.updateImage(
+                                ImageMetadata(
+                                    url = "",
+                                    timestamp = System.currentTimeMillis(),
+                                    refreshRateSecs = null,
+                                    errorMessage = error,
+                                ),
+                            )
+                        }
+                    }
+                }
+            }
+
+            // Observe both work types by their tags
+            observeWorkByTag(IMAGE_REFRESH_PERIODIC_WORK_TAG)
+            observeWorkByTag(IMAGE_REFRESH_ONETIME_WORK_TAG)
         }
     }
