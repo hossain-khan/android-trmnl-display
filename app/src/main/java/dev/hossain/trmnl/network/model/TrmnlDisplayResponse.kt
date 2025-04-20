@@ -4,7 +4,7 @@ import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 
 /**
- *
+ * Data class representing the response from the TRMNL API for display data.
  *
  * Sample success response:
  * ```json
@@ -17,6 +17,16 @@ import com.squareup.moshi.JsonClass
  *     "update_firmware": true,
  *     "firmware_url": "https://trmnl-fw.s3.us-east-2.amazonaws.com/FW1.4.8.bin",
  *     "special_function": "restart_playlist"
+ * }
+ * ```
+ *
+ * Sample response when device is sleeping:
+ * ```json
+ * {
+ *   "status": 0,
+ *   "image_url": "https://usetrmnl.com/images/setup/sleep.bmp",
+ *   "filename": "sleep",
+ *   "refresh_rate": 28498
  * }
  * ```
  *
