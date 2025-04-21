@@ -73,6 +73,7 @@ import dev.hossain.trmnl.ui.display.TrmnlMirrorDisplayScreen
 import dev.hossain.trmnl.ui.settings.AppSettingsScreen.ValidationResult
 import dev.hossain.trmnl.util.CoilRequestUtils
 import dev.hossain.trmnl.util.TokenManager
+import dev.hossain.trmnl.util.nextRunTime
 import dev.hossain.trmnl.util.toColor
 import dev.hossain.trmnl.util.toDisplayString
 import dev.hossain.trmnl.util.toIcon
@@ -82,8 +83,6 @@ import dev.hossain.trmnl.work.TrmnlWorkScheduler.Companion.IMAGE_REFRESH_PERIODI
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 import kotlinx.parcelize.Parcelize
-import java.time.Instant
-import java.time.format.DateTimeFormatter
 
 /**
  * Screen for configuring the TRMNL token and other things.
@@ -507,24 +506,8 @@ private fun WorkScheduleStatusCard(
                 }
 
                 // Show next schedule time if available
-                val nextScheduleTimeMillis = workInfo?.nextScheduleTimeMillis ?: 0L
-                if (nextScheduleTimeMillis > 0 && nextScheduleTimeMillis != Long.MAX_VALUE) {
-                    val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
-                    val nextRunTime =
-                        Instant
-                            .ofEpochMilli(nextScheduleTimeMillis)
-                            .atZone(java.time.ZoneId.systemDefault())
-                            .format(formatter)
-
-                    val timeUntil = nextScheduleTimeMillis - System.currentTimeMillis()
-                    val timeUntilText =
-                        when {
-                            timeUntil <= 0 -> "any moment now"
-                            timeUntil < 60000 -> "in ${timeUntil / 1000} seconds"
-                            timeUntil < 3600000 -> "in ${timeUntil / 60000} minutes"
-                            else -> "in ${timeUntil / 3600000} hours"
-                        }
-
+                val nextRefreshTimeInfo = workInfo?.nextRunTime()
+                if (nextRefreshTimeInfo != null) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.padding(vertical = 4.dp),
@@ -537,13 +520,13 @@ private fun WorkScheduleStatusCard(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "Next refresh: $timeUntilText",
+                            text = "Next refresh: ${nextRefreshTimeInfo.timeUntilNextRefresh}",
                             style = MaterialTheme.typography.bodyMedium,
                         )
                     }
 
                     Text(
-                        text = "Scheduled for: $nextRunTime",
+                        text = "Scheduled for: ${nextRefreshTimeInfo.nextRefreshOnDateTime}",
                         style = MaterialTheme.typography.bodySmall,
                         modifier = Modifier.padding(start = 28.dp, top = 2.dp),
                     )

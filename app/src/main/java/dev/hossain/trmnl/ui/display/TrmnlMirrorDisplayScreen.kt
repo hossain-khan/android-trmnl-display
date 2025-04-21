@@ -112,7 +112,7 @@ class TrmnlMirrorDisplayPresenter
             var imageUrl by remember { mutableStateOf<String?>(null) }
             var overlayControlsVisible by remember { mutableStateOf(false) }
             var isLoading by remember { mutableStateOf(true) }
-            var nextRefreshTime by remember { mutableStateOf("") }
+            var nextRefreshTime by remember { mutableStateOf("No scheduled work found. Please set API token.") }
             var error by remember { mutableStateOf<String?>(null) }
             val scope = rememberCoroutineScope()
 
@@ -143,9 +143,9 @@ class TrmnlMirrorDisplayPresenter
 
             LaunchedEffect(Unit) {
                 trmnlWorkScheduler.getScheduledWorkInfo().collect { workInfo ->
-                    workInfo?.let {
-                        nextRefreshTime = it.nextRunTime()
-                    }
+                    workInfo?.nextRunTime()?.let {
+                        nextRefreshTime = it.timeUntilNextRefresh
+                    } ?: "No scheduled work found. Please set API token."
                 }
             }
 
