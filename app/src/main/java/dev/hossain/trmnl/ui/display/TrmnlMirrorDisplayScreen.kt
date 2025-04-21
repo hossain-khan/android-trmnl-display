@@ -61,6 +61,7 @@ import dev.hossain.trmnl.ui.refreshlog.DisplayRefreshLogScreen
 import dev.hossain.trmnl.ui.settings.AppSettingsScreen
 import dev.hossain.trmnl.util.CoilRequestUtils
 import dev.hossain.trmnl.util.TokenManager
+import dev.hossain.trmnl.util.nextRunTime
 import dev.hossain.trmnl.work.TrmnlImageUpdateManager
 import dev.hossain.trmnl.work.TrmnlWorkScheduler
 import kotlinx.coroutines.delay
@@ -78,6 +79,7 @@ data object TrmnlMirrorDisplayScreen : Screen {
     data class State(
         val imageUrl: String?,
         val overlayControlsVisible: Boolean,
+        val nextImageRefreshIn: String,
         val isLoading: Boolean = false,
         val errorMessage: String? = null,
         val eventSink: (Event) -> Unit,
@@ -110,6 +112,7 @@ class TrmnlMirrorDisplayPresenter
             var imageUrl by remember { mutableStateOf<String?>(null) }
             var overlayControlsVisible by remember { mutableStateOf(false) }
             var isLoading by remember { mutableStateOf(true) }
+            var nextRefreshTime by remember { mutableStateOf("No scheduled work found. Please set API token.") }
             var error by remember { mutableStateOf<String?>(null) }
             val scope = rememberCoroutineScope()
 
@@ -138,6 +141,14 @@ class TrmnlMirrorDisplayPresenter
                 }
             }
 
+            LaunchedEffect(Unit) {
+                trmnlWorkScheduler.getScheduledWorkInfo().collect { workInfo ->
+                    workInfo?.nextRunTime()?.let {
+                        nextRefreshTime = it.timeUntilNextRefresh
+                    } ?: "No scheduled work found. Please set API token."
+                }
+            }
+
             // Initialize by checking token and starting one-time work if needed
             LaunchedEffect(Unit) {
                 val token = tokenManager.accessTokenFlow.firstOrNull()
@@ -163,6 +174,7 @@ class TrmnlMirrorDisplayPresenter
             return TrmnlMirrorDisplayScreen.State(
                 imageUrl = imageUrl,
                 overlayControlsVisible = overlayControlsVisible,
+                nextImageRefreshIn = nextRefreshTime,
                 isLoading = isLoading,
                 errorMessage = error,
                 eventSink = { event ->
@@ -323,6 +335,8 @@ private fun OverlaySettingsView(
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(bottom = 8.dp),
             )
+
+            Text("Display image refresh: ${state.nextImageRefreshIn}")
 
             ExtendedFloatingActionButton(
                 onClick = {

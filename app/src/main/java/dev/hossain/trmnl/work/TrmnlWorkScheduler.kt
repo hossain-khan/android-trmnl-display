@@ -184,6 +184,16 @@ class TrmnlWorkScheduler
         }
 
         /**
+         * Get the scheduled work info as a Flow to get updates on upcoming refresh job.
+         */
+        fun getScheduledWorkInfo(): Flow<WorkInfo?> =
+            WorkManager
+                .getInstance(context)
+                .getWorkInfosForUniqueWorkLiveData(IMAGE_REFRESH_PERIODIC_WORK_NAME)
+                .asFlow()
+                .map { it.firstOrNull() }
+
+        /**
          * Update the refresh interval based on server response
          */
         suspend fun updateRefreshInterval(newIntervalSeconds: Long) {

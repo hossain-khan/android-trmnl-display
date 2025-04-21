@@ -15,12 +15,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -77,14 +73,16 @@ import dev.hossain.trmnl.ui.display.TrmnlMirrorDisplayScreen
 import dev.hossain.trmnl.ui.settings.AppSettingsScreen.ValidationResult
 import dev.hossain.trmnl.util.CoilRequestUtils
 import dev.hossain.trmnl.util.TokenManager
+import dev.hossain.trmnl.util.nextRunTime
+import dev.hossain.trmnl.util.toColor
+import dev.hossain.trmnl.util.toDisplayString
+import dev.hossain.trmnl.util.toIcon
 import dev.hossain.trmnl.work.TrmnlImageUpdateManager
 import dev.hossain.trmnl.work.TrmnlWorkScheduler
 import dev.hossain.trmnl.work.TrmnlWorkScheduler.Companion.IMAGE_REFRESH_PERIODIC_WORK_NAME
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 import kotlinx.parcelize.Parcelize
-import java.time.Instant
-import java.time.format.DateTimeFormatter
 
 /**
  * Screen for configuring the TRMNL token and other things.
@@ -489,75 +487,27 @@ private fun WorkScheduleStatusCard(
                     color = MaterialTheme.colorScheme.error,
                 )
             } else {
-                // Display existing status information
-                val statusText =
-                    when (workInfo?.state) {
-                        WorkInfo.State.ENQUEUED -> "Scheduled"
-                        WorkInfo.State.RUNNING -> "Running now"
-                        WorkInfo.State.SUCCEEDED -> "Completed successfully"
-                        WorkInfo.State.FAILED -> "Failed"
-                        WorkInfo.State.BLOCKED -> "Waiting for conditions"
-                        WorkInfo.State.CANCELLED -> "Cancelled\nValidate and continue to reschedule"
-                        null -> "Unknown"
-                    }
-
-                val statusColor =
-                    when (workInfo?.state) {
-                        WorkInfo.State.ENQUEUED -> MaterialTheme.colorScheme.primary
-                        WorkInfo.State.RUNNING -> MaterialTheme.colorScheme.tertiary
-                        WorkInfo.State.SUCCEEDED -> MaterialTheme.colorScheme.primary
-                        WorkInfo.State.FAILED -> MaterialTheme.colorScheme.error
-                        WorkInfo.State.BLOCKED -> MaterialTheme.colorScheme.secondary
-                        WorkInfo.State.CANCELLED -> MaterialTheme.colorScheme.error
-                        null -> MaterialTheme.colorScheme.onSurface
-                    }
-
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.padding(vertical = 4.dp),
                 ) {
                     Icon(
-                        imageVector =
-                            when (workInfo?.state) {
-                                WorkInfo.State.ENQUEUED -> Icons.Default.Refresh
-                                WorkInfo.State.RUNNING -> Icons.Default.PlayArrow
-                                WorkInfo.State.SUCCEEDED -> Icons.Default.CheckCircle
-                                WorkInfo.State.FAILED -> Icons.Default.Warning
-                                WorkInfo.State.BLOCKED -> Icons.Default.Clear
-                                WorkInfo.State.CANCELLED -> Icons.Default.Clear
-                                null -> Icons.Default.Refresh
-                            },
+                        imageVector = workInfo?.state.toIcon(),
                         contentDescription = null,
-                        tint = statusColor,
+                        tint = workInfo?.state.toColor(),
                         modifier = Modifier.size(20.dp),
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "Status: $statusText",
+                        text = "Status: ${workInfo?.state.toDisplayString()}",
                         style = MaterialTheme.typography.bodyMedium,
-                        color = statusColor,
+                        color = workInfo?.state.toColor(),
                     )
                 }
 
                 // Show next schedule time if available
-                val nextScheduleTimeMillis = workInfo?.nextScheduleTimeMillis ?: 0L
-                if (nextScheduleTimeMillis > 0 && nextScheduleTimeMillis != Long.MAX_VALUE) {
-                    val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
-                    val nextRunTime =
-                        Instant
-                            .ofEpochMilli(nextScheduleTimeMillis)
-                            .atZone(java.time.ZoneId.systemDefault())
-                            .format(formatter)
-
-                    val timeUntil = nextScheduleTimeMillis - System.currentTimeMillis()
-                    val timeUntilText =
-                        when {
-                            timeUntil <= 0 -> "any moment now"
-                            timeUntil < 60000 -> "in ${timeUntil / 1000} seconds"
-                            timeUntil < 3600000 -> "in ${timeUntil / 60000} minutes"
-                            else -> "in ${timeUntil / 3600000} hours"
-                        }
-
+                val nextRefreshTimeInfo = workInfo?.nextRunTime()
+                if (nextRefreshTimeInfo != null) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.padding(vertical = 4.dp),
@@ -570,13 +520,13 @@ private fun WorkScheduleStatusCard(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "Next refresh: $timeUntilText",
+                            text = "Next refresh: ${nextRefreshTimeInfo.timeUntilNextRefresh}",
                             style = MaterialTheme.typography.bodyMedium,
                         )
                     }
 
                     Text(
-                        text = "Scheduled for: $nextRunTime",
+                        text = "Scheduled for: ${nextRefreshTimeInfo.nextRefreshOnDateTime}",
                         style = MaterialTheme.typography.bodySmall,
                         modifier = Modifier.padding(start = 28.dp, top = 2.dp),
                     )
