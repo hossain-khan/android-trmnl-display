@@ -24,8 +24,8 @@ Once released, install the APK on your Android device.
 Check installable APK from Assets in [latest release](https://github.com/hossain-khan/android-trmnl-display/releases).
 
 ### Limitations 🚧
-* Right now, screen lock using [recommended](https://developer.android.com/develop/background-work/background-tasks/awake/screen-on) **`FLAG_KEEP_SCREEN_ON`** is not working on e-Ink tablet due to battery optimization. So, if you plan to keep the screen on idefinitely, you should set that in the device settings.
-    * On normal Android tablet or device, screen wake log should work. However it's not recommended to use it without device being always plugged-in 🔌.
+* Right now, screen lock using Google's [recommended](https://developer.android.com/develop/background-work/background-tasks/awake/screen-on) **`FLAG_KEEP_SCREEN_ON`** is not working on e-Ink tablet due to strict battery optimization. So, if you plan to keep the screen on idefinitely, you should set that in the device settings.
+    * On normal Android tablet or device, screen wake lock should work. However it's not recommended to use it without device being always plugged-in 🔌.
 
 > ℹ️ _I am using 'BOOX GO 10.3 Tablet' that lasts around 5 days with always screen on._
 
