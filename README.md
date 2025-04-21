@@ -14,9 +14,9 @@ Here are some of the known ways you can get access to the `access-token`.
 ## How to try
 Once released, install the APK on your Android device.
 
-1. Configure the `access-token`  
+1. Configure the API `access-token` in the app settings
     i. 📝 NOTE: Right now only `https://usetrmnl.com/api` service API is supported, custom service URL will be added later
-3. Save token and keep the app on with the TRMNL content/image showing.
+2. Save token and keep the app on with the TRMNL content/image showing.
 
 ### Limitations 🚧
 * Right now, screen lock using [recommended](https://developer.android.com/develop/background-work/background-tasks/awake/screen-on) **`FLAG_KEEP_SCREEN_ON`** is not working on e-Ink tablet due to battery optimization. So, if you plan to keep the screen on idefinitely, you should set that in the device settings.
@@ -36,4 +36,4 @@ The TRMNL Display Mirror app serves as a digital display mirror for TRMNL e-ink 
 - [x] Adaptive refresh rate based on server response config
 - [x] Manual refresh capabilities
 - [x] Image caching for offline viewing
-- [x] Refresh history logging for validation
+- [x] Refresh history logging for tracking & validation
