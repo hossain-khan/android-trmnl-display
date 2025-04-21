@@ -11,6 +11,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.work.WorkInfo
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 fun WorkInfo.State?.toDisplayString(): String =
     when (this) {
@@ -45,3 +48,27 @@ fun WorkInfo.State?.toIcon(): ImageVector =
         WorkInfo.State.CANCELLED -> Icons.Default.Clear
         null -> Icons.Default.Refresh
     }
+
+fun WorkInfo?.nextRunTime(): String {
+    val nextScheduleTimeMillis = this?.nextScheduleTimeMillis ?: 0L
+    if (nextScheduleTimeMillis > 0 && nextScheduleTimeMillis != Long.MAX_VALUE) {
+        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+        val nextRunTime =
+            Instant
+                .ofEpochMilli(nextScheduleTimeMillis)
+                .atZone(ZoneId.systemDefault())
+                .format(formatter)
+
+        val timeUntil = nextScheduleTimeMillis - System.currentTimeMillis()
+        val timeUntilText =
+            when {
+                timeUntil <= 0 -> "any moment now"
+                timeUntil < 60000 -> "in ${timeUntil / 1000} seconds"
+                timeUntil < 3600000 -> "in ${timeUntil / 60000} minutes"
+                else -> "in ${timeUntil / 3600000} hours"
+            }
+        return timeUntilText
+    } else {
+        return "No scheduled job found. Please set API token."
+    }
+}
