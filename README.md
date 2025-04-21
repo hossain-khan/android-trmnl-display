@@ -8,7 +8,7 @@ You must have a **valid** `access-token` to access the [screen content](https://
 
 Here are some of the known ways you can get access to the `access-token`.
 
-1. You must own a terminal device with "developer edition" add-on purchased
+1. You must own a [TRMNL](https://usetrmnl.com/) device with "developer edition" add-on purchased
 2. You have purchased their [BYOD](https://docs.usetrmnl.com/go/diy/byod)* product. (Not confirmed if you also need to buy "developer edition" add-on)
 3. You have self-serve installation of TRMNL service using [BYOS](https://docs.usetrmnl.com/go/diy/byos) (Not confirmed if this works - I plan to try this later)
 
