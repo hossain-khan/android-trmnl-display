@@ -20,6 +20,9 @@ Once released, install the APK on your Android device.
     i. 📝 NOTE: Right now only `https://usetrmnl.com/api` service API is supported, custom service URL will be added later
 2. Save token and keep the app on with the TRMNL content/image showing.
 
+### <img src="https://github.com/user-attachments/assets/6f8adaa7-723c-4faa-be61-c0145fd79889" width="25"> Download Release
+Check installable APK from Assets in [latest release](https://github.com/hossain-khan/android-trmnl-display/releases).
+
 ### Limitations 🚧
 * Right now, screen lock using [recommended](https://developer.android.com/develop/background-work/background-tasks/awake/screen-on) **`FLAG_KEEP_SCREEN_ON`** is not working on e-Ink tablet due to battery optimization. So, if you plan to keep the screen on idefinitely, you should set that in the device settings.
     * On normal Android tablet or device, screen wake log should work. However it's not recommended to use it without device being always plugged-in 🔌.
