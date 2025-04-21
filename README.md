@@ -1,3 +1,5 @@
+[![Android CI](https://github.com/hossain-khan/android-trmnl-display/actions/workflows/android.yml/badge.svg)](https://github.com/hossain-khan/android-trmnl-display/actions/workflows/android.yml)
+
 # Android - TRMNL Display
 A simple app to mirror existing TRMNL's content to your Android device (preferably e-ink display).
 
