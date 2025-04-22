@@ -415,14 +415,15 @@ private fun OverlaySettingsView(
 fun PreviewTrmnlMirrorDisplayErrorContent() {
     Surface {
         TrmnlMirrorDisplayContent(
-            state = TrmnlMirrorDisplayScreen.State(
-                imageUrl = "https://usetrmnl.com/assets/section2-1-44a95d3aafa3e282f744a573d6688a54a5ba836cbc37ad2b1f2f26aaa402d7c0.jpg",
-                overlayControlsVisible = false,
-                nextImageRefreshIn = "5 minutes",
-                isLoading = false,
-                errorMessage = "Sample Error Message",
-                eventSink = {},
-            ),
+            state =
+                TrmnlMirrorDisplayScreen.State(
+                    imageUrl = "https://vision.hossainkhan.com/images/front-page/IMG_20180907_073851-1600x1200-camp-ahmek-bridge-bnw.jpg",
+                    overlayControlsVisible = false,
+                    nextImageRefreshIn = "5 minutes",
+                    isLoading = false,
+                    errorMessage = "Sample Error Message",
+                    eventSink = {},
+                ),
         )
     }
 }
