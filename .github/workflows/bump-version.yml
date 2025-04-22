@@ -1,0 +1,101 @@
+name: Bump Version
+
+on:
+  workflow_dispatch:
+    inputs:
+      bump_type:
+        description: 'Type of version bump'
+        required: true
+        default: 'minor'
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+
+jobs:
+  bump-version:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: '22'
+          distribution: 'temurin'
+
+      - name: Bump version
+        id: bump-version
+        run: |
+          # Find current version values
+          GRADLE_FILE="app/build.gradle.kts"
+          CURRENT_VERSION_CODE=$(grep -E 'versionCode\s*=\s*[0-9]+' $GRADLE_FILE | grep -Eo '[0-9]+')
+          CURRENT_VERSION_NAME=$(grep -E 'versionName\s*=\s*"[^"]+"' $GRADLE_FILE | grep -Eo '"[^"]+"' | tr -d '"')
+          
+          echo "Current versionCode: $CURRENT_VERSION_CODE"
+          echo "Current versionName: $CURRENT_VERSION_NAME"
+          
+          # Create tag for the current version
+          git tag v$CURRENT_VERSION_NAME
+          git push --tags
+          
+          # Increment version code by 1
+          NEW_VERSION_CODE=$((CURRENT_VERSION_CODE + 1))
+          
+          # Parse and bump semantic version based on bump type
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT_VERSION_NAME"
+          
+          case "${{ github.event.inputs.bump_type }}" in
+            "major")
+              if [[ -n "$PATCH" ]]; then
+                NEW_VERSION_NAME="$((MAJOR + 1)).0.0"
+              else
+                NEW_VERSION_NAME="$((MAJOR + 1)).0"
+              fi
+              ;;
+            "minor")
+              if [[ -n "$PATCH" ]]; then
+                NEW_VERSION_NAME="$MAJOR.$((MINOR + 1)).0"
+              else
+                NEW_VERSION_NAME="$MAJOR.$((MINOR + 1))"
+              fi
+              ;;
+            "patch"|*)
+              # Default to patch if unspecified
+              if [[ -z "$PATCH" ]]; then
+                # If no patch component exists, add it as ".1"
+                NEW_VERSION_NAME="$MAJOR.$MINOR.1"
+              else
+                # Increment existing patch number
+                NEW_VERSION_NAME="$MAJOR.$MINOR.$((PATCH + 1))"
+              fi
+              ;;
+          esac
+
+          echo "New versionCode: $NEW_VERSION_CODE"
+          echo "New versionName: $NEW_VERSION_NAME"
+
+          # Update the build.gradle.kts file
+          sed -i "s/versionCode = $CURRENT_VERSION_CODE/versionCode = $NEW_VERSION_CODE/" $GRADLE_FILE
+          sed -i "s/versionName = \"$CURRENT_VERSION_NAME\"/versionName = \"$NEW_VERSION_NAME\"/" $GRADLE_FILE
+
+          # Set output variables for use in later steps
+          echo "new_version_code=$NEW_VERSION_CODE" >> $GITHUB_OUTPUT
+          echo "new_version_name=$NEW_VERSION_NAME" >> $GITHUB_OUTPUT
+          echo "version_file_changed=true" >> $GITHUB_OUTPUT
+
+      - name: Commit and push changes
+        if: steps.bump-version.outputs.version_file_changed == 'true'
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add app/build.gradle.kts
+          git commit -m "Bump version to ${{ steps.bump-version.outputs.new_version_name }} (code ${{ steps.bump-version.outputs.new_version_code }})"
+          git push origin HEAD:${{ github.ref }}
