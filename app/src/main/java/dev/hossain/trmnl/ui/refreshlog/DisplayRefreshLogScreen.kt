@@ -19,8 +19,8 @@ import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
-import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -268,7 +268,7 @@ private fun LogItem(
             modifier = Modifier.padding(16.dp),
         ) {
             // Format timestamp
-            val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
+            val dateFormat = SimpleDateFormat("MMM dd, yyyy hh:mm:ss a", Locale.getDefault())
             val formattedDate = dateFormat.format(Date(log.timestamp))
 
             Row(
@@ -292,7 +292,7 @@ private fun LogItem(
                 )
             }
 
-            Divider(modifier = Modifier.padding(vertical = 8.dp))
+            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
 
             if (log.success) {
                 Text(
@@ -308,7 +308,12 @@ private fun LogItem(
                 )
 
                 Text(
-                    text = "Refresh Rate: ${log.refreshRateSeconds ?: "N/A"} seconds",
+                    text =
+                        if (log.refreshRateSeconds != null && log.refreshRateSeconds > 60) {
+                            "Refresh Rate: ${log.refreshRateSeconds / 60} minutes"
+                        } else {
+                            "Refresh Rate: ${log.refreshRateSeconds ?: "N/A"} seconds"
+                        },
                     style = MaterialTheme.typography.bodySmall,
                     modifier = Modifier.padding(top = 8.dp),
                 )
