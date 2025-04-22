@@ -54,83 +54,72 @@ class TrmnlImageRefreshWorker(
 
     override suspend fun doWork(): Result {
         Timber.tag(TAG).d("Starting image refresh work ($tags)")
-        try {
-            // Get current token
-            val token = tokenManager.accessTokenFlow.firstOrNull()
+        // Get current token
+        val token = tokenManager.accessTokenFlow.firstOrNull()
 
-            if (token.isNullOrBlank()) {
-                Timber.tag(TAG).w("Token is not set, skipping image refresh")
-                refreshLogManager.addFailureLog("No access token found")
-                return Result.failure(
-                    workDataOf(
-                        KEY_REFRESH_RESULT to FAILURE.name,
-                        KEY_ERROR_MESSAGE to "No access token found",
-                    ),
-                )
-            }
-
-            // Fetch new display data
-            val response = displayRepository.getDisplayData(token)
-
-            // Check for errors
-            if (response.status == 500) {
-                Timber.tag(TAG).w("Failed to fetch display data: ${response.error}")
-                refreshLogManager.addFailureLog(response.error ?: "Unknown server error")
-                return Result.failure(
-                    workDataOf(
-                        KEY_REFRESH_RESULT to FAILURE.name,
-                        KEY_ERROR_MESSAGE to (response.error ?: "Unknown server error"),
-                    ),
-                )
-            }
-
-            // Check if image URL is valid
-            if (response.imageUrl.isEmpty()) {
-                Timber.tag(TAG).w("No image URL provided in response")
-                refreshLogManager.addFailureLog("No image URL provided in response")
-                return Result.failure(
-                    workDataOf(
-                        KEY_REFRESH_RESULT to FAILURE.name,
-                        KEY_ERROR_MESSAGE to "No image URL provided in response",
-                    ),
-                )
-            }
-
-            // ✅ Log success and update image
-            refreshLogManager.addSuccessLog(response.imageUrl, response.imageName, response.refreshRateSecs)
-
-            // Check if we should adapt refresh rate
-            val refreshRate = response.refreshRateSecs
-            refreshRate?.let { newRefreshRateSec ->
-                if (tokenManager.shouldUpdateRefreshRate(newRefreshRateSec)) {
-                    Timber.tag(TAG).d("Refresh rate changed, updating periodic work and saving new rate")
-                    tokenManager.saveRefreshRateSeconds(newRefreshRateSec)
-                    trmnlWorkScheduler.scheduleImageRefreshWork(newRefreshRateSec)
-                } else {
-                    Timber.tag(TAG).d("Refresh rate is unchanged, not updating")
-                }
-            }
-
-            // Workaround for periodic work not updating correctly (might be 🐛 bug in library)
-            conditionallyUpdateImageForPeriodicWork(tags, response.imageUrl)
-
-            Timber.tag(TAG).i("Image refresh successful for work($tags), got new URL: ${response.imageUrl}")
-            return Result.success(
-                workDataOf(
-                    KEY_REFRESH_RESULT to SUCCESS.name,
-                    KEY_NEW_IMAGE_URL to response.imageUrl,
-                ),
-            )
-        } catch (e: Exception) {
-            Timber.tag(TAG).e(e, "Error during image refresh work($tags): ${e.message}")
-            refreshLogManager.addFailureLog(e.message ?: "Unknown error during refresh")
+        if (token.isNullOrBlank()) {
+            Timber.tag(TAG).w("Token is not set, skipping image refresh")
+            refreshLogManager.addFailureLog("No access token found")
             return Result.failure(
                 workDataOf(
                     KEY_REFRESH_RESULT to FAILURE.name,
-                    KEY_ERROR_MESSAGE to (e.message ?: "Unknown error during refresh"),
+                    KEY_ERROR_MESSAGE to "No access token found",
                 ),
             )
         }
+
+        // Fetch new display data
+        val response = displayRepository.getDisplayData(token)
+
+        // Check for errors
+        if (response.status == 500) {
+            Timber.tag(TAG).w("Failed to fetch display data: ${response.error}")
+            refreshLogManager.addFailureLog(response.error ?: "Unknown server error")
+            return Result.failure(
+                workDataOf(
+                    KEY_REFRESH_RESULT to FAILURE.name,
+                    KEY_ERROR_MESSAGE to (response.error ?: "Unknown server error"),
+                ),
+            )
+        }
+
+        // Check if image URL is valid
+        if (response.imageUrl.isEmpty() || response.status != 0) {
+            Timber.tag(TAG).w("No image URL provided in response. ${response.error}")
+            refreshLogManager.addFailureLog("No image URL provided in response. ${response.error}")
+            return Result.failure(
+                workDataOf(
+                    KEY_REFRESH_RESULT to FAILURE.name,
+                    KEY_ERROR_MESSAGE to "No image URL provided in response. ${response.error}",
+                ),
+            )
+        }
+
+        // ✅ Log success and update image
+        refreshLogManager.addSuccessLog(response.imageUrl, response.imageName, response.refreshRateSecs)
+
+        // Check if we should adapt refresh rate
+        val refreshRate = response.refreshRateSecs
+        refreshRate?.let { newRefreshRateSec ->
+            if (tokenManager.shouldUpdateRefreshRate(newRefreshRateSec)) {
+                Timber.tag(TAG).d("Refresh rate changed, updating periodic work and saving new rate")
+                tokenManager.saveRefreshRateSeconds(newRefreshRateSec)
+                trmnlWorkScheduler.scheduleImageRefreshWork(newRefreshRateSec)
+            } else {
+                Timber.tag(TAG).d("Refresh rate is unchanged, not updating")
+            }
+        }
+
+        // Workaround for periodic work not updating correctly (might be 🐛 bug in library)
+        conditionallyUpdateImageForPeriodicWork(tags, response.imageUrl)
+
+        Timber.tag(TAG).i("Image refresh successful for work($tags), got new URL: ${response.imageUrl}")
+        return Result.success(
+            workDataOf(
+                KEY_REFRESH_RESULT to SUCCESS.name,
+                KEY_NEW_IMAGE_URL to response.imageUrl,
+            ),
+        )
     }
 
     /**
