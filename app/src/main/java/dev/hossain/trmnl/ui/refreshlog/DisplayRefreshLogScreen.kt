@@ -277,12 +277,12 @@ private fun LogItem(
             ) {
                 Text(
                     text = formattedDate,
-                    style = MaterialTheme.typography.bodySmall,
+                    style = MaterialTheme.typography.bodyLarge,
                 )
 
                 Text(
                     text = if (log.success) "✅ Success" else "❌ Failed",
-                    style = MaterialTheme.typography.bodySmall,
+                    style = MaterialTheme.typography.bodyLarge,
                     color =
                         if (log.success) {
                             MaterialTheme.colorScheme.primary
@@ -298,11 +298,11 @@ private fun LogItem(
                 Text(
                     text = "Image Name:",
                     fontWeight = FontWeight.Bold,
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = MaterialTheme.typography.bodyLarge,
                 )
                 Text(
                     text = log.imageName ?: "N/A",
-                    style = MaterialTheme.typography.bodySmall,
+                    style = MaterialTheme.typography.bodyMedium,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                 )
@@ -314,7 +314,7 @@ private fun LogItem(
                         } else {
                             "Refresh Rate: ${log.refreshRateSeconds ?: "N/A"} seconds"
                         },
-                    style = MaterialTheme.typography.bodySmall,
+                    style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier.padding(top = 8.dp),
                 )
             } else {
