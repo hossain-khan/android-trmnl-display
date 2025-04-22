@@ -19,8 +19,8 @@ import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
-import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -152,6 +152,7 @@ class DisplayRefreshLogPresenter
                                 activityLogManager.addLog(
                                     TrmnlRefreshLog.createSuccess(
                                         imageUrl = "https://debug.example.com/image.png",
+                                        imageName = "test-image.png",
                                         refreshRateSeconds = 300L,
                                     ),
                                 )
@@ -267,7 +268,7 @@ private fun LogItem(
             modifier = Modifier.padding(16.dp),
         ) {
             // Format timestamp
-            val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
+            val dateFormat = SimpleDateFormat("MMM dd, yyyy hh:mm:ss a", Locale.getDefault())
             val formattedDate = dateFormat.format(Date(log.timestamp))
 
             Row(
@@ -276,12 +277,12 @@ private fun LogItem(
             ) {
                 Text(
                     text = formattedDate,
-                    style = MaterialTheme.typography.bodySmall,
+                    style = MaterialTheme.typography.bodyLarge,
                 )
 
                 Text(
                     text = if (log.success) "✅ Success" else "❌ Failed",
-                    style = MaterialTheme.typography.bodySmall,
+                    style = MaterialTheme.typography.bodyLarge,
                     color =
                         if (log.success) {
                             MaterialTheme.colorScheme.primary
@@ -291,24 +292,29 @@ private fun LogItem(
                 )
             }
 
-            Divider(modifier = Modifier.padding(vertical = 8.dp))
+            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
 
             if (log.success) {
                 Text(
-                    text = "Image URL:",
+                    text = "Image Name:",
                     fontWeight = FontWeight.Bold,
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = MaterialTheme.typography.bodyLarge,
                 )
                 Text(
-                    text = log.imageUrl ?: "N/A",
-                    style = MaterialTheme.typography.bodySmall,
+                    text = log.imageName ?: "N/A",
+                    style = MaterialTheme.typography.bodyMedium,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                 )
 
                 Text(
-                    text = "Refresh Rate: ${log.refreshRateSeconds ?: "N/A"} seconds",
-                    style = MaterialTheme.typography.bodySmall,
+                    text =
+                        if (log.refreshRateSeconds != null && log.refreshRateSeconds > 60) {
+                            "Refresh Rate: ${log.refreshRateSeconds / 60} minutes"
+                        } else {
+                            "Refresh Rate: ${log.refreshRateSeconds ?: "N/A"} seconds"
+                        },
+                    style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier.padding(top = 8.dp),
                 )
             } else {

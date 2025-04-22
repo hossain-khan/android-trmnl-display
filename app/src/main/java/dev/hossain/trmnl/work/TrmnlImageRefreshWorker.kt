@@ -97,7 +97,7 @@ class TrmnlImageRefreshWorker(
             }
 
             // ✅ Log success and update image
-            refreshLogManager.addSuccessLog(response.imageUrl, response.refreshRateSecs)
+            refreshLogManager.addSuccessLog(response.imageUrl, response.imageName, response.refreshRateSecs)
 
             // Check if we should adapt refresh rate
             val refreshRate = response.refreshRateSecs
