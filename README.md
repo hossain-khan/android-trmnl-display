@@ -44,3 +44,9 @@ The TRMNL Display Mirror app serves as a digital display mirror for TRMNL e-ink 
 - [x] Manual refresh capabilities
 - [x] Image caching for offline viewing
 - [x] Refresh history logging for tracking & validation
+
+---
+
+## Related Referecens 📖
+* https://usetrmnl.com/
+* https://github.com/usetrmnl/trmnl-display
