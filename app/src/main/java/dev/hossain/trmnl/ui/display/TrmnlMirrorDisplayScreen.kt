@@ -309,6 +309,13 @@ private fun OverlaySettingsView(
             MaterialTheme.typography.bodyLarge
         }
 
+    val infoTextStyle =
+        if (isExpandedWidth) {
+            MaterialTheme.typography.titleLarge
+        } else {
+            MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold)
+        }
+
     Card(
         modifier =
             Modifier
@@ -336,7 +343,7 @@ private fun OverlaySettingsView(
                 modifier = Modifier.padding(bottom = 8.dp),
             )
 
-            Text("Display image refresh: ${state.nextImageRefreshIn}")
+            Text("Display image refresh: ${state.nextImageRefreshIn}", style = infoTextStyle)
 
             ExtendedFloatingActionButton(
                 onClick = {
