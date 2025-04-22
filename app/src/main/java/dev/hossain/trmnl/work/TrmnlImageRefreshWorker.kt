@@ -110,7 +110,7 @@ class TrmnlImageRefreshWorker(
             }
         }
 
-        // Workaround for periodic work not updating correctly (might be 🐛 bug in library)
+        // Workaround for periodic work not updating correctly (might be because of 🐛 bug in library)
         conditionallyUpdateImageForPeriodicWork(tags, response.imageUrl)
 
         Timber.tag(TAG).i("Image refresh successful for work($tags), got new URL: ${response.imageUrl}")
