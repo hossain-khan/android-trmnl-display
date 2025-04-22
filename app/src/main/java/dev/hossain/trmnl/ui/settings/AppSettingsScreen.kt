@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -46,11 +47,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.OffsetMapping
-import androidx.compose.ui.text.input.TransformedText
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -254,6 +254,9 @@ fun AppSettingsContent(
     val scrollState = rememberScrollState()
     val hasToken = state.accessToken.isNotBlank()
 
+    // Control password visibility
+    var passwordVisible by remember { mutableStateOf(false) }
+
     // Create masked version of the token for display
     val maskedToken =
         with(state.accessToken) {
@@ -324,35 +327,23 @@ fun AppSettingsContent(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Use masked token for display but keep actual token for validation
+            // Password field with toggle visibility button
             OutlinedTextField(
                 value = state.accessToken,
                 onValueChange = { state.eventSink(AppSettingsScreen.Event.AccessTokenChanged(it)) },
                 label = { Text("Access Token") },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
-                visualTransformation =
-                    if (state.accessToken.length > 4) {
-                        VisualTransformation { text ->
-                            val maskedText =
-                                buildString {
-                                    text.text.forEachIndexed { index, char ->
-                                        append(
-                                            when {
-                                                index < 2 || index >= text.text.length - 2 -> char
-                                                else -> '*'
-                                            },
-                                        )
-                                    }
-                                }
-                            TransformedText(
-                                AnnotatedString(maskedText),
-                                OffsetMapping.Identity,
-                            )
-                        }
-                    } else {
-                        VisualTransformation.None
-                    },
+                visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                trailingIcon = {
+                    IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                        Icon(
+                            painter = painterResource(if (passwordVisible) R.drawable.visibility_off_24dp else R.drawable.visibility_24dp),
+                            contentDescription = if (passwordVisible) "Hide password" else "Show password",
+                        )
+                    }
+                },
             )
 
             Spacer(modifier = Modifier.height(16.dp))
