@@ -141,7 +141,7 @@ class TrmnlMirrorDisplayPresenter
                 }
             }
 
-            LaunchedEffect(Unit) {
+            LaunchedEffect(overlayControlsVisible) {
                 trmnlWorkScheduler.getScheduledWorkInfo().collect { workInfo ->
                     workInfo?.nextRunTime()?.let {
                         nextRefreshTime = it.timeUntilNextRefresh
