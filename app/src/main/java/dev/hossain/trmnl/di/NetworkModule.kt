@@ -1,6 +1,8 @@
 package dev.hossain.trmnl.di
 
 import android.content.Context
+import com.slack.eithernet.integration.retrofit.ApiResultCallAdapterFactory
+import com.slack.eithernet.integration.retrofit.ApiResultConverterFactory
 import com.squareup.anvil.annotations.ContributesTo
 import com.squareup.anvil.annotations.optional.SingleIn
 import com.squareup.moshi.Moshi
@@ -65,6 +67,8 @@ object NetworkModule {
             .baseUrl("https://usetrmnl.com/")
             .client(okHttpClient)
             .addConverterFactory(MoshiConverterFactory.create(moshi))
+            .addConverterFactory(ApiResultConverterFactory)
+            .addCallAdapterFactory(ApiResultCallAdapterFactory)
             .build()
 
     @Provides

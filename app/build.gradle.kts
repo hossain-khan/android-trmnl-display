@@ -114,6 +114,10 @@ dependencies {
     implementation(libs.coil.compose)
     implementation(libs.coil.network.okhttp)
 
+    // EitherNet
+    implementation(libs.eithernet)
+    implementation(libs.eithernet.integration.retrofit)
+
     // Testing
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(libs.androidx.junit)
