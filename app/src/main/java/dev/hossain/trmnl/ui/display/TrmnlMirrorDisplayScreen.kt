@@ -39,6 +39,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.window.core.layout.WindowSizeClass
 import androidx.window.core.layout.WindowSizeClass.Companion.WIDTH_DP_EXPANDED_LOWER_BOUND
@@ -273,6 +274,7 @@ fun TrmnlMirrorDisplayContent(
                     model = CoilRequestUtils.createCachedImageRequest(context, state.imageUrl),
                     contentDescription = "Terminal Display",
                     contentScale = ContentScale.Fit,
+                    placeholder = painterResource(R.drawable.trmnl_logo_semi_transparent),
                     modifier = Modifier.fillMaxSize(),
                 )
             }
@@ -405,5 +407,41 @@ private fun OverlaySettingsView(
                 },
             )
         }
+    }
+}
+
+@Preview(name = "Trmnl Mirror Display Error Content Preview")
+@Composable
+fun PreviewTrmnlMirrorDisplayErrorContent() {
+    Surface {
+        TrmnlMirrorDisplayContent(
+            state =
+                TrmnlMirrorDisplayScreen.State(
+                    imageUrl = "https://vision.hossainkhan.com/images/front-page/IMG_20180907_073851-1600x1200-camp-ahmek-bridge-bnw.jpg",
+                    overlayControlsVisible = false,
+                    nextImageRefreshIn = "5 minutes",
+                    isLoading = false,
+                    errorMessage = "Sample Error Message",
+                    eventSink = {},
+                ),
+        )
+    }
+}
+
+@Preview(name = "Overlay Settings Preview")
+@Composable
+fun PreviewOverlaySettingsView() {
+    Surface {
+        OverlaySettingsView(
+            state =
+                TrmnlMirrorDisplayScreen.State(
+                    imageUrl = null,
+                    overlayControlsVisible = true,
+                    nextImageRefreshIn = "5 minutes",
+                    isLoading = false,
+                    errorMessage = null,
+                    eventSink = {},
+                ),
+        )
     }
 }
