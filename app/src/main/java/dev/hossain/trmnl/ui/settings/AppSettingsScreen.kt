@@ -1,5 +1,6 @@
 package dev.hossain.trmnl.ui.settings
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -17,6 +18,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -45,6 +47,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.OffsetMapping
 import androidx.compose.ui.text.input.TransformedText
@@ -66,6 +69,7 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dev.hossain.trmnl.R
 import dev.hossain.trmnl.data.AppConfig.DEFAULT_REFRESH_RATE_SEC
+import dev.hossain.trmnl.data.DevConfig
 import dev.hossain.trmnl.data.ImageMetadata
 import dev.hossain.trmnl.data.TrmnlDisplayRepository
 import dev.hossain.trmnl.di.AppScope
@@ -290,6 +294,16 @@ fun AppSettingsContent(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
         ) {
+            if (DevConfig.FAKE_API_RESPONSE) {
+                // Show fake API banner when DevConfig.FAKE_API_RESPONSE is `true`
+                FakeApiInfoBanner(
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 24.dp),
+                )
+            }
+
             Icon(
                 painter = painterResource(R.drawable.trmnl_logo_plain),
                 contentDescription = "TRMNL Logo",
@@ -560,6 +574,52 @@ private fun WorkScheduleStatusCard(
                         }
                     }
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun FakeApiInfoBanner(modifier: Modifier = Modifier) {
+    Card(
+        modifier = modifier,
+        colors =
+            CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+            ),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.tertiary),
+    ) {
+        Row(
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Icon(
+                imageVector = Icons.Default.Info,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.tertiary,
+            )
+
+            Column {
+                Text(
+                    text = "Developer Mode - Using Fake API",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
+                )
+
+                Text(
+                    text = "This app is currently using mock data instead of real API calls.",
+                    style = MaterialTheme.typography.bodySmall,
+                )
+
+                Text(
+                    text = "Set `DevConfig.FAKE_API_RESPONSE` to `false` to use real API.",
+                    style = MaterialTheme.typography.bodySmall,
+                    fontStyle = FontStyle.Italic,
+                )
             }
         }
     }
