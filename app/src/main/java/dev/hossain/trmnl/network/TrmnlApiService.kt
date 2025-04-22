@@ -1,5 +1,6 @@
 package dev.hossain.trmnl.network
 
+import com.slack.eithernet.ApiResult
 import dev.hossain.trmnl.network.model.TrmnlDisplayResponse
 import dev.hossain.trmnl.network.model.TrmnlLogResponse
 import retrofit2.http.GET
@@ -20,11 +21,11 @@ interface TrmnlApiService {
     @GET("api/display")
     suspend fun getDisplayData(
         @Header("access-token") accessToken: String,
-    ): TrmnlDisplayResponse
+    ): ApiResult<TrmnlDisplayResponse, Unit>
 
     @GET("api/log")
     suspend fun getLog(
         @Header("ID") id: String,
         @Header("Access-Token") accessToken: String,
-    ): TrmnlLogResponse
+    ): ApiResult<TrmnlLogResponse, Unit>
 }

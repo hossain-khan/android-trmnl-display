@@ -84,7 +84,6 @@ import dev.hossain.trmnl.util.toIcon
 import dev.hossain.trmnl.work.TrmnlImageUpdateManager
 import dev.hossain.trmnl.work.TrmnlWorkScheduler
 import dev.hossain.trmnl.work.TrmnlWorkScheduler.Companion.IMAGE_REFRESH_PERIODIC_WORK_NAME
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 import kotlinx.parcelize.Parcelize
 
@@ -169,41 +168,32 @@ class AppSettingsPresenter
                                 isLoading = true
                                 validationResult = null
 
-                                try {
-                                    val response = displayRepository.getDisplayData(accessToken)
+                                val response = displayRepository.getDisplayData(accessToken)
 
-                                    if (response.status == 500) {
-                                        // Handle explicit error response
-                                        val errorMessage = response.error ?: "Device not found"
-                                        validationResult = ValidationResult.Failure(errorMessage)
-                                    } else if (response.imageUrl.isNotBlank()) {
-                                        // Success case - we have an image URL
-                                        trmnlImageUpdateManager.updateImage(
-                                            ImageMetadata(
-                                                url = response.imageUrl,
-                                                timestamp = System.currentTimeMillis(),
-                                                refreshRateSecs = response.refreshRateSecs,
-                                            ),
-                                        )
-                                        validationResult =
-                                            ValidationResult.Success(
-                                                response.imageUrl,
-                                                response.refreshRateSecs ?: DEFAULT_REFRESH_RATE_SEC,
-                                            )
-                                    } else {
-                                        // No error but also no image URL
-                                        validationResult = ValidationResult.Failure("No image URL received")
-                                    }
-                                } catch (e: CancellationException) {
-                                    throw e
-                                } catch (e: Exception) {
+                                if (response.status == 500) {
+                                    // Handle explicit error response
+                                    val errorMessage = response.error ?: "Device not found"
+                                    validationResult = ValidationResult.Failure(errorMessage)
+                                } else if (response.imageUrl.isNotBlank()) {
+                                    // Success case - we have an image URL
+                                    trmnlImageUpdateManager.updateImage(
+                                        ImageMetadata(
+                                            url = response.imageUrl,
+                                            timestamp = System.currentTimeMillis(),
+                                            refreshRateSecs = response.refreshRateSecs,
+                                        ),
+                                    )
                                     validationResult =
-                                        ValidationResult.Failure(
-                                            e.message ?: "Unknown network error",
+                                        ValidationResult.Success(
+                                            response.imageUrl,
+                                            response.refreshRateSecs ?: DEFAULT_REFRESH_RATE_SEC,
                                         )
-                                } finally {
-                                    isLoading = false
+                                } else {
+                                    // No error but also no image URL
+                                    val errorMessage = response.error ?: ""
+                                    validationResult = ValidationResult.Failure("$errorMessage No image URL received.")
                                 }
+                                isLoading = false
                             }
                         }
 

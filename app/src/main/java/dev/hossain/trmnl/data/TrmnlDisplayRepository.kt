@@ -1,5 +1,6 @@
 package dev.hossain.trmnl.data
 
+import com.slack.eithernet.successOrNull
 import com.squareup.anvil.annotations.optional.SingleIn
 import dev.hossain.trmnl.data.DevConfig.FAKE_API_RESPONSE
 import dev.hossain.trmnl.di.AppScope
@@ -36,20 +37,20 @@ class TrmnlDisplayRepository
                 return fakeTrmnlDisplayInfo()
             }
 
-            val response = apiService.getDisplayData(accessToken)
+            val response = apiService.getDisplayData(accessToken).successOrNull()
 
             // Map the response to the display info
             val displayInfo =
                 TrmnlDisplayInfo(
-                    status = response.status,
-                    imageUrl = response.imageUrl ?: "",
-                    imageName = response.imageName ?: "",
-                    error = response.error,
-                    refreshRateSecs = response.refreshRate,
+                    status = response?.status ?: 500,
+                    imageUrl = response?.imageUrl ?: "",
+                    imageName = response?.imageName ?: "",
+                    error = response?.error,
+                    refreshRateSecs = response?.refreshRate,
                 )
 
             // If response was successful and has an image URL, save to data store
-            if (response.status == 0 && displayInfo.imageUrl.isNotEmpty()) {
+            if (response?.status == 0 && displayInfo.imageUrl.isNotEmpty()) {
                 imageMetadataStore.saveImageMetadata(
                     displayInfo.imageUrl,
                     displayInfo.refreshRateSecs,
@@ -63,11 +64,11 @@ class TrmnlDisplayRepository
          * Check the server status by making a request to the log endpoint.
          */
         suspend fun checkServerStatus(): Boolean {
-            val response = apiService.getLog("RANDOM-ID", "RANDOM-TOKEN")
+            val response = apiService.getLog("RANDOM-ID", "RANDOM-TOKEN").successOrNull()
             Timber.d("Device log status response: $response")
 
             // If we got 200 OK, we assume the server is up
-            return true
+            return response != null
         }
 
         /**
