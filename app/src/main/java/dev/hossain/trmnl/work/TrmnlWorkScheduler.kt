@@ -91,7 +91,9 @@ class TrmnlWorkScheduler
                     repeatIntervalTimeUnit = TimeUnit.MINUTES,
                 ).setConstraints(constraints)
                     .setBackoffCriteria(
-                        BackoffPolicy.LINEAR,
+                        // Exponential backoff for retrying failed work
+                        // To avoid overwhelming the server with requests
+                        BackoffPolicy.EXPONENTIAL,
                         WorkRequest.DEFAULT_BACKOFF_DELAY_MILLIS,
                         TimeUnit.MILLISECONDS,
                     ).addTag(IMAGE_REFRESH_PERIODIC_WORK_TAG)
