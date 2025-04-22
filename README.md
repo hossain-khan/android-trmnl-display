@@ -20,7 +20,7 @@ Once released, install the APK on your Android device.
     i. 📝 NOTE: Right now only `https://usetrmnl.com/api` service API is supported, custom service URL will be added later
 2. Save token and keep the app on with the TRMNL content/image showing.
 
-### <img src="https://github.com/user-attachments/assets/6f8adaa7-723c-4faa-be61-c0145fd79889" width="25"> Download Release
+### <img src="https://github.com/user-attachments/assets/64b4b132-a885-4783-98e3-c201bae6ccff" width="25"> Download Release
 Check installable APK from Assets in [latest release](https://github.com/hossain-khan/android-trmnl-display/releases).
 
 <img alt="Demo Video" src="https://github.com/user-attachments/assets/965a5cb3-d1b6-400c-8164-d96760fc17a2" width="500">
