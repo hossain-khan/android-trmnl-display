@@ -8,6 +8,7 @@ import java.time.Instant
 data class TrmnlRefreshLog(
     @Json(name = "timestamp") val timestamp: Long,
     @Json(name = "imageUrl") val imageUrl: String?,
+    @Json(name = "imageName") val imageName: String?,
     @Json(name = "refreshRateSeconds") val refreshRateSeconds: Long?,
     @Json(name = "success") val success: Boolean,
     @Json(name = "error") val error: String? = null,
@@ -15,11 +16,13 @@ data class TrmnlRefreshLog(
     companion object {
         fun createSuccess(
             imageUrl: String,
+            imageName: String,
             refreshRateSeconds: Long?,
         ): TrmnlRefreshLog =
             TrmnlRefreshLog(
                 timestamp = Instant.now().toEpochMilli(),
                 imageUrl = imageUrl,
+                imageName = imageName,
                 refreshRateSeconds = refreshRateSeconds,
                 success = true,
             )
@@ -28,6 +31,7 @@ data class TrmnlRefreshLog(
             TrmnlRefreshLog(
                 timestamp = Instant.now().toEpochMilli(),
                 imageUrl = null,
+                imageName = null,
                 refreshRateSeconds = null,
                 success = false,
                 error = error,

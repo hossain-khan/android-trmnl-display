@@ -152,6 +152,7 @@ class DisplayRefreshLogPresenter
                                 activityLogManager.addLog(
                                     TrmnlRefreshLog.createSuccess(
                                         imageUrl = "https://debug.example.com/image.png",
+                                        imageName = "test-image.png",
                                         refreshRateSeconds = 300L,
                                     ),
                                 )
@@ -295,12 +296,12 @@ private fun LogItem(
 
             if (log.success) {
                 Text(
-                    text = "Image URL:",
+                    text = "Image Name:",
                     fontWeight = FontWeight.Bold,
                     style = MaterialTheme.typography.bodyMedium,
                 )
                 Text(
-                    text = log.imageUrl ?: "N/A",
+                    text = log.imageName ?: "N/A",
                     style = MaterialTheme.typography.bodySmall,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,

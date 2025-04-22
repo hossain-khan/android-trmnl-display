@@ -9,6 +9,7 @@ import dev.hossain.trmnl.data.AppConfig.DEFAULT_REFRESH_RATE_SEC
 data class TrmnlDisplayInfo(
     val status: Int,
     val imageUrl: String,
+    val imageName: String,
     val error: String? = null,
     val refreshRateSecs: Long? = DEFAULT_REFRESH_RATE_SEC,
 )

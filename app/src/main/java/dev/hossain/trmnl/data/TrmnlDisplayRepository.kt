@@ -43,6 +43,7 @@ class TrmnlDisplayRepository
                 TrmnlDisplayInfo(
                     status = response.status,
                     imageUrl = response.imageUrl ?: "",
+                    imageName = response.imageName ?: "",
                     error = response.error,
                     refreshRateSecs = response.refreshRate,
                 )
@@ -85,6 +86,7 @@ class TrmnlDisplayRepository
             return TrmnlDisplayInfo(
                 status = 0,
                 imageUrl = mockImageUrl,
+                imageName = "Mock Image",
                 error = null,
                 refreshRateSecs = mockRefreshRate,
             )
