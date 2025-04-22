@@ -19,7 +19,7 @@ android {
         minSdk = 30
         targetSdk = 35
         versionCode = 5
-        versionName = "1.4"
+        versionName = "1.3.1"
 
         // Read key or other properties from local.properties
         val localProperties =
