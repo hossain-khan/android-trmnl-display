@@ -24,6 +24,14 @@ class TrmnlDisplayRepository
         private val apiService: TrmnlApiService,
         private val imageMetadataStore: ImageMetadataStore,
     ) {
+        private companion object {
+            /**
+             * 500 Internal Server Error - A generic error message, given when an unexpected
+             * condition was encountered and no more specific message is suitable.
+             */
+            private const val HTTP_500 = 500
+        }
+
         /**
          * Fetches display data for next plugin from the server using the provided access token.
          * If the app is in debug mode, it uses mock data instead.
@@ -42,7 +50,7 @@ class TrmnlDisplayRepository
             // Map the response to the display info
             val displayInfo =
                 TrmnlDisplayInfo(
-                    status = response?.status ?: 500,
+                    status = response?.status ?: HTTP_500,
                     imageUrl = response?.imageUrl ?: "",
                     imageName = response?.imageName ?: "",
                     error = response?.error,
@@ -51,6 +59,42 @@ class TrmnlDisplayRepository
 
             // If response was successful and has an image URL, save to data store
             if (response?.status == 0 && displayInfo.imageUrl.isNotEmpty()) {
+                imageMetadataStore.saveImageMetadata(
+                    displayInfo.imageUrl,
+                    displayInfo.refreshRateSecs,
+                )
+            }
+
+            return displayInfo
+        }
+
+        /**
+         * Fetches the current display data from the server using the provided access token.
+         * If the app is in debug mode, it uses mock data instead.
+         *
+         * @param accessToken The access token for authentication.
+         * @return A [TrmnlDisplayInfo] object containing the current display data.
+         */
+        suspend fun getCurrentDisplayData(accessToken: String): TrmnlDisplayInfo {
+            if (FAKE_API_RESPONSE) {
+                // Avoid using real API in debug mode
+                return fakeTrmnlDisplayInfo()
+            }
+
+            val response = apiService.getCurrentDisplayData(accessToken).successOrNull()
+
+            // Map the response to the display info
+            val displayInfo =
+                TrmnlDisplayInfo(
+                    status = response?.status ?: HTTP_500,
+                    imageUrl = response?.imageUrl ?: "",
+                    imageName = response?.filename ?: "",
+                    error = response?.error,
+                    refreshRateSecs = response?.refreshRateSec,
+                )
+
+            // If response was successful and has an image URL, save to data store
+            if (response?.status == 200 && displayInfo.imageUrl.isNotEmpty()) {
                 imageMetadataStore.saveImageMetadata(
                     displayInfo.imageUrl,
                     displayInfo.refreshRateSecs,
@@ -87,7 +131,7 @@ class TrmnlDisplayRepository
             return TrmnlDisplayInfo(
                 status = 0,
                 imageUrl = mockImageUrl,
-                imageName = "Mock Image",
+                imageName = "picsum-mocked-image.bmp",
                 error = null,
                 refreshRateSecs = mockRefreshRate,
             )
