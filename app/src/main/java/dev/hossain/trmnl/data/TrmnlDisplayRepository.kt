@@ -30,6 +30,11 @@ class TrmnlDisplayRepository
              * condition was encountered and no more specific message is suitable.
              */
             private const val HTTP_500 = 500
+
+            /**
+             * 200 OK - The request has succeeded.
+             */
+            private const val HTTP_200 = 200
         }
 
         /**
@@ -58,7 +63,7 @@ class TrmnlDisplayRepository
                 )
 
             // If response was successful and has an image URL, save to data store
-            if (response?.status == 0 && displayInfo.imageUrl.isNotEmpty()) {
+            if ((response?.status == 0 || response?.status == HTTP_200) && displayInfo.imageUrl.isNotEmpty()) {
                 imageMetadataStore.saveImageMetadata(
                     displayInfo.imageUrl,
                     displayInfo.refreshRateSecs,
@@ -94,7 +99,7 @@ class TrmnlDisplayRepository
                 )
 
             // If response was successful and has an image URL, save to data store
-            if (response?.status == 200 && displayInfo.imageUrl.isNotEmpty()) {
+            if (response?.status == HTTP_200 && displayInfo.imageUrl.isNotEmpty()) {
                 imageMetadataStore.saveImageMetadata(
                     displayInfo.imageUrl,
                     displayInfo.refreshRateSecs,
