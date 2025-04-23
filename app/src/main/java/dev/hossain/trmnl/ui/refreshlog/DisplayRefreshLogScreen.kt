@@ -15,6 +15,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -49,6 +50,7 @@ import dev.hossain.trmnl.BuildConfig
 import dev.hossain.trmnl.data.log.TrmnlRefreshLog
 import dev.hossain.trmnl.data.log.TrmnlRefreshLogManager
 import dev.hossain.trmnl.di.AppScope
+import dev.hossain.trmnl.util.getTimeElapsedString
 import dev.hossain.trmnl.work.TrmnlWorkScheduler
 import kotlinx.coroutines.launch
 import kotlinx.parcelize.Parcelize
@@ -271,32 +273,45 @@ private fun LogItem(
             val dateFormat = SimpleDateFormat("MMM dd, yyyy hh:mm:ss a", Locale.getDefault())
             val formattedDate = dateFormat.format(Date(log.timestamp))
 
+            // Calculate time elapsed
+            val timeElapsed = getTimeElapsedString(log.timestamp)
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
             ) {
-                Text(
-                    text = formattedDate,
-                    style = MaterialTheme.typography.bodyLarge,
-                )
+                Column {
+                    Text(
+                        text = formattedDate,
+                        style = MaterialTheme.typography.bodyLarge,
+                    )
+                    Text(
+                        text = timeElapsed,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.secondary,
+                    )
+                }
 
-                Text(
-                    text = if (log.success) "✅ Success" else "❌ Failed",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color =
-                        if (log.success) {
-                            MaterialTheme.colorScheme.primary
-                        } else {
-                            MaterialTheme.colorScheme.error
-                        },
-                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = if (log.success) Icons.Default.CheckCircle else Icons.Default.Clear,
+                        contentDescription = if (log.success) "Success" else "Failed",
+                        tint = if (log.success) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
+                        modifier = Modifier.padding(end = 4.dp),
+                    )
+                    Text(
+                        text = if (log.success) "Success" else "Failed",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = if (log.success) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
+                    )
+                }
             }
 
             HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
 
             if (log.success) {
                 Text(
-                    text = "Image Name:",
+                    text = "Image File Name:",
                     fontWeight = FontWeight.Bold,
                     style = MaterialTheme.typography.bodyLarge,
                 )
@@ -310,9 +325,9 @@ private fun LogItem(
                 Text(
                     text =
                         if (log.refreshRateSeconds != null && log.refreshRateSeconds > 60) {
-                            "Refresh Rate: ${log.refreshRateSeconds / 60} minutes"
+                            "API Refresh Rate: ${log.refreshRateSeconds / 60} minutes"
                         } else {
-                            "Refresh Rate: ${log.refreshRateSeconds ?: "N/A"} seconds"
+                            "API Refresh Rate: ${log.refreshRateSeconds ?: "N/A"} seconds"
                         },
                     style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier.padding(top = 8.dp),
