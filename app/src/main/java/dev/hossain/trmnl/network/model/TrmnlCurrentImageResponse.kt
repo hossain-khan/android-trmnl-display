@@ -34,8 +34,11 @@ data class TrmnlCurrentImageResponse(
     @Json(name = "image_url")
     val imageUrl: String?,
     val filename: String?,
+    /**
+     * Timestamp when the image was rendered.
+     */
     @Json(name = "rendered_at")
-    val renderedAt: String?,
+    val renderedAt: Long?,
     /**
      * Error message for non 200 status codes.
      */
