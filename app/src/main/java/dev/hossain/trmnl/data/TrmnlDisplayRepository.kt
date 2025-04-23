@@ -37,7 +37,7 @@ class TrmnlDisplayRepository
                 return fakeTrmnlDisplayInfo()
             }
 
-            val response = apiService.getDisplayData(accessToken).successOrNull()
+            val response = apiService.getNextDisplayData(accessToken).successOrNull()
 
             // Map the response to the display info
             val displayInfo =
