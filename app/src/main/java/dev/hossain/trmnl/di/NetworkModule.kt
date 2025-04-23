@@ -38,10 +38,26 @@ object NetworkModule {
         val cacheDir = File(context.cacheDir, "http_cache")
         val cache = Cache(cacheDir, CACHE_SIZE)
 
+        // Create custom user agent with app info and version
+        val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
+        val appName = context.getString(context.applicationInfo.labelRes)
+        val versionName = packageInfo.versionName
+        val versionCode = packageInfo.longVersionCode
+
+        val userAgent = "$appName/$versionName (build:$versionCode; Android ${android.os.Build.VERSION.RELEASE})"
+
         return OkHttpClient
             .Builder()
+            .addInterceptor { chain ->
+                val request =
+                    chain
+                        .request()
+                        .newBuilder()
+                        .header("User-Agent", userAgent)
+                        .build()
+                chain.proceed(request)
+            }.addInterceptor(loggingInterceptor)
             .cache(cache)
-            .addInterceptor(loggingInterceptor)
             .connectTimeout(30, TimeUnit.SECONDS)
             .readTimeout(30, TimeUnit.SECONDS)
             .writeTimeout(30, TimeUnit.SECONDS)
@@ -66,8 +82,8 @@ object NetworkModule {
             .Builder()
             .baseUrl("https://usetrmnl.com/")
             .client(okHttpClient)
-            .addConverterFactory(MoshiConverterFactory.create(moshi))
             .addConverterFactory(ApiResultConverterFactory)
+            .addConverterFactory(MoshiConverterFactory.create(moshi))
             .addCallAdapterFactory(ApiResultCallAdapterFactory)
             .build()
 
