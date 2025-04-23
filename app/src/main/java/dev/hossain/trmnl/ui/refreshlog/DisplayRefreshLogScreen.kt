@@ -15,6 +15,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -291,16 +292,19 @@ private fun LogItem(
                     )
                 }
 
-                Text(
-                    text = if (log.success) "✅ Success" else "❌ Failed",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color =
-                        if (log.success) {
-                            MaterialTheme.colorScheme.primary
-                        } else {
-                            MaterialTheme.colorScheme.error
-                        },
-                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = if (log.success) Icons.Default.CheckCircle else Icons.Default.Clear,
+                        contentDescription = if (log.success) "Success" else "Failed",
+                        tint = if (log.success) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
+                        modifier = Modifier.padding(end = 4.dp),
+                    )
+                    Text(
+                        text = if (log.success) "Success" else "Failed",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = if (log.success) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
+                    )
+                }
             }
 
             HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
