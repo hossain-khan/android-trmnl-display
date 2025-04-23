@@ -8,12 +8,12 @@ import androidx.work.workDataOf
 import dev.hossain.trmnl.MainActivity
 import dev.hossain.trmnl.data.ImageMetadata
 import dev.hossain.trmnl.data.TrmnlDisplayRepository
-import dev.hossain.trmnl.data.TrmnlDisplayRepository.Companion.HTTP_200
-import dev.hossain.trmnl.data.TrmnlDisplayRepository.Companion.HTTP_OK
 import dev.hossain.trmnl.data.log.TrmnlRefreshLogManager
 import dev.hossain.trmnl.di.WorkerModule
 import dev.hossain.trmnl.ui.display.TrmnlMirrorDisplayScreen
 import dev.hossain.trmnl.util.TokenManager
+import dev.hossain.trmnl.util.isHttpError
+import dev.hossain.trmnl.util.isHttpOk
 import dev.hossain.trmnl.work.TrmnlImageRefreshWorker.RefreshWorkResult.FAILURE
 import dev.hossain.trmnl.work.TrmnlImageRefreshWorker.RefreshWorkResult.SUCCESS
 import dev.hossain.trmnl.work.TrmnlWorkScheduler.Companion.IMAGE_REFRESH_PERIODIC_WORK_TAG
@@ -74,7 +74,7 @@ class TrmnlImageRefreshWorker(
         val response = displayRepository.getCurrentDisplayData(token)
 
         // Check for errors
-        if (response.status == 500) {
+        if (response.status.isHttpError()) {
             Timber.tag(TAG).w("Failed to fetch display data: ${response.error}")
             refreshLogManager.addFailureLog(response.error ?: "Unknown server error")
             return Result.failure(
@@ -86,7 +86,7 @@ class TrmnlImageRefreshWorker(
         }
 
         // Check if image URL is valid
-        if (response.imageUrl.isEmpty() || (response.status != HTTP_OK && response.status != HTTP_200)) {
+        if (response.imageUrl.isEmpty() || response.status.isHttpOk().not()) {
             Timber.tag(TAG).w("No image URL provided in response. ${response.error}")
             refreshLogManager.addFailureLog("No image URL provided in response. ${response.error}")
             return Result.failure(

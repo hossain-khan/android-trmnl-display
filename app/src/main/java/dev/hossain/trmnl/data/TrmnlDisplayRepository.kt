@@ -5,6 +5,9 @@ import com.squareup.anvil.annotations.optional.SingleIn
 import dev.hossain.trmnl.data.DevConfig.FAKE_API_RESPONSE
 import dev.hossain.trmnl.di.AppScope
 import dev.hossain.trmnl.network.TrmnlApiService
+import dev.hossain.trmnl.util.HTTP_200
+import dev.hossain.trmnl.util.HTTP_500
+import dev.hossain.trmnl.util.isHttpOk
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -24,24 +27,6 @@ class TrmnlDisplayRepository
         private val apiService: TrmnlApiService,
         private val imageMetadataStore: ImageMetadataStore,
     ) {
-        companion object {
-            /**
-             * 500 Internal Server Error - A generic error message, given when an unexpected
-             * condition was encountered and no more specific message is suitable.
-             */
-            internal const val HTTP_500 = 500
-
-            /**
-             * 200 OK - The request has succeeded.
-             */
-            internal const val HTTP_200 = 200
-
-            /**
-             * TRMNL server currently returns `0` for success for some APIs.
-             */
-            internal const val HTTP_OK = 0
-        }
-
         /**
          * Fetches display data for next plugin from the server using the provided access token.
          * If the app is in debug mode, it uses mock data instead.
@@ -68,7 +53,7 @@ class TrmnlDisplayRepository
                 )
 
             // If response was successful and has an image URL, save to data store
-            if ((response?.status == 0 || response?.status == HTTP_200) && displayInfo.imageUrl.isNotEmpty()) {
+            if (response?.status.isHttpOk() && displayInfo.imageUrl.isNotEmpty()) {
                 imageMetadataStore.saveImageMetadata(
                     displayInfo.imageUrl,
                     displayInfo.refreshRateSecs,
@@ -104,7 +89,7 @@ class TrmnlDisplayRepository
                 )
 
             // If response was successful and has an image URL, save to data store
-            if (response?.status == HTTP_200 && displayInfo.imageUrl.isNotEmpty()) {
+            if (response?.status.isHttpOk() && displayInfo.imageUrl.isNotEmpty()) {
                 imageMetadataStore.saveImageMetadata(
                     displayInfo.imageUrl,
                     displayInfo.refreshRateSecs,
@@ -139,7 +124,7 @@ class TrmnlDisplayRepository
             imageMetadataStore.saveImageMetadata(mockImageUrl, mockRefreshRate)
 
             return TrmnlDisplayInfo(
-                status = 0,
+                status = HTTP_200,
                 imageUrl = mockImageUrl,
                 imageName = "picsum-mocked-image.bmp",
                 error = null,
