@@ -76,6 +76,7 @@ import dev.hossain.trmnl.ui.display.TrmnlMirrorDisplayScreen
 import dev.hossain.trmnl.ui.settings.AppSettingsScreen.ValidationResult
 import dev.hossain.trmnl.util.CoilRequestUtils
 import dev.hossain.trmnl.util.TokenManager
+import dev.hossain.trmnl.util.isHttpError
 import dev.hossain.trmnl.util.nextRunTime
 import dev.hossain.trmnl.util.toColor
 import dev.hossain.trmnl.util.toDisplayString
@@ -169,7 +170,7 @@ class AppSettingsPresenter
 
                                 val response = displayRepository.getCurrentDisplayData(accessToken)
 
-                                if (response.status == 500) {
+                                if (response.status.isHttpError()) {
                                     // Handle explicit error response
                                     val errorMessage = response.error ?: "Device not found"
                                     validationResult = ValidationResult.Failure(errorMessage)
