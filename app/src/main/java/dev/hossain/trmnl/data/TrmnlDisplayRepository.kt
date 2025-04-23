@@ -25,13 +25,13 @@ class TrmnlDisplayRepository
         private val imageMetadataStore: ImageMetadataStore,
     ) {
         /**
-         * Fetches display data from the server using the provided access token.
+         * Fetches display data for next plugin from the server using the provided access token.
          * If the app is in debug mode, it uses mock data instead.
          *
          * @param accessToken The access token for authentication.
          * @return A [TrmnlDisplayInfo] object containing the display data.
          */
-        suspend fun getDisplayData(accessToken: String): TrmnlDisplayInfo {
+        suspend fun getNextDisplayData(accessToken: String): TrmnlDisplayInfo {
             if (FAKE_API_RESPONSE) {
                 // Avoid using real API in debug mode
                 return fakeTrmnlDisplayInfo()

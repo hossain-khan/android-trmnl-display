@@ -16,7 +16,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Info
@@ -168,7 +167,7 @@ class AppSettingsPresenter
                                 isLoading = true
                                 validationResult = null
 
-                                val response = displayRepository.getDisplayData(accessToken)
+                                val response = displayRepository.getNextDisplayData(accessToken)
 
                                 if (response.status == 500) {
                                     // Handle explicit error response

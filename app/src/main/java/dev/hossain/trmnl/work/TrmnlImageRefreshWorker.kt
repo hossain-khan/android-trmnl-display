@@ -69,7 +69,7 @@ class TrmnlImageRefreshWorker(
         }
 
         // Fetch new display data
-        val response = displayRepository.getDisplayData(token)
+        val response = displayRepository.getNextDisplayData(token)
 
         // Check for errors
         if (response.status == 500) {
