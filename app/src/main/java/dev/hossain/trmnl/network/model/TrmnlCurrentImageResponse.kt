@@ -15,6 +15,16 @@ import com.squareup.moshi.JsonClass
  *   "filename": "plugin-image",
  *   "rendered_at": null
  * }
+ * ```
+ *
+ * Sample error response:
+ * ```json
+ * {
+ *   "status": 500,
+ *   "error": "Device not found",
+ *   "reset_firmware": true
+ * }
+ * ```
  */
 @JsonClass(generateAdapter = true)
 data class TrmnlCurrentImageResponse(
@@ -26,4 +36,8 @@ data class TrmnlCurrentImageResponse(
     val filename: String?,
     @Json(name = "rendered_at")
     val renderedAt: String?,
+    /**
+     * Error message for non 200 status codes.
+     */
+    val error: String?,
 )
