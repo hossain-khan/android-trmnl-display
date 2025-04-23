@@ -26,8 +26,10 @@ Check installable APK from Assets in [latest release](https://github.com/hossain
 <img alt="Demo Video" src="https://github.com/user-attachments/assets/965a5cb3-d1b6-400c-8164-d96760fc17a2" width="500">
 
 ### Limitations 🚧
-* Right now, screen lock using Google's [recommended](https://developer.android.com/develop/background-work/background-tasks/awake/screen-on) **`FLAG_KEEP_SCREEN_ON`** is not working on e-Ink tablet due to strict battery optimization. So, if you plan to keep the screen on idefinitely, you should set that in the device settings.
+1. Right now, screen lock using Google's [recommended](https://developer.android.com/develop/background-work/background-tasks/awake/screen-on) **`FLAG_KEEP_SCREEN_ON`** is not working on e-Ink tablet due to strict battery optimization. So, if you plan to keep the screen on idefinitely, you should set that in the device settings.
     * On normal Android tablet or device, screen wake lock should work. However it's not recommended to use it without device being always plugged-in 🔌.
+2. Currently the app uses Android WorkManager to schedule refresh job and it has minimum interval of ⏰ `15 min` between jobs. So, if your TRMNL is setup to refresh every `5 minutes`, you will not see it refresh until `15 min` is elapsed.
+    * This can be overcome by using some cleaver logic or not using WorkManager. But for now, this is a reliable way to refresh image periodically.
 
 > ℹ️ _I am using 'BOOX GO 10.3 Tablet' that lasts around 5 days with always screen on._
 
