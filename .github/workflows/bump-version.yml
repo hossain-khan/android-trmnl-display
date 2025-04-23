@@ -110,6 +110,9 @@ jobs:
           echo "version_file_changed=true" >> $GITHUB_OUTPUT
           echo "current_version_name=$CURRENT_VERSION_NAME" >> $GITHUB_OUTPUT
 
+      # Creates PR with changes to bump version
+      # ℹ️ Make sure you have permission set for the action to create PR
+      # eg. https://github.com/hossain-khan/android-trmnl-display/settings/actions
       - name: Create Pull Request
         if: steps.bump-version.outputs.version_file_changed == 'true'
         env:
