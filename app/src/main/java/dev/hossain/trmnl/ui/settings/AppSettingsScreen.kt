@@ -167,7 +167,7 @@ class AppSettingsPresenter
                                 isLoading = true
                                 validationResult = null
 
-                                val response = displayRepository.getNextDisplayData(accessToken)
+                                val response = displayRepository.getCurrentDisplayData(accessToken)
 
                                 if (response.status == 500) {
                                     // Handle explicit error response

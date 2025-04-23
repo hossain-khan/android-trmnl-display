@@ -35,7 +35,7 @@ interface TrmnlApiService {
      *
      * @see getNextDisplayData
      */
-    @GET("api/display")
+    @GET("api/current_screen")
     suspend fun getCurrentDisplayData(
         @Header("access-token") accessToken: String,
     ): ApiResult<TrmnlCurrentImageResponse, Unit>
