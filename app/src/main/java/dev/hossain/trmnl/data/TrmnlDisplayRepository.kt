@@ -24,17 +24,22 @@ class TrmnlDisplayRepository
         private val apiService: TrmnlApiService,
         private val imageMetadataStore: ImageMetadataStore,
     ) {
-        private companion object {
+        companion object {
             /**
              * 500 Internal Server Error - A generic error message, given when an unexpected
              * condition was encountered and no more specific message is suitable.
              */
-            private const val HTTP_500 = 500
+            internal const val HTTP_500 = 500
 
             /**
              * 200 OK - The request has succeeded.
              */
-            private const val HTTP_200 = 200
+            internal const val HTTP_200 = 200
+
+            /**
+             * TRMNL server currently returns `0` for success for some APIs.
+             */
+            internal const val HTTP_OK = 0
         }
 
         /**

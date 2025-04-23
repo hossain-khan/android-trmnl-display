@@ -8,6 +8,8 @@ import androidx.work.workDataOf
 import dev.hossain.trmnl.MainActivity
 import dev.hossain.trmnl.data.ImageMetadata
 import dev.hossain.trmnl.data.TrmnlDisplayRepository
+import dev.hossain.trmnl.data.TrmnlDisplayRepository.Companion.HTTP_200
+import dev.hossain.trmnl.data.TrmnlDisplayRepository.Companion.HTTP_OK
 import dev.hossain.trmnl.data.log.TrmnlRefreshLogManager
 import dev.hossain.trmnl.di.WorkerModule
 import dev.hossain.trmnl.ui.display.TrmnlMirrorDisplayScreen
@@ -69,7 +71,7 @@ class TrmnlImageRefreshWorker(
         }
 
         // Fetch new display data
-        val response = displayRepository.getNextDisplayData(token)
+        val response = displayRepository.getCurrentDisplayData(token)
 
         // Check for errors
         if (response.status == 500) {
@@ -84,7 +86,7 @@ class TrmnlImageRefreshWorker(
         }
 
         // Check if image URL is valid
-        if (response.imageUrl.isEmpty() || response.status != 0) {
+        if (response.imageUrl.isEmpty() || (response.status != HTTP_OK && response.status != HTTP_200)) {
             Timber.tag(TAG).w("No image URL provided in response. ${response.error}")
             refreshLogManager.addFailureLog("No image URL provided in response. ${response.error}")
             return Result.failure(
