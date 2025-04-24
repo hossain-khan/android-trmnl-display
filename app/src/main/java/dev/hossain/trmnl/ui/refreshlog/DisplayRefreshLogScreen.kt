@@ -34,6 +34,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -48,6 +49,7 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dev.hossain.trmnl.BuildConfig
+import dev.hossain.trmnl.R
 import dev.hossain.trmnl.data.log.TrmnlRefreshLog
 import dev.hossain.trmnl.data.log.TrmnlRefreshLogManager
 import dev.hossain.trmnl.di.AppScope
@@ -313,11 +315,23 @@ private fun LogItem(
             HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
 
             if (log.success) {
-                Text(
-                    text = "Image File Name:",
-                    fontWeight = FontWeight.Bold,
-                    style = MaterialTheme.typography.bodyLarge,
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(bottom = 4.dp),
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.image_24dp),
+                        contentDescription = null,
+                        modifier = Modifier.padding(end = 4.dp),
+                        tint = MaterialTheme.colorScheme.secondary,
+                    )
+
+                    Text(
+                        text = "Image File Name:",
+                        fontWeight = FontWeight.Bold,
+                        style = MaterialTheme.typography.bodyLarge,
+                    )
+                }
                 Text(
                     text = log.imageName ?: "N/A",
                     style = MaterialTheme.typography.bodyMedium,
@@ -326,29 +340,57 @@ private fun LogItem(
                     overflow = TextOverflow.Ellipsis,
                 )
 
-                Text(
-                    text =
-                        if (log.refreshIntervalSeconds != null && log.refreshIntervalSeconds > 60) {
-                            "API Refresh Rate: ${log.refreshIntervalSeconds / 60} minutes"
-                        } else {
-                            "API Refresh Rate: ${log.refreshIntervalSeconds ?: "N/A"} seconds"
-                        },
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.padding(top = 8.dp),
-                )
+                if (log.refreshIntervalSeconds != null) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(top = 8.dp),
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.timer_24dp),
+                            contentDescription = null,
+                            modifier = Modifier.padding(end = 4.dp),
+                            tint = MaterialTheme.colorScheme.secondary,
+                        )
+
+                        Text(
+                            text =
+                                "API Refresh Rate: " +
+                                    when {
+                                        log.refreshIntervalSeconds > 60 -> "${log.refreshIntervalSeconds / 60} minutes"
+                                        else -> "${log.refreshIntervalSeconds} seconds"
+                                    },
+                            style = MaterialTheme.typography.bodyMedium,
+                        )
+                    }
+                }
 
                 if (log.imageRefreshWorkType != null) {
-                    Text(
-                        text = "Refresh Job Type: ${
-                            when (log.imageRefreshWorkType) {
-                                RefreshWorkType.ONE_TIME.name -> "Manual One-time Refresh"
-                                RefreshWorkType.PERIODIC.name -> "Automatic Scheduled Refresh"
-                                else -> "Unknown (${log.imageRefreshWorkType})"
-                            }
-                        }",
-                        style = MaterialTheme.typography.bodyMedium,
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.padding(top = 8.dp),
-                    )
+                    ) {
+                        Icon(
+                            painter =
+                                when (log.imageRefreshWorkType) {
+                                    RefreshWorkType.ONE_TIME.name -> painterResource(R.drawable.counter_1_24dp)
+                                    RefreshWorkType.PERIODIC.name -> painterResource(R.drawable.time_auto_24dp)
+                                    else -> painterResource(R.drawable.question_mark_24dp)
+                                },
+                            contentDescription = null,
+                            modifier = Modifier.padding(end = 4.dp),
+                            tint = MaterialTheme.colorScheme.secondary,
+                        )
+
+                        Text(
+                            text =
+                                when (log.imageRefreshWorkType) {
+                                    RefreshWorkType.ONE_TIME.name -> "Refresh Type: Manual One-time Refresh"
+                                    RefreshWorkType.PERIODIC.name -> "Refresh Type: Automatic Scheduled Refresh"
+                                    else -> "Unknown (${log.imageRefreshWorkType})"
+                                },
+                            style = MaterialTheme.typography.bodyMedium,
+                        )
+                    }
                 }
             } else {
                 Text(
