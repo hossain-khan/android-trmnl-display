@@ -82,6 +82,7 @@ dependencies {
     implementation(libs.circuitx.overlays)
     implementation(libs.androidx.compose.materialWindow)
     implementation(libs.androidx.adaptive)
+    implementation(libs.core.ktx)
     ksp(libs.circuit.codegen)
 
     implementation(libs.dagger)
@@ -129,6 +130,7 @@ dependencies {
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.test.mockk)
+    testImplementation(libs.test.robolectric)
     testImplementation(libs.test.truth)
 }
 
