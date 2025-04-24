@@ -1,7 +1,6 @@
 package dev.hossain.trmnl.work
 
 import android.content.Context
-import androidx.annotation.Keep
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
@@ -13,8 +12,8 @@ import dev.hossain.trmnl.ui.display.TrmnlMirrorDisplayScreen
 import dev.hossain.trmnl.util.TokenManager
 import dev.hossain.trmnl.util.isHttpError
 import dev.hossain.trmnl.util.isHttpOk
-import dev.hossain.trmnl.work.TrmnlImageRefreshWorker.RefreshWorkResult.FAILURE
-import dev.hossain.trmnl.work.TrmnlImageRefreshWorker.RefreshWorkResult.SUCCESS
+import dev.hossain.trmnl.work.RefreshWorkResult.FAILURE
+import dev.hossain.trmnl.work.RefreshWorkResult.SUCCESS
 import dev.hossain.trmnl.work.TrmnlWorkScheduler.Companion.IMAGE_REFRESH_PERIODIC_WORK_TAG
 import kotlinx.coroutines.flow.firstOrNull
 import timber.log.Timber
@@ -45,12 +44,6 @@ class TrmnlImageRefreshWorker(
         const val KEY_REFRESH_RESULT = "refresh_result"
         const val KEY_NEW_IMAGE_URL = "new_image_url"
         const val KEY_ERROR_MESSAGE = "error_message"
-    }
-
-    @Keep
-    enum class RefreshWorkResult {
-        SUCCESS,
-        FAILURE,
     }
 
     override suspend fun doWork(): Result {
