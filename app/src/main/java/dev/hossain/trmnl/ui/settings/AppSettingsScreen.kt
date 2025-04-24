@@ -70,11 +70,11 @@ import dev.hossain.trmnl.R
 import dev.hossain.trmnl.data.AppConfig.DEFAULT_REFRESH_INTERVAL_SEC
 import dev.hossain.trmnl.data.DevConfig
 import dev.hossain.trmnl.data.TrmnlDisplayRepository
+import dev.hossain.trmnl.data.TrmnlTokenDataStore
 import dev.hossain.trmnl.di.AppScope
 import dev.hossain.trmnl.ui.display.TrmnlMirrorDisplayScreen
 import dev.hossain.trmnl.ui.settings.AppSettingsScreen.ValidationResult
 import dev.hossain.trmnl.util.CoilRequestUtils
-import dev.hossain.trmnl.util.TokenManager
 import dev.hossain.trmnl.util.isHttpError
 import dev.hossain.trmnl.util.nextRunTime
 import dev.hossain.trmnl.util.toColor
@@ -157,7 +157,7 @@ class AppSettingsPresenter
         @Assisted private val navigator: Navigator,
         @Assisted private val screen: AppSettingsScreen,
         private val displayRepository: TrmnlDisplayRepository,
-        private val tokenManager: TokenManager,
+        private val trmnlTokenDataStore: TrmnlTokenDataStore,
         private val trmnlWorkScheduler: TrmnlWorkScheduler,
         private val trmnlImageUpdateManager: TrmnlImageUpdateManager,
     ) : Presenter<AppSettingsScreen.State> {
@@ -170,7 +170,7 @@ class AppSettingsPresenter
 
             // Load saved token if available
             LaunchedEffect(Unit) {
-                tokenManager.accessTokenFlow.collect { savedToken ->
+                trmnlTokenDataStore.accessTokenFlow.collect { savedToken ->
                     if (!savedToken.isNullOrBlank()) {
                         accessToken = savedToken
                     }
@@ -222,7 +222,7 @@ class AppSettingsPresenter
                             val result = validationResult
                             if (result is ValidationResult.Success) {
                                 scope.launch {
-                                    tokenManager.saveAccessToken(accessToken)
+                                    trmnlTokenDataStore.saveAccessToken(accessToken)
                                     trmnlWorkScheduler.updateRefreshInterval(result.refreshRateSecs)
 
                                     if (screen.returnToMirrorAfterSave) {

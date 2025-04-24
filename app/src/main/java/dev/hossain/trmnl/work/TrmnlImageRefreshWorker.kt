@@ -6,10 +6,10 @@ import androidx.work.WorkerParameters
 import androidx.work.workDataOf
 import dev.hossain.trmnl.MainActivity
 import dev.hossain.trmnl.data.TrmnlDisplayRepository
+import dev.hossain.trmnl.data.TrmnlTokenDataStore
 import dev.hossain.trmnl.data.log.TrmnlRefreshLogManager
 import dev.hossain.trmnl.di.WorkerModule
 import dev.hossain.trmnl.ui.display.TrmnlMirrorDisplayScreen
-import dev.hossain.trmnl.util.TokenManager
 import dev.hossain.trmnl.util.isHttpError
 import dev.hossain.trmnl.util.isHttpOk
 import dev.hossain.trmnl.work.RefreshWorkResult.FAILURE
@@ -33,7 +33,7 @@ class TrmnlImageRefreshWorker(
     appContext: Context,
     params: WorkerParameters,
     private val displayRepository: TrmnlDisplayRepository,
-    private val tokenManager: TokenManager,
+    private val trmnlTokenDataStore: TrmnlTokenDataStore,
     private val refreshLogManager: TrmnlRefreshLogManager,
     private val trmnlWorkScheduler: TrmnlWorkScheduler,
     private val trmnlImageUpdateManager: TrmnlImageUpdateManager,
@@ -58,7 +58,7 @@ class TrmnlImageRefreshWorker(
         Timber.tag(TAG).d("Work type: $workTypeValue, loadNextPluginImage: $loadNextPluginImage")
 
         // Get current token
-        val token = tokenManager.accessTokenFlow.firstOrNull()
+        val token = trmnlTokenDataStore.accessTokenFlow.firstOrNull()
 
         if (token.isNullOrBlank()) {
             Timber.tag(TAG).w("Token is not set, skipping image refresh")
@@ -104,9 +104,9 @@ class TrmnlImageRefreshWorker(
         // Check if we should adapt refresh rate
         val refreshRate = response.refreshIntervalSeconds
         refreshRate?.let { newRefreshRateSec ->
-            if (tokenManager.shouldUpdateRefreshRate(newRefreshRateSec)) {
+            if (trmnlTokenDataStore.shouldUpdateRefreshRate(newRefreshRateSec)) {
                 Timber.tag(TAG).d("Refresh rate changed, updating periodic work and saving new rate")
-                tokenManager.saveRefreshRateSeconds(newRefreshRateSec)
+                trmnlTokenDataStore.saveRefreshRateSeconds(newRefreshRateSec)
                 trmnlWorkScheduler.scheduleImageRefreshWork(newRefreshRateSec)
             } else {
                 Timber.tag(TAG).d("Refresh rate is unchanged, not updating")
@@ -152,7 +152,7 @@ class TrmnlImageRefreshWorker(
         @Inject
         constructor(
             private val displayRepository: TrmnlDisplayRepository,
-            private val tokenManager: TokenManager,
+            private val trmnlTokenDataStore: TrmnlTokenDataStore,
             private val refreshLogManager: TrmnlRefreshLogManager,
             private val trmnlWorkScheduler: TrmnlWorkScheduler,
             private val trmnlImageUpdateManager: TrmnlImageUpdateManager,
@@ -165,7 +165,7 @@ class TrmnlImageRefreshWorker(
                     appContext = appContext,
                     params = params,
                     displayRepository = displayRepository,
-                    tokenManager = tokenManager,
+                    trmnlTokenDataStore = trmnlTokenDataStore,
                     refreshLogManager = refreshLogManager,
                     trmnlWorkScheduler = trmnlWorkScheduler,
                     trmnlImageUpdateManager = trmnlImageUpdateManager,
