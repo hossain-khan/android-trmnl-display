@@ -43,7 +43,20 @@ class TrmnlWorkScheduler
             internal const val IMAGE_REFRESH_ONETIME_WORK_NAME = "trmnl_image_refresh_work_onetime"
             internal const val IMAGE_REFRESH_ONETIME_WORK_TAG = "trmnl_image_refresh_work_onetime_tag"
 
+            /**
+             * Minimum interval for periodic work in minutes.
+             * This is the minimum interval required by WorkManager for periodic work.
+             *
+             * - https://developer.android.com/reference/androidx/work/PeriodicWorkRequest
+             * - https://developer.android.com/develop/background-work/background-tasks/persistent/getting-started/define-work
+             */
             private const val WORK_MANAGER_MINIMUM_INTERVAL_MINUTES = 15L
+
+            /**
+             * When loading current image of the TRMNL, we add this delay before fetching
+             * the image allowing the server to render the image and save it in cloud.
+             */
+            private const val EXTRA_REFRESH_WAIT_TIME_SEC: Long = 60L // 60 seconds
         }
 
         /**
@@ -69,10 +82,11 @@ class TrmnlWorkScheduler
                 Timber.d("No existing work found, will create new work")
             }
 
-            // Convert seconds to minutes and ensure minimum interval
-            val intervalMinutes = (intervalSeconds / 60).coerceAtLeast(WORK_MANAGER_MINIMUM_INTERVAL_MINUTES)
+            // Add extra wait time to interval and convert seconds to minutes
+            val adjustedIntervalSeconds = intervalSeconds + EXTRA_REFRESH_WAIT_TIME_SEC
+            val intervalMinutes = (adjustedIntervalSeconds / 60).coerceAtLeast(WORK_MANAGER_MINIMUM_INTERVAL_MINUTES)
 
-            Timber.d("Scheduling work: $intervalSeconds seconds → $intervalMinutes minutes")
+            Timber.d("Scheduling work: $intervalSeconds seconds + $EXTRA_REFRESH_WAIT_TIME_SEC seconds → $intervalMinutes minutes")
 
             if (tokenManager.hasTokenSync().not()) {
                 Timber.w("Token not set, skipping image refresh work scheduling")
