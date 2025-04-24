@@ -127,7 +127,7 @@ class TrmnlDisplayRepository
             return TrmnlDisplayInfo(
                 status = HTTP_200,
                 imageUrl = mockImageUrl,
-                imageName = "picsum-mocked-image.bmp",
+                imageName = "mocked-image-" + mockImageUrl.substringAfterLast('?'),
                 error = null,
                 refreshIntervalSeconds = mockRefreshRate,
             )
