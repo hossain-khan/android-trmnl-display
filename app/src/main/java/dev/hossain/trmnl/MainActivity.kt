@@ -121,6 +121,11 @@ class MainActivity
                                 Timber.d("${workInfo.tags} work state updated: ${workInfo.state}")
                             }
                         }
+                        // Even though pruning is not recommended to do frequently,
+                        // we need this to avoid getting stale completed work info
+                        // See https://github.com/hossain-khan/android-trmnl-display/pull/98#issuecomment-2825920626
+                        // See https://github.com/hossain-khan/android-trmnl-display/pull/63#issuecomment-2817278344
+                        workManager.pruneWork()
                     }
                 }
         }

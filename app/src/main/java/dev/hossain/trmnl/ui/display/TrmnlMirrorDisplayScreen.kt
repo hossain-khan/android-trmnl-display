@@ -184,6 +184,10 @@ class TrmnlMirrorDisplayPresenter
                             overlayControlsVisible = false
                             // Simply trigger the worker for refresh
                             scope.launch {
+                                // Clear the image URL so that when the image is refreshed
+                                // with old image URL it will load the image.
+                                imageUrl = null
+
                                 isLoading = true
                                 error = null
 
