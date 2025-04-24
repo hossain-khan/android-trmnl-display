@@ -15,7 +15,7 @@ import androidx.work.WorkQuery
 import androidx.work.WorkRequest
 import androidx.work.workDataOf
 import com.squareup.anvil.annotations.optional.SingleIn
-import dev.hossain.trmnl.data.TokenManager
+import dev.hossain.trmnl.data.TrmnlTokenDataStore
 import dev.hossain.trmnl.di.AppScope
 import dev.hossain.trmnl.di.ApplicationContext
 import dev.hossain.trmnl.work.TrmnlImageRefreshWorker.Companion.PARAM_LOAD_NEXT_PLAYLIST_DISPLAY_IMAGE
@@ -31,14 +31,14 @@ import javax.inject.Inject
  * This includes scheduling periodic image refresh work and handling one-time work requests.
  *
  * @param context The application context.
- * @param tokenManager The token manager for managing authentication tokens.
+ * @param trmnlTokenDataStore The token manager for managing authentication tokens.
  */
 @SingleIn(AppScope::class)
 class TrmnlWorkScheduler
     @Inject
     constructor(
         @ApplicationContext private val context: Context,
-        private val tokenManager: TokenManager,
+        private val trmnlTokenDataStore: TrmnlTokenDataStore,
     ) {
         companion object {
             internal const val IMAGE_REFRESH_PERIODIC_WORK_NAME = "trmnl_image_refresh_work_periodic"
@@ -91,7 +91,7 @@ class TrmnlWorkScheduler
 
             Timber.d("Scheduling work: $intervalSeconds seconds + $EXTRA_REFRESH_WAIT_TIME_SEC seconds → $intervalMinutes minutes")
 
-            if (tokenManager.hasTokenSync().not()) {
+            if (trmnlTokenDataStore.hasTokenSync().not()) {
                 Timber.w("Token not set, skipping image refresh work scheduling")
                 return
             }
@@ -133,7 +133,7 @@ class TrmnlWorkScheduler
         fun startOneTimeImageRefreshWork(loadNextPlaylistImage: Boolean = false) {
             Timber.d("Starting one-time image refresh work")
 
-            if (tokenManager.hasTokenSync().not()) {
+            if (trmnlTokenDataStore.hasTokenSync().not()) {
                 Timber.w("Token not set, skipping one-time image refresh work")
                 return
             }
@@ -228,7 +228,7 @@ class TrmnlWorkScheduler
             Timber.d("Updating refresh interval to $newIntervalSeconds seconds")
 
             // Save the refresh rate to TokenManager
-            tokenManager.saveRefreshRateSeconds(newIntervalSeconds)
+            trmnlTokenDataStore.saveRefreshRateSeconds(newIntervalSeconds)
 
             // Reschedule with new interval
             scheduleImageRefreshWork(newIntervalSeconds)

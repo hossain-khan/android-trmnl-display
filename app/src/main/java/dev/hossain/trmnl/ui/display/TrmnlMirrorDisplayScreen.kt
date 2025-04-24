@@ -56,7 +56,7 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dev.hossain.trmnl.R
 import dev.hossain.trmnl.data.ImageMetadataStore
-import dev.hossain.trmnl.data.TokenManager
+import dev.hossain.trmnl.data.TrmnlTokenDataStore
 import dev.hossain.trmnl.di.AppScope
 import dev.hossain.trmnl.ui.FullScreenMode
 import dev.hossain.trmnl.ui.refreshlog.DisplayRefreshLogScreen
@@ -103,7 +103,7 @@ class TrmnlMirrorDisplayPresenter
     @AssistedInject
     constructor(
         @Assisted private val navigator: Navigator,
-        private val tokenManager: TokenManager,
+        private val trmnlTokenDataStore: TrmnlTokenDataStore,
         private val trmnlWorkScheduler: TrmnlWorkScheduler,
         private val imageMetadataStore: ImageMetadataStore,
         private val trmnlImageUpdateManager: TrmnlImageUpdateManager,
@@ -152,7 +152,7 @@ class TrmnlMirrorDisplayPresenter
 
             // Initialize by checking token and starting one-time work if needed
             LaunchedEffect(Unit) {
-                val token = tokenManager.accessTokenFlow.firstOrNull()
+                val token = trmnlTokenDataStore.accessTokenFlow.firstOrNull()
                 if (token.isNullOrBlank()) {
                     Timber.d("No access token found, navigating to configuration screen")
                     navigator.goTo(AppSettingsScreen(returnToMirrorAfterSave = true))
@@ -191,7 +191,7 @@ class TrmnlMirrorDisplayPresenter
                                 isLoading = true
                                 error = null
 
-                                if (tokenManager.hasTokenSync()) {
+                                if (trmnlTokenDataStore.hasTokenSync()) {
                                     Timber.d("Manually refreshing via WorkManager")
                                     trmnlWorkScheduler.startOneTimeImageRefreshWork()
                                 } else {

@@ -34,7 +34,7 @@ private val Context.tokenDataStore: DataStore<Preferences> by preferencesDataSto
  * source of truth for authentication and refresh interval configuration.
  */
 @SingleIn(AppScope::class)
-class TokenManager
+class TrmnlTokenDataStore
     @Inject
     constructor(
         @ApplicationContext private val context: Context,
