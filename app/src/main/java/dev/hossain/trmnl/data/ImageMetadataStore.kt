@@ -59,13 +59,13 @@ class ImageMetadataStore
          */
         suspend fun saveImageMetadata(
             imageUrl: String,
-            refreshRateSecs: Long? = null,
+            refreshIntervalSec: Long? = null,
         ) {
-            Timber.d("Saving image metadata: url=$imageUrl, refreshRate=$refreshRateSecs")
+            Timber.d("Saving image metadata: url=$imageUrl, refreshIntervalSec=$refreshIntervalSec")
             context.imageDataStore.edit { preferences ->
                 preferences[IMAGE_URL_KEY] = imageUrl
                 preferences[TIMESTAMP_KEY] = Instant.now().toEpochMilli()
-                refreshRateSecs?.let { preferences[REFRESH_RATE_KEY] = it }
+                refreshIntervalSec?.let { preferences[REFRESH_RATE_KEY] = it }
             }
         }
 

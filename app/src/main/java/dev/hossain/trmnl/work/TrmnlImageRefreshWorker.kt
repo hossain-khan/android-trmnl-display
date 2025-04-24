@@ -97,10 +97,10 @@ class TrmnlImageRefreshWorker(
         }
 
         // ✅ Log success and update image
-        refreshLogManager.addSuccessLog(response.imageUrl, response.imageName, response.refreshRateSecs)
+        refreshLogManager.addSuccessLog(response.imageUrl, response.imageName, response.refreshIntervalSeconds)
 
         // Check if we should adapt refresh rate
-        val refreshRate = response.refreshRateSecs
+        val refreshRate = response.refreshIntervalSeconds
         refreshRate?.let { newRefreshRateSec ->
             if (tokenManager.shouldUpdateRefreshRate(newRefreshRateSec)) {
                 Timber.tag(TAG).d("Refresh rate changed, updating periodic work and saving new rate")
@@ -112,7 +112,7 @@ class TrmnlImageRefreshWorker(
         }
 
         // Workaround for periodic work not updating correctly (might be because of 🐛 bug in library)
-        conditionallyUpdateImageForPeriodicWork(tags, response.imageUrl, response.refreshRateSecs)
+        conditionallyUpdateImageForPeriodicWork(tags, response.imageUrl, response.refreshIntervalSeconds)
 
         Timber.tag(TAG).i("Image refresh successful for work($tags), got new URL: ${response.imageUrl}")
         return Result.success(

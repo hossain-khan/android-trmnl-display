@@ -32,9 +32,9 @@ class TrmnlRefreshLogManager
         suspend fun addSuccessLog(
             imageUrl: String,
             imageName: String,
-            refreshRateSeconds: Long?,
+            refreshIntervalSeconds: Long?,
         ) {
-            addLog(TrmnlRefreshLog.createSuccess(imageUrl, imageName, refreshRateSeconds))
+            addLog(TrmnlRefreshLog.createSuccess(imageUrl, imageName, refreshIntervalSeconds))
         }
 
         suspend fun addFailureLog(error: String) {

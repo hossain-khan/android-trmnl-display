@@ -155,7 +155,7 @@ class DisplayRefreshLogPresenter
                                     TrmnlRefreshLog.createSuccess(
                                         imageUrl = "https://debug.example.com/image.png",
                                         imageName = "test-image.png",
-                                        refreshRateSeconds = 300L,
+                                        refreshIntervalSeconds = 300L,
                                     ),
                                 )
                             }
@@ -324,10 +324,10 @@ private fun LogItem(
 
                 Text(
                     text =
-                        if (log.refreshRateSeconds != null && log.refreshRateSeconds > 60) {
-                            "API Refresh Rate: ${log.refreshRateSeconds / 60} minutes"
+                        if (log.refreshIntervalSeconds != null && log.refreshIntervalSeconds > 60) {
+                            "API Refresh Rate: ${log.refreshIntervalSeconds / 60} minutes"
                         } else {
-                            "API Refresh Rate: ${log.refreshRateSeconds ?: "N/A"} seconds"
+                            "API Refresh Rate: ${log.refreshIntervalSeconds ?: "N/A"} seconds"
                         },
                     style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier.padding(top = 8.dp),

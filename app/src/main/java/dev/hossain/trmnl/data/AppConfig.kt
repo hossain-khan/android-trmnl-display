@@ -7,7 +7,7 @@ object AppConfig {
     /**
      * Default display refresh rate in case the server does not provide one.
      */
-    const val DEFAULT_REFRESH_RATE_SEC: Long = 7_200L // 2 hours
+    const val DEFAULT_REFRESH_INTERVAL_SEC: Long = 7_200L // 2 hours
 
     /**
      * When loading current image of the TRMNL, we add this delay before fetching

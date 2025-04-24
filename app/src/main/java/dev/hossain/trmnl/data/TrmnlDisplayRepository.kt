@@ -49,14 +49,14 @@ class TrmnlDisplayRepository
                     imageUrl = response?.imageUrl ?: "",
                     imageName = response?.imageName ?: "",
                     error = response?.error,
-                    refreshRateSecs = response?.refreshRate,
+                    refreshIntervalSeconds = response?.refreshRate,
                 )
 
             // If response was successful and has an image URL, save to data store
             if (response?.status.isHttpOk() && displayInfo.imageUrl.isNotEmpty()) {
                 imageMetadataStore.saveImageMetadata(
                     displayInfo.imageUrl,
-                    displayInfo.refreshRateSecs,
+                    displayInfo.refreshIntervalSeconds,
                 )
             }
 
@@ -85,14 +85,14 @@ class TrmnlDisplayRepository
                     imageUrl = response?.imageUrl ?: "",
                     imageName = response?.filename ?: "",
                     error = response?.error,
-                    refreshRateSecs = response?.refreshRateSec,
+                    refreshIntervalSeconds = response?.refreshRateSec,
                 )
 
             // If response was successful and has an image URL, save to data store
             if (response?.status.isHttpOk() && displayInfo.imageUrl.isNotEmpty()) {
                 imageMetadataStore.saveImageMetadata(
                     displayInfo.imageUrl,
-                    displayInfo.refreshRateSecs,
+                    displayInfo.refreshIntervalSeconds,
                 )
             }
 
@@ -129,7 +129,7 @@ class TrmnlDisplayRepository
                 imageUrl = mockImageUrl,
                 imageName = "picsum-mocked-image.bmp",
                 error = null,
-                refreshRateSecs = mockRefreshRate,
+                refreshIntervalSeconds = mockRefreshRate,
             )
         }
     }

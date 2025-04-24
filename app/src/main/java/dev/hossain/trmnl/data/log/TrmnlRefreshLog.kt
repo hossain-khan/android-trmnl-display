@@ -9,7 +9,7 @@ data class TrmnlRefreshLog(
     @Json(name = "timestamp") val timestamp: Long,
     @Json(name = "imageUrl") val imageUrl: String?,
     @Json(name = "imageName") val imageName: String?,
-    @Json(name = "refreshRateSeconds") val refreshRateSeconds: Long?,
+    @Json(name = "refreshRateSeconds") val refreshIntervalSeconds: Long?,
     @Json(name = "success") val success: Boolean,
     @Json(name = "error") val error: String? = null,
 ) {
@@ -17,13 +17,13 @@ data class TrmnlRefreshLog(
         fun createSuccess(
             imageUrl: String,
             imageName: String,
-            refreshRateSeconds: Long?,
+            refreshIntervalSeconds: Long?,
         ): TrmnlRefreshLog =
             TrmnlRefreshLog(
                 timestamp = Instant.now().toEpochMilli(),
                 imageUrl = imageUrl,
                 imageName = imageName,
-                refreshRateSeconds = refreshRateSeconds,
+                refreshIntervalSeconds = refreshIntervalSeconds,
                 success = true,
             )
 
@@ -32,7 +32,7 @@ data class TrmnlRefreshLog(
                 timestamp = Instant.now().toEpochMilli(),
                 imageUrl = null,
                 imageName = null,
-                refreshRateSeconds = null,
+                refreshIntervalSeconds = null,
                 success = false,
                 error = error,
             )

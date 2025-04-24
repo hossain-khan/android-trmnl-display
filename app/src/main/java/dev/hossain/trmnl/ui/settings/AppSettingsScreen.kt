@@ -67,7 +67,7 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dev.hossain.trmnl.R
-import dev.hossain.trmnl.data.AppConfig.DEFAULT_REFRESH_RATE_SEC
+import dev.hossain.trmnl.data.AppConfig.DEFAULT_REFRESH_INTERVAL_SEC
 import dev.hossain.trmnl.data.DevConfig
 import dev.hossain.trmnl.data.TrmnlDisplayRepository
 import dev.hossain.trmnl.di.AppScope
@@ -175,11 +175,11 @@ class AppSettingsPresenter
                                     validationResult = ValidationResult.Failure(errorMessage)
                                 } else if (response.imageUrl.isNotBlank()) {
                                     // Success case - we have an image URL
-                                    trmnlImageUpdateManager.updateImage(response.imageUrl, response.refreshRateSecs)
+                                    trmnlImageUpdateManager.updateImage(response.imageUrl, response.refreshIntervalSeconds)
                                     validationResult =
                                         ValidationResult.Success(
                                             response.imageUrl,
-                                            response.refreshRateSecs ?: DEFAULT_REFRESH_RATE_SEC,
+                                            response.refreshIntervalSeconds ?: DEFAULT_REFRESH_INTERVAL_SEC,
                                         )
                                 } else {
                                     // No error but also no image URL
