@@ -17,6 +17,11 @@ kotlinxCoroutinesTest = "1.7.3"
 ksp = "2.1.10-1.0.31"
 lifecycleRuntimeKtx = "2.8.7"
 
+# Kotlin linter with built-in formatter
+# https://github.com/jeremymailen/kotlinter-gradle
+# https://github.com/pinterest/ktlint
+kotlinter = "5.0.2"
+
 # Http client for Android
 # https://square.github.io/okhttp/
 okhttp = "4.12.0"
@@ -165,4 +170,7 @@ ksp = { id = "com.google.devtools.ksp", version.ref = "ksp"}
 # https://github.com/ZacSweers/anvil/blob/main/FORK.md
 anvil = { id = "dev.zacsweers.anvil", version.ref = "anvil" }
 
-
+# Kotlin linter with built-in formatter
+# https://github.com/jeremymailen/kotlinter-gradle
+# https://github.com/pinterest/ktlint
+kotlinter = { id = "org.jmailen.kotlinter", version.ref = "kotlinter" }
