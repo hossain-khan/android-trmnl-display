@@ -14,11 +14,11 @@ Here are some of the known ways you can get access to the `access-token`.
 
 
 ## How to try
-Once released, install the APK on your Android device.
+⬇️ Install the APK on your Android device.
 
 1. Configure the API `access-token` in the app settings
-    i. 📝 NOTE: Right now only `https://usetrmnl.com/api` service API is supported, custom service URL will be added later
-2. Save token and keep the app on with the TRMNL content/image showing.
+    i. 📝 NOTE: Right now only `https://trmnl.app/api/` service API is supported, custom service URL support will be added later
+2. Save the token and keep the app always-on with the TRMNL's display image showing.
 
 ### <img src="https://github.com/user-attachments/assets/64b4b132-a885-4783-98e3-c201bae6ccff" width="25"> Download Release
 Check installable APK from Assets in [latest release](https://github.com/hossain-khan/android-trmnl-display/releases).
@@ -26,10 +26,10 @@ Check installable APK from Assets in [latest release](https://github.com/hossain
 <img alt="Demo Video" src="https://github.com/user-attachments/assets/965a5cb3-d1b6-400c-8164-d96760fc17a2" width="500">
 
 ### Limitations 🚧
-1. Right now, screen lock using Google's [recommended](https://developer.android.com/develop/background-work/background-tasks/awake/screen-on) **`FLAG_KEEP_SCREEN_ON`** is not working on e-Ink tablet due to strict battery optimization. So, if you plan to keep the screen on idefinitely, you should set that in the device settings.
+1. Right now, screen lock using Google's [recommended](https://developer.android.com/develop/background-work/background-tasks/awake/screen-on) **`FLAG_KEEP_SCREEN_ON`** is not working on e-Ink tablet due to strict battery optimization. So, if you plan to keep the screen on indefinitely, you should set that in the device settings.
     * On normal Android tablet or device, screen wake lock should work. However it's not recommended to use it without device being always plugged-in 🔌.
 2. Currently the app uses Android WorkManager to schedule refresh job and it has minimum interval of ⏰ `15 min` between jobs. So, if your TRMNL is setup to refresh every `5 minutes`, you will not see it refresh until `15 min` is elapsed.
-    * This can be overcome by using some cleaver logic or not using WorkManager. But for now, this is a reliable way to refresh image periodically.
+    * This can be overcome by using some clever logic or not using WorkManager. But for now, this is a reliable way to refresh image periodically.
 
 > ℹ️ _I am using 'BOOX GO 10.3 Tablet' that lasts around 5 days with always screen on._
 
