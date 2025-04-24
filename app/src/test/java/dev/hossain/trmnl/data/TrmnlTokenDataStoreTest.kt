@@ -31,7 +31,7 @@ class TrmnlTokenDataStoreTest {
         }
 
     @Test
-    fun shouldUpdateRefreshRate_whenCurrentExistsAndNewIsDifferent_returnsTrue() =
+    fun `shouldUpdateRefreshRate - given current refresh time exists and new is different and higher - returns true`() =
         runTest {
             // Arrange - Set up current refresh rate
             tokenStore.saveRefreshRateSeconds(300L)
@@ -44,7 +44,7 @@ class TrmnlTokenDataStoreTest {
         }
 
     @Test
-    fun shouldUpdateRefreshRate_whenCurrentExistsAndNewIsDifferentAndLess_returnsTrue() =
+    fun `shouldUpdateRefreshRate - given current refresh time exists and new is different but lower - returns true`() =
         runTest {
             // Arrange - Set up current refresh rate
             tokenStore.saveRefreshRateSeconds(1_000L)
@@ -57,7 +57,7 @@ class TrmnlTokenDataStoreTest {
         }
 
     @Test
-    fun shouldUpdateRefreshRate_whenCurrentExistsAndNewIsSame_returnsFalse() =
+    fun `shouldUpdateRefreshRate - given current refresh time exists and new is same - returns false`() =
         runTest {
             // Arrange - Set up current refresh rate
             tokenStore.saveRefreshRateSeconds(300L)
@@ -70,7 +70,7 @@ class TrmnlTokenDataStoreTest {
         }
 
     @Test
-    fun shouldUpdateRefreshRate_whenCurrentIsNull_returnsFalse() =
+    fun `shouldUpdateRefreshRate - given current refresh time is null - returns false`() =
         runTest {
             // Arrange - Make sure no refresh rate exists
             tokenStore.clearRefreshRateSeconds()
