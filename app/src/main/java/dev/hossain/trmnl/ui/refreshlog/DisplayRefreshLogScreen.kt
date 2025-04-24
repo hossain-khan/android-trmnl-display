@@ -34,6 +34,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -320,6 +321,7 @@ private fun LogItem(
                 Text(
                     text = log.imageName ?: "N/A",
                     style = MaterialTheme.typography.bodyMedium,
+                    fontFamily = FontFamily.Monospace,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                 )
