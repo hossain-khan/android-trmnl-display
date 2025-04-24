@@ -46,7 +46,7 @@ coil = "3.1.0"
 mockk = "1.14.0"
 truth = "1.4.4"
 
-datastore = "1.1.5"
+datastore = "1.1.4"
 security-crypto = "1.1.0-alpha07"
 
 # https://developer.android.com/jetpack/androidx/releases/window
