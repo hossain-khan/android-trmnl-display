@@ -87,7 +87,15 @@ import kotlinx.coroutines.launch
 import kotlinx.parcelize.Parcelize
 
 /**
- * Screen for configuring the TRMNL token and other things.
+ * Screen for configuring the TRMNL mirror app settings.
+ *
+ * This screen allows users to set up and validate their TRMNL access token,
+ * which is required to connect to the TRMNL API service. It displays validation
+ * results, image previews when successful, and provides options to save the
+ * configuration which in turn schedules refresh job using [TrmnlWorkScheduler].
+ *
+ * The screen can be configured to either return to the mirror display after
+ * saving or to pop back to the previous screen.
  */
 @Parcelize
 data class AppSettingsScreen(
@@ -111,19 +119,38 @@ data class AppSettingsScreen(
         ) : ValidationResult()
     }
 
+    /**
+     * Events that can be triggered from the AppSettingsScreen UI.
+     */
     sealed class Event : CircuitUiEvent {
+        /**
+         * Event triggered when the access token is changed.
+         */
         data class AccessTokenChanged(
             val token: String,
         ) : Event()
 
+        /**
+         * Event triggered to validate the current access token.
+         */
         data object ValidateToken : Event()
 
+        /**
+         * Event triggered to save the settings and continue to the next screen.
+         */
         data object SaveAndContinue : Event()
 
+        /**
+         * Event triggered when the back button is pressed.
+         */
         data object BackPressed : Event()
     }
 }
 
+/**
+ * Presenter for the [AppSettingsScreen].
+ * Manages the screen's state and handles events from the UI.
+ */
 class AppSettingsPresenter
     @AssistedInject
     constructor(
@@ -225,6 +252,10 @@ class AppSettingsPresenter
         }
     }
 
+/**
+ * Main Composable function for rendering the AppSettingsScreen.
+ * Sets up the screen's structure including form, validation result display, and work schedule status.
+ */
 @CircuitInject(AppSettingsScreen::class, AppScope::class)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
