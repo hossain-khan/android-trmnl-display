@@ -335,10 +335,15 @@ private fun LogItem(
                     modifier = Modifier.padding(top = 8.dp),
                 )
 
-                // Add work type display
                 if (log.imageRefreshWorkType != null) {
                     Text(
-                        text = "Worker Type: ${log.imageRefreshWorkType}",
+                        text = "Refresh Job Type: ${
+                            when (log.imageRefreshWorkType) {
+                                RefreshWorkType.ONE_TIME.name -> "Manual One-time Refresh"
+                                RefreshWorkType.PERIODIC.name -> "Automatic Scheduled Refresh"
+                                else -> "Unknown (${log.imageRefreshWorkType})"
+                            }
+                        }",
                         style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier.padding(top = 8.dp),
                     )
@@ -355,15 +360,6 @@ private fun LogItem(
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.error,
                 )
-
-                // Add work type display for error logs too
-                if (log.imageRefreshWorkType != null) {
-                    Text(
-                        text = "Worker Type: ${log.imageRefreshWorkType}",
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.padding(top = 8.dp),
-                    )
-                }
             }
         }
     }
