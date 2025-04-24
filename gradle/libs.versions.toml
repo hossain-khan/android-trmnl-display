@@ -44,6 +44,7 @@ workManager = "2.10.0"
 coil = "3.1.0"
 
 mockk = "1.14.0"
+truth = "1.4.4"
 
 datastore = "1.1.4"
 security-crypto = "1.1.0-alpha07"
@@ -139,7 +140,11 @@ androidx-security-crypto = { group = "androidx.security", name = "security-crypt
 
 # mocking library for Kotlin
 # https://github.com/mockk/mockk
-mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
+test-mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
+
+# Truth - Fluent assertions for Java and Android
+# https://truth.dev/
+test-truth = { module = "com.google.truth:truth", version.ref = "truth" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

@@ -126,8 +126,9 @@ dependencies {
     debugImplementation(libs.androidx.ui.test.manifest)
     debugImplementation(libs.androidx.ui.tooling)
     testImplementation(libs.junit)
-    testImplementation(libs.mockk)
     testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.test.mockk)
+    testImplementation(libs.test.truth)
 }
 
 ksp {
