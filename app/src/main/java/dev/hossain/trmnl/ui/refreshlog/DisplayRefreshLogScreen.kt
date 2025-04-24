@@ -34,6 +34,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -51,6 +52,7 @@ import dev.hossain.trmnl.data.log.TrmnlRefreshLog
 import dev.hossain.trmnl.data.log.TrmnlRefreshLogManager
 import dev.hossain.trmnl.di.AppScope
 import dev.hossain.trmnl.util.getTimeElapsedString
+import dev.hossain.trmnl.work.RefreshWorkType
 import dev.hossain.trmnl.work.TrmnlWorkScheduler
 import kotlinx.coroutines.launch
 import kotlinx.parcelize.Parcelize
@@ -156,6 +158,7 @@ class DisplayRefreshLogPresenter
                                         imageUrl = "https://debug.example.com/image.png",
                                         imageName = "test-image.png",
                                         refreshIntervalSeconds = 300L,
+                                        imageRefreshWorkType = RefreshWorkType.ONE_TIME.name,
                                     ),
                                 )
                             }
@@ -318,6 +321,7 @@ private fun LogItem(
                 Text(
                     text = log.imageName ?: "N/A",
                     style = MaterialTheme.typography.bodyMedium,
+                    fontFamily = FontFamily.Monospace,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                 )
@@ -332,6 +336,20 @@ private fun LogItem(
                     style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier.padding(top = 8.dp),
                 )
+
+                if (log.imageRefreshWorkType != null) {
+                    Text(
+                        text = "Refresh Job Type: ${
+                            when (log.imageRefreshWorkType) {
+                                RefreshWorkType.ONE_TIME.name -> "Manual One-time Refresh"
+                                RefreshWorkType.PERIODIC.name -> "Automatic Scheduled Refresh"
+                                else -> "Unknown (${log.imageRefreshWorkType})"
+                            }
+                        }",
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.padding(top = 8.dp),
+                    )
+                }
             } else {
                 Text(
                     text = "Error:",
