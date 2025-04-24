@@ -26,6 +26,7 @@ class TrmnlDisplayRepository
     constructor(
         private val apiService: TrmnlApiService,
         private val imageMetadataStore: ImageMetadataStore,
+        private val repositoryConfigProvider: RepositoryConfigProvider,
     ) {
         /**
          * Fetches display data for next plugin from the server using the provided access token.
@@ -35,7 +36,7 @@ class TrmnlDisplayRepository
          * @return A [TrmnlDisplayInfo] object containing the display data.
          */
         suspend fun getNextDisplayData(accessToken: String): TrmnlDisplayInfo {
-            if (FAKE_API_RESPONSE) {
+            if (repositoryConfigProvider.shouldUseFakeData) {
                 // Avoid using real API in debug mode
                 return fakeTrmnlDisplayInfo()
             }
@@ -71,7 +72,7 @@ class TrmnlDisplayRepository
          * @return A [TrmnlDisplayInfo] object containing the current display data.
          */
         suspend fun getCurrentDisplayData(accessToken: String): TrmnlDisplayInfo {
-            if (FAKE_API_RESPONSE) {
+            if (repositoryConfigProvider.shouldUseFakeData) {
                 // Avoid using real API in debug mode
                 return fakeTrmnlDisplayInfo()
             }
