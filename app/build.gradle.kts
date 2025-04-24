@@ -126,6 +126,9 @@ dependencies {
     debugImplementation(libs.androidx.ui.test.manifest)
     debugImplementation(libs.androidx.ui.tooling)
     testImplementation(libs.junit)
+    testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.test.mockk)
+    testImplementation(libs.test.truth)
 }
 
 ksp {
@@ -133,4 +136,10 @@ ksp {
     arg("anvil-ksp-extraContributingAnnotations", "com.slack.circuit.codegen.annotations.CircuitInject")
     // kotlin-inject-anvil (requires 0.0.3+)
     arg("kotlin-inject-anvil-contributing-annotations", "com.slack.circuit.codegen.annotations.CircuitInject")
+}
+
+// Enable dynamic agent loading for tests needed by MockK
+// https://github.com/hossain-khan/android-trmnl-display/pull/106#issuecomment-2826350990
+tasks.withType<Test> {
+    jvmArgs("-XX:+EnableDynamicAgentLoading")
 }

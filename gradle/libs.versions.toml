@@ -13,6 +13,7 @@ googleFonts = "1.7.8"
 junit = "4.13.2"
 junitVersion = "1.2.1"
 kotlin = "2.1.10"
+kotlinxCoroutinesTest = "1.7.3"
 ksp = "2.1.10-1.0.31"
 lifecycleRuntimeKtx = "2.8.7"
 
@@ -36,11 +37,14 @@ kotlinxSerializationProperties = "1.8.1"
 eithernet = "2.0.0"
 
 # https://developer.android.com/jetpack/androidx/releases/work
-workManager = "2.10.0"
+workManager = "2.10.1"
 
 # Coil
 # https://github.com/coil-kt/coil
 coil = "3.1.0"
+
+mockk = "1.14.0"
+truth = "1.4.4"
 
 datastore = "1.1.4"
 security-crypto = "1.1.0-alpha07"
@@ -110,6 +114,8 @@ retrofit-converter-moshi = { group = "com.squareup.retrofit2", name = "converter
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx",name = "kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
 kotlinx-serialization-properties = { group = "org.jetbrains.kotlinx",name = "kotlinx-serialization-properties", version.ref = "kotlinxSerializationProperties" }
 
+kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinxCoroutinesTest" }
+
 okhttp = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okhttp" }
 okhttp-logging-interceptor = { group = "com.squareup.okhttp3", name = "logging-interceptor", version.ref = "okhttp" }
 okhttp-mock-webserver = { group = "com.squareup.okhttp3", name = "mockwebserver", version.ref = "okhttp" }
@@ -131,6 +137,14 @@ coil-network-okhttp = { group = "io.coil-kt.coil3", name = "coil-network-okhttp"
 
 androidx-datastore-preferences = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastore" }
 androidx-security-crypto = { group = "androidx.security", name = "security-crypto", version.ref = "security-crypto" }
+
+# mocking library for Kotlin
+# https://github.com/mockk/mockk
+test-mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
+
+# Truth - Fluent assertions for Java and Android
+# https://truth.dev/
+test-truth = { module = "com.google.truth:truth", version.ref = "truth" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
