@@ -37,7 +37,7 @@ kotlinxSerializationProperties = "1.8.1"
 eithernet = "2.0.0"
 
 # https://developer.android.com/jetpack/androidx/releases/work
-workManager = "2.10.0"
+workManager = "2.10.1"
 
 # Coil
 # https://github.com/coil-kt/coil
@@ -46,7 +46,7 @@ coil = "3.1.0"
 mockk = "1.14.0"
 truth = "1.4.4"
 
-datastore = "1.1.4"
+datastore = "1.1.5"
 security-crypto = "1.1.0-alpha07"
 
 # https://developer.android.com/jetpack/androidx/releases/window

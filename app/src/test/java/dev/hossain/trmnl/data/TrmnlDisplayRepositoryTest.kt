@@ -15,6 +15,9 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Test
 
+/**
+ * Unit tests for [TrmnlDisplayRepository].
+ */
 class TrmnlDisplayRepositoryTest {
     private lateinit var repository: TrmnlDisplayRepository
     private lateinit var apiService: TrmnlApiService
