@@ -5,8 +5,8 @@ import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
 import dev.hossain.trmnl.MainActivity
-import dev.hossain.trmnl.data.TrmnlTokenDataStore
 import dev.hossain.trmnl.data.TrmnlDisplayRepository
+import dev.hossain.trmnl.data.TrmnlTokenDataStore
 import dev.hossain.trmnl.data.log.TrmnlRefreshLogManager
 import dev.hossain.trmnl.di.WorkerModule
 import dev.hossain.trmnl.ui.display.TrmnlMirrorDisplayScreen
