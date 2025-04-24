@@ -12,12 +12,14 @@ data class TrmnlRefreshLog(
     @Json(name = "refreshRateSeconds") val refreshIntervalSeconds: Long?,
     @Json(name = "success") val success: Boolean,
     @Json(name = "error") val error: String? = null,
+    @Json(name = "refreshWorkType") val imageRefreshWorkType: String? = null,
 ) {
     companion object {
         fun createSuccess(
             imageUrl: String,
             imageName: String,
             refreshIntervalSeconds: Long?,
+            imageRefreshWorkType: String?,
         ): TrmnlRefreshLog =
             TrmnlRefreshLog(
                 timestamp = Instant.now().toEpochMilli(),
@@ -25,6 +27,7 @@ data class TrmnlRefreshLog(
                 imageName = imageName,
                 refreshIntervalSeconds = refreshIntervalSeconds,
                 success = true,
+                imageRefreshWorkType = imageRefreshWorkType,
             )
 
         fun createFailure(error: String): TrmnlRefreshLog =
@@ -35,6 +38,7 @@ data class TrmnlRefreshLog(
                 refreshIntervalSeconds = null,
                 success = false,
                 error = error,
+                imageRefreshWorkType = null,
             )
     }
 }

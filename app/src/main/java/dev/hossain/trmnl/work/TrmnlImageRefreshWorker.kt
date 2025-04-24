@@ -44,10 +44,19 @@ class TrmnlImageRefreshWorker(
         const val KEY_REFRESH_RESULT = "refresh_result"
         const val KEY_NEW_IMAGE_URL = "new_image_url"
         const val KEY_ERROR_MESSAGE = "error_message"
+        const val PARAM_REFRESH_WORK_TYPE = "refresh_work_type"
+        const val PARAM_LOAD_NEXT_PLAYLIST_DISPLAY_IMAGE = "load_next_playlist_image"
     }
 
     override suspend fun doWork(): Result {
         Timber.tag(TAG).d("Starting image refresh work ($tags)")
+
+        // Get the work type from the input data
+        val workTypeValue = inputData.getString(PARAM_REFRESH_WORK_TYPE) ?: RefreshWorkType.ONE_TIME.name
+        val loadNextPluginImage = inputData.getBoolean(PARAM_LOAD_NEXT_PLAYLIST_DISPLAY_IMAGE, false)
+
+        Timber.tag(TAG).d("Work type: $workTypeValue, loadNextPluginImage: $loadNextPluginImage")
+
         // Get current token
         val token = tokenManager.accessTokenFlow.firstOrNull()
 
@@ -90,7 +99,7 @@ class TrmnlImageRefreshWorker(
         }
 
         // ✅ Log success and update image
-        refreshLogManager.addSuccessLog(response.imageUrl, response.imageName, response.refreshIntervalSeconds)
+        refreshLogManager.addSuccessLog(response.imageUrl, response.imageName, response.refreshIntervalSeconds, workTypeValue)
 
         // Check if we should adapt refresh rate
         val refreshRate = response.refreshIntervalSeconds

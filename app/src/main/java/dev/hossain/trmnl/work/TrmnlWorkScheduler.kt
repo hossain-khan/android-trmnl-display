@@ -13,10 +13,13 @@ import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import androidx.work.WorkQuery
 import androidx.work.WorkRequest
+import androidx.work.workDataOf
 import com.squareup.anvil.annotations.optional.SingleIn
 import dev.hossain.trmnl.di.AppScope
 import dev.hossain.trmnl.di.ApplicationContext
 import dev.hossain.trmnl.util.TokenManager
+import dev.hossain.trmnl.work.TrmnlImageRefreshWorker.Companion.PARAM_LOAD_NEXT_PLAYLIST_DISPLAY_IMAGE
+import dev.hossain.trmnl.work.TrmnlImageRefreshWorker.Companion.PARAM_REFRESH_WORK_TYPE
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import timber.log.Timber
@@ -110,6 +113,10 @@ class TrmnlWorkScheduler
                         BackoffPolicy.EXPONENTIAL,
                         WorkRequest.DEFAULT_BACKOFF_DELAY_MILLIS,
                         TimeUnit.MILLISECONDS,
+                    ).setInputData(
+                        workDataOf(
+                            PARAM_REFRESH_WORK_TYPE to RefreshWorkType.PERIODIC.name,
+                        ),
                     ).addTag(IMAGE_REFRESH_PERIODIC_WORK_TAG)
                     .build()
 
@@ -121,9 +128,9 @@ class TrmnlWorkScheduler
         }
 
         /**
-         * Start a one-time image refresh work immediately
+         * Start a one-time image refresh work immediately with option to load next playlist item image.
          */
-        fun startOneTimeImageRefreshWork() {
+        fun startOneTimeImageRefreshWork(loadNextPlaylistImage: Boolean = false) {
             Timber.d("Starting one-time image refresh work")
 
             if (tokenManager.hasTokenSync().not()) {
@@ -144,6 +151,11 @@ class TrmnlWorkScheduler
                         BackoffPolicy.EXPONENTIAL,
                         WorkRequest.DEFAULT_BACKOFF_DELAY_MILLIS,
                         TimeUnit.MILLISECONDS,
+                    ).setInputData(
+                        workDataOf(
+                            PARAM_REFRESH_WORK_TYPE to RefreshWorkType.ONE_TIME.name,
+                            PARAM_LOAD_NEXT_PLAYLIST_DISPLAY_IMAGE to loadNextPlaylistImage,
+                        ),
                     ).addTag(IMAGE_REFRESH_ONETIME_WORK_TAG)
                     .build()
 

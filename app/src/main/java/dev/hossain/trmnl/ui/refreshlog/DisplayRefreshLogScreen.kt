@@ -51,6 +51,7 @@ import dev.hossain.trmnl.data.log.TrmnlRefreshLog
 import dev.hossain.trmnl.data.log.TrmnlRefreshLogManager
 import dev.hossain.trmnl.di.AppScope
 import dev.hossain.trmnl.util.getTimeElapsedString
+import dev.hossain.trmnl.work.RefreshWorkType
 import dev.hossain.trmnl.work.TrmnlWorkScheduler
 import kotlinx.coroutines.launch
 import kotlinx.parcelize.Parcelize
@@ -156,6 +157,7 @@ class DisplayRefreshLogPresenter
                                         imageUrl = "https://debug.example.com/image.png",
                                         imageName = "test-image.png",
                                         refreshIntervalSeconds = 300L,
+                                        imageRefreshWorkType = RefreshWorkType.ONE_TIME.name,
                                     ),
                                 )
                             }
@@ -332,6 +334,15 @@ private fun LogItem(
                     style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier.padding(top = 8.dp),
                 )
+
+                // Add work type display
+                if (log.imageRefreshWorkType != null) {
+                    Text(
+                        text = "Worker Type: ${log.imageRefreshWorkType}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.padding(top = 8.dp),
+                    )
+                }
             } else {
                 Text(
                     text = "Error:",
@@ -344,6 +355,15 @@ private fun LogItem(
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.error,
                 )
+
+                // Add work type display for error logs too
+                if (log.imageRefreshWorkType != null) {
+                    Text(
+                        text = "Worker Type: ${log.imageRefreshWorkType}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.padding(top = 8.dp),
+                    )
+                }
             }
         }
     }
