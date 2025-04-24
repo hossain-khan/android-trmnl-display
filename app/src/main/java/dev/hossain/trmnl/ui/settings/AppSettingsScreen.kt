@@ -16,7 +16,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Info
@@ -68,15 +67,15 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dev.hossain.trmnl.R
-import dev.hossain.trmnl.data.AppConfig.DEFAULT_REFRESH_RATE_SEC
+import dev.hossain.trmnl.data.AppConfig.DEFAULT_REFRESH_INTERVAL_SEC
 import dev.hossain.trmnl.data.DevConfig
-import dev.hossain.trmnl.data.ImageMetadata
 import dev.hossain.trmnl.data.TrmnlDisplayRepository
 import dev.hossain.trmnl.di.AppScope
 import dev.hossain.trmnl.ui.display.TrmnlMirrorDisplayScreen
 import dev.hossain.trmnl.ui.settings.AppSettingsScreen.ValidationResult
 import dev.hossain.trmnl.util.CoilRequestUtils
 import dev.hossain.trmnl.util.TokenManager
+import dev.hossain.trmnl.util.isHttpError
 import dev.hossain.trmnl.util.nextRunTime
 import dev.hossain.trmnl.util.toColor
 import dev.hossain.trmnl.util.toDisplayString
@@ -168,25 +167,19 @@ class AppSettingsPresenter
                                 isLoading = true
                                 validationResult = null
 
-                                val response = displayRepository.getDisplayData(accessToken)
+                                val response = displayRepository.getCurrentDisplayData(accessToken)
 
-                                if (response.status == 500) {
+                                if (response.status.isHttpError()) {
                                     // Handle explicit error response
                                     val errorMessage = response.error ?: "Device not found"
                                     validationResult = ValidationResult.Failure(errorMessage)
                                 } else if (response.imageUrl.isNotBlank()) {
                                     // Success case - we have an image URL
-                                    trmnlImageUpdateManager.updateImage(
-                                        ImageMetadata(
-                                            url = response.imageUrl,
-                                            timestamp = System.currentTimeMillis(),
-                                            refreshRateSecs = response.refreshRateSecs,
-                                        ),
-                                    )
+                                    trmnlImageUpdateManager.updateImage(response.imageUrl, response.refreshIntervalSeconds)
                                     validationResult =
                                         ValidationResult.Success(
                                             response.imageUrl,
-                                            response.refreshRateSecs ?: DEFAULT_REFRESH_RATE_SEC,
+                                            response.refreshIntervalSeconds ?: DEFAULT_REFRESH_INTERVAL_SEC,
                                         )
                                 } else {
                                     // No error but also no image URL

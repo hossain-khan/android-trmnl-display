@@ -5,6 +5,9 @@ import com.squareup.anvil.annotations.optional.SingleIn
 import dev.hossain.trmnl.data.DevConfig.FAKE_API_RESPONSE
 import dev.hossain.trmnl.di.AppScope
 import dev.hossain.trmnl.network.TrmnlApiService
+import dev.hossain.trmnl.util.HTTP_200
+import dev.hossain.trmnl.util.HTTP_500
+import dev.hossain.trmnl.util.isHttpOk
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -25,35 +28,71 @@ class TrmnlDisplayRepository
         private val imageMetadataStore: ImageMetadataStore,
     ) {
         /**
-         * Fetches display data from the server using the provided access token.
+         * Fetches display data for next plugin from the server using the provided access token.
          * If the app is in debug mode, it uses mock data instead.
          *
          * @param accessToken The access token for authentication.
          * @return A [TrmnlDisplayInfo] object containing the display data.
          */
-        suspend fun getDisplayData(accessToken: String): TrmnlDisplayInfo {
+        suspend fun getNextDisplayData(accessToken: String): TrmnlDisplayInfo {
             if (FAKE_API_RESPONSE) {
                 // Avoid using real API in debug mode
                 return fakeTrmnlDisplayInfo()
             }
 
-            val response = apiService.getDisplayData(accessToken).successOrNull()
+            val response = apiService.getNextDisplayData(accessToken).successOrNull()
 
             // Map the response to the display info
             val displayInfo =
                 TrmnlDisplayInfo(
-                    status = response?.status ?: 500,
+                    status = response?.status ?: HTTP_500,
                     imageUrl = response?.imageUrl ?: "",
                     imageName = response?.imageName ?: "",
                     error = response?.error,
-                    refreshRateSecs = response?.refreshRate,
+                    refreshIntervalSeconds = response?.refreshRate,
                 )
 
             // If response was successful and has an image URL, save to data store
-            if (response?.status == 0 && displayInfo.imageUrl.isNotEmpty()) {
+            if (response?.status.isHttpOk() && displayInfo.imageUrl.isNotEmpty()) {
                 imageMetadataStore.saveImageMetadata(
                     displayInfo.imageUrl,
-                    displayInfo.refreshRateSecs,
+                    displayInfo.refreshIntervalSeconds,
+                )
+            }
+
+            return displayInfo
+        }
+
+        /**
+         * Fetches the current display data from the server using the provided access token.
+         * If the app is in debug mode, it uses mock data instead.
+         *
+         * @param accessToken The access token for authentication.
+         * @return A [TrmnlDisplayInfo] object containing the current display data.
+         */
+        suspend fun getCurrentDisplayData(accessToken: String): TrmnlDisplayInfo {
+            if (FAKE_API_RESPONSE) {
+                // Avoid using real API in debug mode
+                return fakeTrmnlDisplayInfo()
+            }
+
+            val response = apiService.getCurrentDisplayData(accessToken).successOrNull()
+
+            // Map the response to the display info
+            val displayInfo =
+                TrmnlDisplayInfo(
+                    status = response?.status ?: HTTP_500,
+                    imageUrl = response?.imageUrl ?: "",
+                    imageName = response?.filename ?: "",
+                    error = response?.error,
+                    refreshIntervalSeconds = response?.refreshRateSec,
+                )
+
+            // If response was successful and has an image URL, save to data store
+            if (response?.status.isHttpOk() && displayInfo.imageUrl.isNotEmpty()) {
+                imageMetadataStore.saveImageMetadata(
+                    displayInfo.imageUrl,
+                    displayInfo.refreshIntervalSeconds,
                 )
             }
 
@@ -78,18 +117,19 @@ class TrmnlDisplayRepository
          */
         private suspend fun fakeTrmnlDisplayInfo(): TrmnlDisplayInfo {
             Timber.d("DEBUG: Using mock data for display info")
-            val mockImageUrl = "https://picsum.photos/300/200?grayscale&time=${System.currentTimeMillis()}"
+            val timestampMin = System.currentTimeMillis() / 60_000 // Changes every minute
+            val mockImageUrl = "https://picsum.photos/300/200?grayscale&time=$timestampMin"
             val mockRefreshRate = 600L
 
             // Save mock data to the data store
             imageMetadataStore.saveImageMetadata(mockImageUrl, mockRefreshRate)
 
             return TrmnlDisplayInfo(
-                status = 0,
+                status = HTTP_200,
                 imageUrl = mockImageUrl,
-                imageName = "Mock Image",
+                imageName = "picsum-mocked-image.bmp",
                 error = null,
-                refreshRateSecs = mockRefreshRate,
+                refreshIntervalSeconds = mockRefreshRate,
             )
         }
     }

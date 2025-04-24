@@ -23,28 +23,25 @@ class TrmnlImageUpdateManager
         private val _imageUpdateFlow = MutableStateFlow<ImageMetadata?>(null)
         val imageUpdateFlow: StateFlow<ImageMetadata?> = _imageUpdateFlow.asStateFlow()
 
-        // To support the hacky workaround of using a map to store the image URL and timestamp
-        // This will ensure that the `updateImage` method only accepts updates with newer timestamps
-        // See https://github.com/hossain-khan/android-trmnl-display/pull/63#issuecomment-2817278344
-        private val imageUpdateHistory = mutableMapOf<String, Long>()
-
         /**
          * Updates the image URL and notifies observers through the flow.
          * Only accepts updates with newer timestamps than the current image.
-         * @param imageMetadata The new image URL with additional metadata
          */
-        fun updateImage(imageMetadata: ImageMetadata) {
-            val lastUpdatedImageMetadata = _imageUpdateFlow.value
-            val lastUpdatedTimestamp = lastUpdatedImageMetadata?.timestamp ?: 0L
-            val timestampForNewImageUpdate = imageUpdateHistory[imageMetadata.url] ?: Long.MAX_VALUE
+        fun updateImage(
+            imageUrl: String,
+            refreshIntervalSecs: Long? = null,
+            errorMessage: String? = null,
+        ) {
+            val imageMetadata =
+                ImageMetadata(
+                    url = imageUrl,
+                    refreshIntervalSecs = refreshIntervalSecs,
+                    errorMessage = errorMessage,
+                )
 
-            if (timestampForNewImageUpdate > lastUpdatedTimestamp) {
-                Timber.d("Updating image URL in TrmnlImageUpdateManager: $imageMetadata")
-                imageUpdateHistory[imageMetadata.url] = imageMetadata.timestamp
-                _imageUpdateFlow.value = imageMetadata
-            } else {
-                Timber.w("Discarded older image update: $imageMetadata")
-            }
+            Timber.d("Updating image URL from TrmnlImageUpdateManager: $imageMetadata")
+
+            _imageUpdateFlow.value = imageMetadata
         }
 
         /**

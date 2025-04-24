@@ -6,12 +6,13 @@ import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
 import dev.hossain.trmnl.MainActivity
-import dev.hossain.trmnl.data.ImageMetadata
 import dev.hossain.trmnl.data.TrmnlDisplayRepository
 import dev.hossain.trmnl.data.log.TrmnlRefreshLogManager
 import dev.hossain.trmnl.di.WorkerModule
 import dev.hossain.trmnl.ui.display.TrmnlMirrorDisplayScreen
 import dev.hossain.trmnl.util.TokenManager
+import dev.hossain.trmnl.util.isHttpError
+import dev.hossain.trmnl.util.isHttpOk
 import dev.hossain.trmnl.work.TrmnlImageRefreshWorker.RefreshWorkResult.FAILURE
 import dev.hossain.trmnl.work.TrmnlImageRefreshWorker.RefreshWorkResult.SUCCESS
 import dev.hossain.trmnl.work.TrmnlWorkScheduler.Companion.IMAGE_REFRESH_PERIODIC_WORK_TAG
@@ -69,10 +70,10 @@ class TrmnlImageRefreshWorker(
         }
 
         // Fetch new display data
-        val response = displayRepository.getDisplayData(token)
+        val response = displayRepository.getCurrentDisplayData(token)
 
         // Check for errors
-        if (response.status == 500) {
+        if (response.status.isHttpError()) {
             Timber.tag(TAG).w("Failed to fetch display data: ${response.error}")
             refreshLogManager.addFailureLog(response.error ?: "Unknown server error")
             return Result.failure(
@@ -84,7 +85,7 @@ class TrmnlImageRefreshWorker(
         }
 
         // Check if image URL is valid
-        if (response.imageUrl.isEmpty() || response.status != 0) {
+        if (response.imageUrl.isEmpty() || response.status.isHttpOk().not()) {
             Timber.tag(TAG).w("No image URL provided in response. ${response.error}")
             refreshLogManager.addFailureLog("No image URL provided in response. ${response.error}")
             return Result.failure(
@@ -96,10 +97,10 @@ class TrmnlImageRefreshWorker(
         }
 
         // ✅ Log success and update image
-        refreshLogManager.addSuccessLog(response.imageUrl, response.imageName, response.refreshRateSecs)
+        refreshLogManager.addSuccessLog(response.imageUrl, response.imageName, response.refreshIntervalSeconds)
 
         // Check if we should adapt refresh rate
-        val refreshRate = response.refreshRateSecs
+        val refreshRate = response.refreshIntervalSeconds
         refreshRate?.let { newRefreshRateSec ->
             if (tokenManager.shouldUpdateRefreshRate(newRefreshRateSec)) {
                 Timber.tag(TAG).d("Refresh rate changed, updating periodic work and saving new rate")
@@ -111,7 +112,7 @@ class TrmnlImageRefreshWorker(
         }
 
         // Workaround for periodic work not updating correctly (might be because of 🐛 bug in library)
-        conditionallyUpdateImageForPeriodicWork(tags, response.imageUrl)
+        conditionallyUpdateImageForPeriodicWork(tags, response.imageUrl, response.refreshIntervalSeconds)
 
         Timber.tag(TAG).i("Image refresh successful for work($tags), got new URL: ${response.imageUrl}")
         return Result.success(
@@ -131,16 +132,11 @@ class TrmnlImageRefreshWorker(
     private fun conditionallyUpdateImageForPeriodicWork(
         tags: Set<String>,
         imageUrl: String,
+        refreshIntervalSecs: Long?,
     ) {
         if (tags.contains(IMAGE_REFRESH_PERIODIC_WORK_TAG)) {
             Timber.tag(TAG).d("Periodic work detected, updating image URL from result")
-            trmnlImageUpdateManager.updateImage(
-                ImageMetadata(
-                    url = imageUrl,
-                    timestamp = System.currentTimeMillis(),
-                    refreshRateSecs = null,
-                ),
-            )
+            trmnlImageUpdateManager.updateImage(imageUrl, refreshIntervalSecs)
         }
     }
 

@@ -20,7 +20,6 @@ import com.slack.circuit.overlay.ContentWithOverlays
 import com.slack.circuit.sharedelements.SharedElementTransitionLayout
 import com.slack.circuitx.gesturenavigation.GestureNavigationDecorationFactory
 import com.squareup.anvil.annotations.ContributesMultibinding
-import dev.hossain.trmnl.data.ImageMetadata
 import dev.hossain.trmnl.di.ActivityKey
 import dev.hossain.trmnl.di.AppScope
 import dev.hossain.trmnl.di.ApplicationContext
@@ -110,31 +109,23 @@ class MainActivity
 
                                 if (newImageUrl != null) {
                                     Timber.i("New image URL from ${workInfo.tags}: $newImageUrl")
-                                    trmnlImageUpdateManager.updateImage(
-                                        ImageMetadata(
-                                            url = newImageUrl,
-                                            timestamp = System.currentTimeMillis(),
-                                            refreshRateSecs = null,
-                                        ),
-                                    )
+                                    trmnlImageUpdateManager.updateImage(newImageUrl)
                                 }
                             }
                             WorkInfo.State.FAILED -> {
                                 val error = workInfo.outputData.getString(TrmnlImageRefreshWorker.KEY_ERROR_MESSAGE)
                                 Timber.e("${workInfo.tags} work failed: $error")
-                                trmnlImageUpdateManager.updateImage(
-                                    ImageMetadata(
-                                        url = "",
-                                        timestamp = System.currentTimeMillis(),
-                                        refreshRateSecs = null,
-                                        errorMessage = error,
-                                    ),
-                                )
+                                trmnlImageUpdateManager.updateImage(imageUrl = "", errorMessage = error)
                             }
                             else -> {
                                 Timber.d("${workInfo.tags} work state updated: ${workInfo.state}")
                             }
                         }
+                        // Even though pruning is not recommended to do frequently,
+                        // we need this to avoid getting stale completed work info
+                        // See https://github.com/hossain-khan/android-trmnl-display/pull/98#issuecomment-2825920626
+                        // See https://github.com/hossain-khan/android-trmnl-display/pull/63#issuecomment-2817278344
+                        workManager.pruneWork()
                     }
                 }
         }
