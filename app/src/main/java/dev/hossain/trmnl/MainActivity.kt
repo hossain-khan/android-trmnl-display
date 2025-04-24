@@ -20,7 +20,6 @@ import com.slack.circuit.overlay.ContentWithOverlays
 import com.slack.circuit.sharedelements.SharedElementTransitionLayout
 import com.slack.circuitx.gesturenavigation.GestureNavigationDecorationFactory
 import com.squareup.anvil.annotations.ContributesMultibinding
-import dev.hossain.trmnl.data.ImageMetadata
 import dev.hossain.trmnl.di.ActivityKey
 import dev.hossain.trmnl.di.AppScope
 import dev.hossain.trmnl.di.ApplicationContext
@@ -110,26 +109,13 @@ class MainActivity
 
                                 if (newImageUrl != null) {
                                     Timber.i("New image URL from ${workInfo.tags}: $newImageUrl")
-                                    trmnlImageUpdateManager.updateImage(
-                                        ImageMetadata(
-                                            url = newImageUrl,
-                                            timestamp = System.currentTimeMillis(),
-                                            refreshRateSecs = null,
-                                        ),
-                                    )
+                                    trmnlImageUpdateManager.updateImage(newImageUrl)
                                 }
                             }
                             WorkInfo.State.FAILED -> {
                                 val error = workInfo.outputData.getString(TrmnlImageRefreshWorker.KEY_ERROR_MESSAGE)
                                 Timber.e("${workInfo.tags} work failed: $error")
-                                trmnlImageUpdateManager.updateImage(
-                                    ImageMetadata(
-                                        url = "",
-                                        timestamp = System.currentTimeMillis(),
-                                        refreshRateSecs = null,
-                                        errorMessage = error,
-                                    ),
-                                )
+                                trmnlImageUpdateManager.updateImage(imageUrl = "", errorMessage = error)
                             }
                             else -> {
                                 Timber.d("${workInfo.tags} work state updated: ${workInfo.state}")

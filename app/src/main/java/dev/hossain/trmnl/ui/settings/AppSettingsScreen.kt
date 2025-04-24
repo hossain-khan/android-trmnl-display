@@ -69,7 +69,6 @@ import dagger.assisted.AssistedInject
 import dev.hossain.trmnl.R
 import dev.hossain.trmnl.data.AppConfig.DEFAULT_REFRESH_RATE_SEC
 import dev.hossain.trmnl.data.DevConfig
-import dev.hossain.trmnl.data.ImageMetadata
 import dev.hossain.trmnl.data.TrmnlDisplayRepository
 import dev.hossain.trmnl.di.AppScope
 import dev.hossain.trmnl.ui.display.TrmnlMirrorDisplayScreen
@@ -176,13 +175,7 @@ class AppSettingsPresenter
                                     validationResult = ValidationResult.Failure(errorMessage)
                                 } else if (response.imageUrl.isNotBlank()) {
                                     // Success case - we have an image URL
-                                    trmnlImageUpdateManager.updateImage(
-                                        ImageMetadata(
-                                            url = response.imageUrl,
-                                            timestamp = System.currentTimeMillis(),
-                                            refreshRateSecs = response.refreshRateSecs,
-                                        ),
-                                    )
+                                    trmnlImageUpdateManager.updateImage(response.imageUrl, response.refreshRateSecs)
                                     validationResult =
                                         ValidationResult.Success(
                                             response.imageUrl,

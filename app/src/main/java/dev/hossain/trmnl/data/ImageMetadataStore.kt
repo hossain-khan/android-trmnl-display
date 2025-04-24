@@ -21,7 +21,7 @@ private val Context.imageDataStore: DataStore<Preferences> by preferencesDataSto
 )
 
 /**
- * Store for image metadata, including URL, timestamp, and refresh rate.
+ * Store for image metadata, including URL, timestamp, and refresh interval.
  * These are used as cache to avoid unnecessary network calls.
  *
  * @see ImageMetadata
@@ -42,11 +42,16 @@ class ImageMetadataStore
          */
         val imageMetadataFlow: Flow<ImageMetadata?> =
             context.imageDataStore.data.map { preferences ->
-                val url = preferences[IMAGE_URL_KEY] ?: return@map null
+                val imageUrl = preferences[IMAGE_URL_KEY] ?: return@map null
                 val timestamp = preferences[TIMESTAMP_KEY] ?: Instant.now().toEpochMilli()
                 val refreshRate = preferences[REFRESH_RATE_KEY]
 
-                ImageMetadata(url, timestamp, refreshRate)
+                ImageMetadata(
+                    url = imageUrl,
+                    refreshIntervalSecs = refreshRate,
+                    errorMessage = null,
+                    timestamp = timestamp,
+                )
             }
 
         /**

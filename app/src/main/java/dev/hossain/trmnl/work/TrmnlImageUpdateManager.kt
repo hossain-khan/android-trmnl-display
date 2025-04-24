@@ -31,12 +31,22 @@ class TrmnlImageUpdateManager
         /**
          * Updates the image URL and notifies observers through the flow.
          * Only accepts updates with newer timestamps than the current image.
-         * @param imageMetadata The new image URL with additional metadata
          */
-        fun updateImage(imageMetadata: ImageMetadata) {
+        fun updateImage(
+            imageUrl: String,
+            refreshIntervalSecs: Long? = null,
+            errorMessage: String? = null,
+        ) {
             val lastUpdatedImageMetadata = _imageUpdateFlow.value
             val lastUpdatedTimestamp = lastUpdatedImageMetadata?.timestamp ?: 0L
-            val timestampForNewImageUpdate = imageUpdateHistory[imageMetadata.url] ?: Long.MAX_VALUE
+            val timestampForNewImageUpdate = imageUpdateHistory[imageUrl] ?: Long.MAX_VALUE
+
+            val imageMetadata =
+                ImageMetadata(
+                    url = imageUrl,
+                    refreshIntervalSecs = refreshIntervalSecs,
+                    errorMessage = errorMessage,
+                )
 
             if (timestampForNewImageUpdate > lastUpdatedTimestamp) {
                 Timber.d("Updating image URL in TrmnlImageUpdateManager: $imageMetadata")

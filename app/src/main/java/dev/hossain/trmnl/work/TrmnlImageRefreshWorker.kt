@@ -6,7 +6,6 @@ import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
 import dev.hossain.trmnl.MainActivity
-import dev.hossain.trmnl.data.ImageMetadata
 import dev.hossain.trmnl.data.TrmnlDisplayRepository
 import dev.hossain.trmnl.data.log.TrmnlRefreshLogManager
 import dev.hossain.trmnl.di.WorkerModule
@@ -113,7 +112,7 @@ class TrmnlImageRefreshWorker(
         }
 
         // Workaround for periodic work not updating correctly (might be because of 🐛 bug in library)
-        conditionallyUpdateImageForPeriodicWork(tags, response.imageUrl)
+        conditionallyUpdateImageForPeriodicWork(tags, response.imageUrl, response.refreshRateSecs)
 
         Timber.tag(TAG).i("Image refresh successful for work($tags), got new URL: ${response.imageUrl}")
         return Result.success(
@@ -133,16 +132,11 @@ class TrmnlImageRefreshWorker(
     private fun conditionallyUpdateImageForPeriodicWork(
         tags: Set<String>,
         imageUrl: String,
+        refreshIntervalSecs: Long?,
     ) {
         if (tags.contains(IMAGE_REFRESH_PERIODIC_WORK_TAG)) {
             Timber.tag(TAG).d("Periodic work detected, updating image URL from result")
-            trmnlImageUpdateManager.updateImage(
-                ImageMetadata(
-                    url = imageUrl,
-                    timestamp = System.currentTimeMillis(),
-                    refreshRateSecs = null,
-                ),
-            )
+            trmnlImageUpdateManager.updateImage(imageUrl, refreshIntervalSecs)
         }
     }
 
