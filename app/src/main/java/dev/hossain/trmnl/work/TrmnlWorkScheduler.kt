@@ -15,9 +15,9 @@ import androidx.work.WorkQuery
 import androidx.work.WorkRequest
 import androidx.work.workDataOf
 import com.squareup.anvil.annotations.optional.SingleIn
+import dev.hossain.trmnl.data.TokenManager
 import dev.hossain.trmnl.di.AppScope
 import dev.hossain.trmnl.di.ApplicationContext
-import dev.hossain.trmnl.util.TokenManager
 import dev.hossain.trmnl.work.TrmnlImageRefreshWorker.Companion.PARAM_LOAD_NEXT_PLAYLIST_DISPLAY_IMAGE
 import dev.hossain.trmnl.work.TrmnlImageRefreshWorker.Companion.PARAM_REFRESH_WORK_TYPE
 import kotlinx.coroutines.flow.Flow

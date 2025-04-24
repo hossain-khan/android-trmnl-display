@@ -69,12 +69,12 @@ import dagger.assisted.AssistedInject
 import dev.hossain.trmnl.R
 import dev.hossain.trmnl.data.AppConfig.DEFAULT_REFRESH_INTERVAL_SEC
 import dev.hossain.trmnl.data.DevConfig
+import dev.hossain.trmnl.data.TokenManager
 import dev.hossain.trmnl.data.TrmnlDisplayRepository
 import dev.hossain.trmnl.di.AppScope
 import dev.hossain.trmnl.ui.display.TrmnlMirrorDisplayScreen
 import dev.hossain.trmnl.ui.settings.AppSettingsScreen.ValidationResult
 import dev.hossain.trmnl.util.CoilRequestUtils
-import dev.hossain.trmnl.util.TokenManager
 import dev.hossain.trmnl.util.isHttpError
 import dev.hossain.trmnl.util.nextRunTime
 import dev.hossain.trmnl.util.toColor

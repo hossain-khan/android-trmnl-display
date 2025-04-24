@@ -5,11 +5,11 @@ import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
 import dev.hossain.trmnl.MainActivity
+import dev.hossain.trmnl.data.TokenManager
 import dev.hossain.trmnl.data.TrmnlDisplayRepository
 import dev.hossain.trmnl.data.log.TrmnlRefreshLogManager
 import dev.hossain.trmnl.di.WorkerModule
 import dev.hossain.trmnl.ui.display.TrmnlMirrorDisplayScreen
-import dev.hossain.trmnl.util.TokenManager
 import dev.hossain.trmnl.util.isHttpError
 import dev.hossain.trmnl.util.isHttpOk
 import dev.hossain.trmnl.work.RefreshWorkResult.FAILURE

@@ -1,4 +1,4 @@
-package dev.hossain.trmnl.util
+package dev.hossain.trmnl.data
 
 import android.content.Context
 import androidx.datastore.core.DataStore
@@ -16,10 +16,23 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
 
+/**
+ * DataStore for managing access tokens and refresh rate settings.
+ */
 private val Context.tokenDataStore: DataStore<Preferences> by preferencesDataStore(
-    name = "trmnl_settings",
+    name = "trmnl_token_store",
 )
 
+/**
+ * Manages token and refresh rate settings for the TRMNL application.
+ *
+ * This class provides methods for storing, retrieving, and managing the access token
+ * and refresh rate settings using Android's DataStore. It offers both Flow-based
+ * asynchronous APIs and synchronous blocking alternatives for different usage scenarios.
+ *
+ * The token manager is scoped to the application lifecycle and serves as the
+ * source of truth for authentication and refresh interval configuration.
+ */
 @SingleIn(AppScope::class)
 class TokenManager
     @Inject
