@@ -14,7 +14,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Card
@@ -87,7 +88,9 @@ data object TrmnlMirrorDisplayScreen : Screen {
     ) : CircuitUiState
 
     sealed class Event : CircuitUiEvent {
-        data object RefreshRequested : Event()
+        data object RefreshCurrentPlaylistItemRequested : Event()
+
+        data object LoadNextPlaylistItemImage : Event()
 
         data object ConfigureRequested : Event()
 
@@ -180,19 +183,18 @@ class TrmnlMirrorDisplayPresenter
                 errorMessage = error,
                 eventSink = { event ->
                     when (event) {
-                        TrmnlMirrorDisplayScreen.Event.RefreshRequested -> {
+                        TrmnlMirrorDisplayScreen.Event.RefreshCurrentPlaylistItemRequested -> {
                             overlayControlsVisible = false
                             // Simply trigger the worker for refresh
                             scope.launch {
                                 // Clear the image URL so that when the image is refreshed
                                 // with old image URL it will load the image.
                                 imageUrl = null
-
                                 isLoading = true
                                 error = null
 
                                 if (trmnlTokenDataStore.hasTokenSync()) {
-                                    Timber.d("Manually refreshing via WorkManager")
+                                    Timber.d("Manually refreshing current image via WorkManager")
                                     trmnlWorkScheduler.startOneTimeImageRefreshWork()
                                 } else {
                                     error = "No access token found"
@@ -213,6 +215,21 @@ class TrmnlMirrorDisplayPresenter
 
                         TrmnlMirrorDisplayScreen.Event.ToggleOverlayControls -> {
                             overlayControlsVisible = !overlayControlsVisible
+                        }
+
+                        TrmnlMirrorDisplayScreen.Event.LoadNextPlaylistItemImage -> {
+                            imageUrl = null
+                            isLoading = true
+                            error = null
+
+                            if (trmnlTokenDataStore.hasTokenSync()) {
+                                Timber.d("Manually refreshing next playlist item image via WorkManager")
+                                trmnlWorkScheduler.startOneTimeImageRefreshWork(loadNextPlaylistImage = true)
+                            } else {
+                                error = "No access token found"
+                                isLoading = false
+                                Timber.w("Refresh failed: No access token found")
+                            }
                         }
                     }
                 },
@@ -364,7 +381,7 @@ private fun OverlaySettingsView(
                 },
                 text = {
                     Text(
-                        "Configure API Token",
+                        "Configure TRMNL API Token",
                         style = fabTextStyle,
                         fontWeight = FontWeight.Bold,
                     )
@@ -373,7 +390,7 @@ private fun OverlaySettingsView(
 
             ExtendedFloatingActionButton(
                 onClick = {
-                    state.eventSink(TrmnlMirrorDisplayScreen.Event.RefreshRequested)
+                    state.eventSink(TrmnlMirrorDisplayScreen.Event.RefreshCurrentPlaylistItemRequested)
                 },
                 icon = {
                     Icon(
@@ -384,7 +401,27 @@ private fun OverlaySettingsView(
                 },
                 text = {
                     Text(
-                        "Refresh TRMNL Image",
+                        "Refresh Current Playlist Image",
+                        style = fabTextStyle,
+                        fontWeight = FontWeight.Bold,
+                    )
+                },
+            )
+
+            ExtendedFloatingActionButton(
+                onClick = {
+                    state.eventSink(TrmnlMirrorDisplayScreen.Event.LoadNextPlaylistItemImage)
+                },
+                icon = {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                        contentDescription = null,
+                        modifier = if (isExpandedWidth) Modifier.size(32.dp) else Modifier,
+                    )
+                },
+                text = {
+                    Text(
+                        "Load Next Playlist Image",
                         style = fabTextStyle,
                         fontWeight = FontWeight.Bold,
                     )
@@ -397,14 +434,14 @@ private fun OverlaySettingsView(
                 },
                 icon = {
                     Icon(
-                        imageVector = Icons.Default.DateRange,
+                        imageVector = Icons.AutoMirrored.Filled.List,
                         contentDescription = null,
                         modifier = if (isExpandedWidth) Modifier.size(32.dp) else Modifier,
                     )
                 },
                 text = {
                     Text(
-                        "View Refresh Logs",
+                        "View Image Refresh Logs",
                         style = fabTextStyle,
                         fontWeight = FontWeight.Bold,
                     )
