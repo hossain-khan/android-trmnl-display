@@ -71,38 +71,43 @@ class TrmnlImageRefreshWorker(
             )
         }
 
-        // Fetch new display data
-        val response = displayRepository.getCurrentDisplayData(token)
+        // Fetch TRMNL display image - current or next from playlist based on request type
+        val trmnlDisplayInfo =
+            if (loadNextPluginImage) {
+                displayRepository.getNextDisplayData(token)
+            } else {
+                displayRepository.getCurrentDisplayData(token)
+            }
 
         // Check for errors
-        if (response.status.isHttpError()) {
-            Timber.tag(TAG).w("Failed to fetch display data: ${response.error}")
-            refreshLogManager.addFailureLog(response.error ?: "Unknown server error")
+        if (trmnlDisplayInfo.status.isHttpError()) {
+            Timber.tag(TAG).w("Failed to fetch display data: ${trmnlDisplayInfo.error}")
+            refreshLogManager.addFailureLog(trmnlDisplayInfo.error ?: "Unknown server error")
             return Result.failure(
                 workDataOf(
                     KEY_REFRESH_RESULT to FAILURE.name,
-                    KEY_ERROR_MESSAGE to (response.error ?: "Unknown server error"),
+                    KEY_ERROR_MESSAGE to (trmnlDisplayInfo.error ?: "Unknown server error"),
                 ),
             )
         }
 
         // Check if image URL is valid
-        if (response.imageUrl.isEmpty() || response.status.isHttpOk().not()) {
-            Timber.tag(TAG).w("No image URL provided in response. ${response.error}")
-            refreshLogManager.addFailureLog("No image URL provided in response. ${response.error}")
+        if (trmnlDisplayInfo.imageUrl.isEmpty() || trmnlDisplayInfo.status.isHttpOk().not()) {
+            Timber.tag(TAG).w("No image URL provided in response. ${trmnlDisplayInfo.error}")
+            refreshLogManager.addFailureLog("No image URL provided in response. ${trmnlDisplayInfo.error}")
             return Result.failure(
                 workDataOf(
                     KEY_REFRESH_RESULT to FAILURE.name,
-                    KEY_ERROR_MESSAGE to "No image URL provided in response. ${response.error}",
+                    KEY_ERROR_MESSAGE to "No image URL provided in response. ${trmnlDisplayInfo.error}",
                 ),
             )
         }
 
         // ✅ Log success and update image
-        refreshLogManager.addSuccessLog(response.imageUrl, response.imageName, response.refreshIntervalSeconds, workTypeValue)
+        refreshLogManager.addSuccessLog(trmnlDisplayInfo.imageUrl, trmnlDisplayInfo.imageName, trmnlDisplayInfo.refreshIntervalSeconds, workTypeValue)
 
         // Check if we should adapt refresh rate
-        val refreshRate = response.refreshIntervalSeconds
+        val refreshRate = trmnlDisplayInfo.refreshIntervalSeconds
         refreshRate?.let { newRefreshRateSec ->
             if (trmnlTokenDataStore.shouldUpdateRefreshRate(newRefreshRateSec)) {
                 Timber.tag(TAG).d("Refresh rate changed, updating periodic work and saving new rate")
@@ -114,13 +119,13 @@ class TrmnlImageRefreshWorker(
         }
 
         // Workaround for periodic work not updating correctly (might be because of 🐛 bug in library)
-        conditionallyUpdateImageForPeriodicWork(tags, response.imageUrl, response.refreshIntervalSeconds)
+        conditionallyUpdateImageForPeriodicWork(tags, trmnlDisplayInfo.imageUrl, trmnlDisplayInfo.refreshIntervalSeconds)
 
-        Timber.tag(TAG).i("Image refresh successful for work($tags), got new URL: ${response.imageUrl}")
+        Timber.tag(TAG).i("Image refresh successful for work($tags), got new URL: ${trmnlDisplayInfo.imageUrl}")
         return Result.success(
             workDataOf(
                 KEY_REFRESH_RESULT to SUCCESS.name,
-                KEY_NEW_IMAGE_URL to response.imageUrl,
+                KEY_NEW_IMAGE_URL to trmnlDisplayInfo.imageUrl,
             ),
         )
     }

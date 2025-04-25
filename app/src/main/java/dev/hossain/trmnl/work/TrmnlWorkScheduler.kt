@@ -131,7 +131,7 @@ class TrmnlWorkScheduler
          * Start a one-time image refresh work immediately with option to load next playlist item image.
          */
         fun startOneTimeImageRefreshWork(loadNextPlaylistImage: Boolean = false) {
-            Timber.d("Starting one-time image refresh work")
+            Timber.d("Starting one-time image refresh work with loadNextPlaylistImage: $loadNextPlaylistImage")
 
             if (trmnlTokenDataStore.hasTokenSync().not()) {
                 Timber.w("Token not set, skipping one-time image refresh work")

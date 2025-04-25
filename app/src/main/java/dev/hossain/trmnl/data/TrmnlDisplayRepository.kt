@@ -38,7 +38,7 @@ class TrmnlDisplayRepository
         suspend fun getNextDisplayData(accessToken: String): TrmnlDisplayInfo {
             if (repositoryConfigProvider.shouldUseFakeData) {
                 // Avoid using real API in debug mode
-                return fakeTrmnlDisplayInfo()
+                return fakeTrmnlDisplayInfo(apiUsed = "next-image")
             }
 
             val response = apiService.getNextDisplayData(accessToken).successOrNull()
@@ -74,7 +74,7 @@ class TrmnlDisplayRepository
         suspend fun getCurrentDisplayData(accessToken: String): TrmnlDisplayInfo {
             if (repositoryConfigProvider.shouldUseFakeData) {
                 // Avoid using real API in debug mode
-                return fakeTrmnlDisplayInfo()
+                return fakeTrmnlDisplayInfo(apiUsed = "current-image")
             }
 
             val response = apiService.getCurrentDisplayData(accessToken).successOrNull()
@@ -116,10 +116,10 @@ class TrmnlDisplayRepository
          *
          * ℹ️ This is only used when [FAKE_API_RESPONSE] is set to `true`.
          */
-        private suspend fun fakeTrmnlDisplayInfo(): TrmnlDisplayInfo {
+        private suspend fun fakeTrmnlDisplayInfo(apiUsed: String): TrmnlDisplayInfo {
             Timber.d("DEBUG: Using mock data for display info")
             val timestampMin = System.currentTimeMillis() / 60_000 // Changes every minute
-            val mockImageUrl = "https://picsum.photos/300/200?grayscale&time=$timestampMin"
+            val mockImageUrl = "https://picsum.photos/300/200?grayscale&time=$timestampMin&api=$apiUsed"
             val mockRefreshRate = 600L
 
             // Save mock data to the data store

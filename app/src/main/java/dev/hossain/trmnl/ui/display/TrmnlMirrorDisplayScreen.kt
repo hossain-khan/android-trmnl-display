@@ -14,6 +14,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Settings
@@ -88,6 +90,8 @@ data object TrmnlMirrorDisplayScreen : Screen {
 
     sealed class Event : CircuitUiEvent {
         data object RefreshRequested : Event()
+
+        data object LoadNextPluginImage : Event()
 
         data object ConfigureRequested : Event()
 
@@ -213,6 +217,10 @@ class TrmnlMirrorDisplayPresenter
 
                         TrmnlMirrorDisplayScreen.Event.ToggleOverlayControls -> {
                             overlayControlsVisible = !overlayControlsVisible
+                        }
+
+                        TrmnlMirrorDisplayScreen.Event.LoadNextPluginImage -> {
+                            trmnlWorkScheduler.startOneTimeImageRefreshWork(loadNextPlaylistImage = true)
                         }
                     }
                 },
@@ -385,6 +393,26 @@ private fun OverlaySettingsView(
                 text = {
                     Text(
                         "Refresh TRMNL Image",
+                        style = fabTextStyle,
+                        fontWeight = FontWeight.Bold,
+                    )
+                },
+            )
+
+            ExtendedFloatingActionButton(
+                onClick = {
+                    state.eventSink(TrmnlMirrorDisplayScreen.Event.LoadNextPluginImage)
+                },
+                icon = {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                        contentDescription = null,
+                        modifier = if (isExpandedWidth) Modifier.size(32.dp) else Modifier,
+                    )
+                },
+                text = {
+                    Text(
+                        "Load Next Playlist Item",
                         style = fabTextStyle,
                         fontWeight = FontWeight.Bold,
                     )
