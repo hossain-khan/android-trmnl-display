@@ -111,4 +111,5 @@ The app uses a modern Android architecture with the following components:
 
 ## Related Referecens 📖
 * https://usetrmnl.com/
+* https://usetrmnl.com/integrations
 * https://github.com/usetrmnl/trmnl-display
