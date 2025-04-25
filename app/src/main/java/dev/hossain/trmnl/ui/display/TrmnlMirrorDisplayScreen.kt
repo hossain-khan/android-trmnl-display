@@ -15,8 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material.icons.filled.ArrowForward
-import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Card
@@ -372,7 +371,7 @@ private fun OverlaySettingsView(
                 },
                 text = {
                     Text(
-                        "Configure API Token",
+                        "Configure TRMNL API Token",
                         style = fabTextStyle,
                         fontWeight = FontWeight.Bold,
                     )
@@ -392,7 +391,7 @@ private fun OverlaySettingsView(
                 },
                 text = {
                     Text(
-                        "Refresh TRMNL Image",
+                        "Refresh Current Playlist Image",
                         style = fabTextStyle,
                         fontWeight = FontWeight.Bold,
                     )
@@ -412,7 +411,7 @@ private fun OverlaySettingsView(
                 },
                 text = {
                     Text(
-                        "Load Next Playlist Item",
+                        "Load Next Playlist Image",
                         style = fabTextStyle,
                         fontWeight = FontWeight.Bold,
                     )
@@ -425,14 +424,14 @@ private fun OverlaySettingsView(
                 },
                 icon = {
                     Icon(
-                        imageVector = Icons.Default.DateRange,
+                        imageVector = Icons.AutoMirrored.Filled.List,
                         contentDescription = null,
                         modifier = if (isExpandedWidth) Modifier.size(32.dp) else Modifier,
                     )
                 },
                 text = {
                     Text(
-                        "View Refresh Logs",
+                        "View Image Refresh Logs",
                         style = fabTextStyle,
                         fontWeight = FontWeight.Bold,
                     )

@@ -41,6 +41,8 @@ class TrmnlDisplayRepository
                 return fakeTrmnlDisplayInfo(apiUsed = "next-image")
             }
 
+            Timber.i("Fetching next playlist item display data from server")
+
             val response = apiService.getNextDisplayData(accessToken).successOrNull()
 
             // Map the response to the display info
@@ -76,6 +78,8 @@ class TrmnlDisplayRepository
                 // Avoid using real API in debug mode
                 return fakeTrmnlDisplayInfo(apiUsed = "current-image")
             }
+
+            Timber.i("Fetching current display data from server")
 
             val response = apiService.getCurrentDisplayData(accessToken).successOrNull()
 

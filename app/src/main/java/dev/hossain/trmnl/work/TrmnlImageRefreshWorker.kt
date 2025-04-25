@@ -104,7 +104,12 @@ class TrmnlImageRefreshWorker(
         }
 
         // ✅ Log success and update image
-        refreshLogManager.addSuccessLog(trmnlDisplayInfo.imageUrl, trmnlDisplayInfo.imageName, trmnlDisplayInfo.refreshIntervalSeconds, workTypeValue)
+        refreshLogManager.addSuccessLog(
+            imageUrl = trmnlDisplayInfo.imageUrl,
+            imageName = trmnlDisplayInfo.imageName,
+            refreshIntervalSeconds = trmnlDisplayInfo.refreshIntervalSeconds,
+            imageRefreshWorkType = workTypeValue,
+        )
 
         // Check if we should adapt refresh rate
         val refreshRate = trmnlDisplayInfo.refreshIntervalSeconds
