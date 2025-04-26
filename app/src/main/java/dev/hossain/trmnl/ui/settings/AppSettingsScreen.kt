@@ -46,6 +46,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -173,6 +174,7 @@ class AppSettingsPresenter
             var isLoading by remember { mutableStateOf(false) }
             var validationResult by remember { mutableStateOf<ValidationResult?>(null) }
             val scope = rememberCoroutineScope()
+            val focusManager = LocalFocusManager.current
 
             val nextRefreshInfo by produceState<NextImageRefreshDisplayInfo?>(null) {
                 trmnlWorkScheduler.getScheduledWorkInfo().collect { workInfo ->
@@ -204,6 +206,7 @@ class AppSettingsPresenter
 
                         AppSettingsScreen.Event.ValidateToken -> {
                             scope.launch {
+                                focusManager.clearFocus()
                                 isLoading = true
                                 validationResult = null
 
