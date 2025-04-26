@@ -502,6 +502,12 @@ fun AppSettingsContent(
     }
 }
 
+/**
+ * Displays the status of the TRMNL display image refresh schedule.
+ *
+ * Shows details about the next scheduled refresh, its status, and provides an option
+ * to cancel the scheduled work if applicable.
+ */
 @Composable
 private fun WorkScheduleStatusCard(
     state: AppSettingsScreen.State,
@@ -606,6 +612,10 @@ private fun WorkScheduleStatusCard(
     }
 }
 
+/**
+ * A composable function that displays a banner indicating that the app is in developer mode
+ * and is using mock data instead of real API calls.
+ */
 @Composable
 private fun FakeApiInfoBanner(modifier: Modifier = Modifier) {
     Card(
