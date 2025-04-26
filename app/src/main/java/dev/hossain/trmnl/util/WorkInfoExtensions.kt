@@ -20,6 +20,7 @@ import java.time.format.DateTimeFormatter
  * @see [WorkInfo.nextRunTime]
  */
 data class NextImageRefreshDisplayInfo(
+    val workerState: WorkInfo.State,
     val timeUntilNextRefresh: String,
     val nextRefreshOnDateTime: String,
     val nextRefreshTimeMillis: Long,
@@ -60,7 +61,11 @@ fun WorkInfo.State?.toIcon(): ImageVector =
     }
 
 fun WorkInfo?.nextRunTime(): NextImageRefreshDisplayInfo? {
-    val nextScheduleTimeMillis = this?.nextScheduleTimeMillis ?: 0L
+    if (this == null) {
+        return null
+    }
+
+    val nextScheduleTimeMillis = nextScheduleTimeMillis
     if (nextScheduleTimeMillis > 0 && nextScheduleTimeMillis != Long.MAX_VALUE) {
         val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
         val nextRunTime: String =
@@ -78,6 +83,7 @@ fun WorkInfo?.nextRunTime(): NextImageRefreshDisplayInfo? {
                 else -> "in ${timeUntil / 3600000} hours"
             }
         return NextImageRefreshDisplayInfo(
+            workerState = state,
             timeUntilNextRefresh = timeUntilText,
             nextRefreshOnDateTime = nextRunTime,
             nextRefreshTimeMillis = nextScheduleTimeMillis,
