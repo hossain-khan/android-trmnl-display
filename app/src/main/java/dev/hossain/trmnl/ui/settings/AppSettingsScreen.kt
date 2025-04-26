@@ -49,7 +49,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.LinkAnnotation
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextLinkStyles
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -57,6 +62,9 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.withLink
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.work.WorkInfo
@@ -401,6 +409,10 @@ fun AppSettingsContent(
                 },
             )
 
+            Spacer(modifier = Modifier.height(8.dp))
+
+            TokenInfoTextView()
+
             Spacer(modifier = Modifier.height(16.dp))
 
             Button(
@@ -640,6 +652,61 @@ private fun FakeApiInfoBanner(modifier: Modifier = Modifier) {
     }
 }
 
+@Composable
+private fun TokenInfoTextView() {
+    // Informational text with links using withLink
+    val uriHandler = LocalUriHandler.current
+    val linkStyle = SpanStyle(color = MaterialTheme.colorScheme.primary, textDecoration = TextDecoration.Underline)
+    val annotatedString =
+        buildAnnotatedString {
+            append("Your TRMNL device token can be found in settings screen from your ")
+
+            withLink(
+                LinkAnnotation.Url(
+                    url = "https://usetrmnl.com/dashboard",
+                    styles = TextLinkStyles(style = linkStyle),
+                    linkInteractionListener = { uriHandler.openUri("https://usetrmnl.com/dashboard") },
+                ),
+            ) {
+                withStyle(style = linkStyle) {
+                    append("dashboard")
+                }
+            }
+
+            append(". ")
+
+            withLink(
+                LinkAnnotation.Url(
+                    url = "https://docs.usetrmnl.com/go/private-api/introduction",
+                    styles = TextLinkStyles(style = linkStyle),
+                    linkInteractionListener = { uriHandler.openUri("https://docs.usetrmnl.com/go/private-api/introduction") },
+                ),
+            ) {
+                withStyle(style = linkStyle) {
+                    append("Learn more")
+                }
+            }
+
+            append(".")
+        }
+
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(
+            imageVector = Icons.Default.Info,
+            contentDescription = "Information",
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Spacer(modifier = Modifier.width(4.dp))
+        Text(
+            text = annotatedString,
+            style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant),
+        )
+    }
+}
+
 @Preview(name = "App Settings Content - Initial State")
 @Composable
 private fun PreviewAppSettingsContentInitial() {
@@ -787,5 +854,13 @@ private fun PreviewWorkScheduleStatusCardNoWork() {
 private fun PreviewFakeApiInfoBanner() {
     TrmnlDisplayAppTheme {
         FakeApiInfoBanner()
+    }
+}
+
+@Preview(name = "Info Text View Preview", showBackground = true)
+@Composable
+private fun PreviewInfoTextView() {
+    TrmnlDisplayAppTheme {
+        TokenInfoTextView()
     }
 }
