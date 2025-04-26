@@ -20,6 +20,7 @@ import java.time.format.DateTimeFormatter
  * @see [WorkInfo.nextRunTime]
  */
 data class NextImageRefreshDisplayInfo(
+    val workerState: WorkInfo.State,
     val timeUntilNextRefresh: String,
     val nextRefreshOnDateTime: String,
     val nextRefreshTimeMillis: Long,
@@ -60,29 +61,29 @@ fun WorkInfo.State?.toIcon(): ImageVector =
     }
 
 fun WorkInfo?.nextRunTime(): NextImageRefreshDisplayInfo? {
-    val nextScheduleTimeMillis = this?.nextScheduleTimeMillis ?: 0L
-    if (nextScheduleTimeMillis > 0 && nextScheduleTimeMillis != Long.MAX_VALUE) {
-        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
-        val nextRunTime: String =
-            Instant
-                .ofEpochMilli(nextScheduleTimeMillis)
-                .atZone(ZoneId.systemDefault())
-                .format(formatter)
-
-        val timeUntil = nextScheduleTimeMillis - System.currentTimeMillis()
-        val timeUntilText =
-            when {
-                timeUntil <= 0 -> "any moment now"
-                timeUntil < 60000 -> "in ${timeUntil / 1000} seconds"
-                timeUntil < 3600000 -> "in ${timeUntil / 60000} minutes"
-                else -> "in ${timeUntil / 3600000} hours"
-            }
-        return NextImageRefreshDisplayInfo(
-            timeUntilNextRefresh = timeUntilText,
-            nextRefreshOnDateTime = nextRunTime,
-            nextRefreshTimeMillis = nextScheduleTimeMillis,
-        )
-    } else {
+    if (this == null) {
         return null
     }
+
+    val formatter = DateTimeFormatter.ofPattern("MMM dd 'at' hh:mm:ss a")
+    val nextRunTime: String =
+        Instant
+            .ofEpochMilli(nextScheduleTimeMillis)
+            .atZone(ZoneId.systemDefault())
+            .format(formatter)
+
+    val timeUntil = nextScheduleTimeMillis - Instant.now().toEpochMilli()
+    val timeUntilText =
+        when {
+            timeUntil <= 0 -> "any moment now"
+            timeUntil < 60000 -> "in ${timeUntil / 1000} seconds"
+            timeUntil < 3600000 -> "in ${timeUntil / 60000} minutes"
+            else -> "in ${timeUntil / 3600000} hours"
+        }
+    return NextImageRefreshDisplayInfo(
+        workerState = state,
+        timeUntilNextRefresh = timeUntilText,
+        nextRefreshOnDateTime = nextRunTime,
+        nextRefreshTimeMillis = nextScheduleTimeMillis,
+    )
 }

@@ -8,10 +8,12 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -38,6 +40,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -45,17 +48,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.asFlow
 import androidx.work.WorkInfo
-import androidx.work.WorkManager
 import coil3.compose.AsyncImage
 import com.slack.circuit.codegen.annotations.CircuitInject
 import com.slack.circuit.runtime.CircuitUiEvent
@@ -74,7 +77,10 @@ import dev.hossain.trmnl.data.TrmnlTokenDataStore
 import dev.hossain.trmnl.di.AppScope
 import dev.hossain.trmnl.ui.display.TrmnlMirrorDisplayScreen
 import dev.hossain.trmnl.ui.settings.AppSettingsScreen.ValidationResult
+import dev.hossain.trmnl.ui.settings.AppSettingsScreen.ValidationResult.Failure
+import dev.hossain.trmnl.ui.settings.AppSettingsScreen.ValidationResult.Success
 import dev.hossain.trmnl.util.CoilRequestUtils
+import dev.hossain.trmnl.util.NextImageRefreshDisplayInfo
 import dev.hossain.trmnl.util.isHttpError
 import dev.hossain.trmnl.util.nextRunTime
 import dev.hossain.trmnl.util.toColor
@@ -82,7 +88,6 @@ import dev.hossain.trmnl.util.toDisplayString
 import dev.hossain.trmnl.util.toIcon
 import dev.hossain.trmnl.work.TrmnlImageUpdateManager
 import dev.hossain.trmnl.work.TrmnlWorkScheduler
-import dev.hossain.trmnl.work.TrmnlWorkScheduler.Companion.IMAGE_REFRESH_PERIODIC_WORK_NAME
 import kotlinx.coroutines.launch
 import kotlinx.parcelize.Parcelize
 
@@ -105,6 +110,7 @@ data class AppSettingsScreen(
         val accessToken: String,
         val isLoading: Boolean = false,
         val validationResult: ValidationResult? = null,
+        val nextRefreshJobInfo: NextImageRefreshDisplayInfo? = null,
         val eventSink: (Event) -> Unit,
     ) : CircuitUiState
 
@@ -144,6 +150,11 @@ data class AppSettingsScreen(
          * Event triggered when the back button is pressed.
          */
         data object BackPressed : Event()
+
+        /**
+         * Event triggered to cancel the scheduled work.
+         */
+        data object CancelScheduledWork : Event()
     }
 }
 
@@ -167,6 +178,13 @@ class AppSettingsPresenter
             var isLoading by remember { mutableStateOf(false) }
             var validationResult by remember { mutableStateOf<ValidationResult?>(null) }
             val scope = rememberCoroutineScope()
+            val focusManager = LocalFocusManager.current
+
+            val nextRefreshInfo by produceState<NextImageRefreshDisplayInfo?>(null) {
+                trmnlWorkScheduler.getScheduledWorkInfo().collect { workInfo ->
+                    value = workInfo?.nextRunTime()
+                }
+            }
 
             // Load saved token if available
             LaunchedEffect(Unit) {
@@ -181,6 +199,7 @@ class AppSettingsPresenter
                 accessToken = accessToken,
                 isLoading = isLoading,
                 validationResult = validationResult,
+                nextRefreshJobInfo = nextRefreshInfo,
                 eventSink = { event ->
                     when (event) {
                         is AppSettingsScreen.Event.AccessTokenChanged -> {
@@ -191,6 +210,7 @@ class AppSettingsPresenter
 
                         AppSettingsScreen.Event.ValidateToken -> {
                             scope.launch {
+                                focusManager.clearFocus()
                                 isLoading = true
                                 validationResult = null
 
@@ -199,19 +219,19 @@ class AppSettingsPresenter
                                 if (response.status.isHttpError()) {
                                     // Handle explicit error response
                                     val errorMessage = response.error ?: "Device not found"
-                                    validationResult = ValidationResult.Failure(errorMessage)
+                                    validationResult = Failure(errorMessage)
                                 } else if (response.imageUrl.isNotBlank()) {
                                     // Success case - we have an image URL
                                     trmnlImageUpdateManager.updateImage(response.imageUrl, response.refreshIntervalSeconds)
                                     validationResult =
-                                        ValidationResult.Success(
+                                        Success(
                                             response.imageUrl,
                                             response.refreshIntervalSeconds ?: DEFAULT_REFRESH_INTERVAL_SEC,
                                         )
                                 } else {
                                     // No error but also no image URL
                                     val errorMessage = response.error ?: ""
-                                    validationResult = ValidationResult.Failure("$errorMessage No image URL received.")
+                                    validationResult = Failure("$errorMessage No image URL received.")
                                 }
                                 isLoading = false
                             }
@@ -236,6 +256,10 @@ class AppSettingsPresenter
 
                         AppSettingsScreen.Event.BackPressed -> {
                             navigator.pop()
+                        }
+
+                        AppSettingsScreen.Event.CancelScheduledWork -> {
+                            trmnlWorkScheduler.cancelImageRefreshWork()
                         }
                     }
                 },
@@ -267,6 +291,7 @@ fun AppSettingsContent(
     val context = LocalContext.current
     val scrollState = rememberScrollState()
     val hasToken = state.accessToken.isNotBlank()
+    val trmnlWorkScheduler = remember { TrmnlWorkScheduler(context, TrmnlTokenDataStore(context)) }
 
     // Control password visibility
     var passwordVisible by remember { mutableStateOf(false) }
@@ -307,7 +332,8 @@ fun AppSettingsContent(
                     .fillMaxSize()
                     .verticalScroll(scrollState)
                     .padding(innerPadding)
-                    .padding(horizontal = 32.dp),
+                    .padding(horizontal = 32.dp)
+                    .imePadding(),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
         ) {
@@ -349,7 +375,17 @@ fun AppSettingsContent(
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
                 visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                keyboardOptions =
+                    KeyboardOptions(
+                        keyboardType = KeyboardType.Password,
+                        imeAction = ImeAction.Done,
+                    ),
+                keyboardActions =
+                    KeyboardActions(
+                        onDone = {
+                            state.eventSink(AppSettingsScreen.Event.ValidateToken)
+                        },
+                    ),
                 trailingIcon = {
                     IconButton(onClick = { passwordVisible = !passwordVisible }) {
                         Icon(
@@ -444,34 +480,16 @@ fun AppSettingsContent(
             }
 
             Spacer(modifier = Modifier.height(24.dp))
-            WorkScheduleStatusCard(modifier = Modifier.fillMaxWidth())
+            WorkScheduleStatusCard(state = state, modifier = Modifier.fillMaxWidth())
         }
     }
 }
 
 @Composable
 private fun WorkScheduleStatusCard(
+    state: AppSettingsScreen.State,
     modifier: Modifier = Modifier,
-    workManager: WorkManager = WorkManager.getInstance(LocalContext.current),
-    workName: String = IMAGE_REFRESH_PERIODIC_WORK_NAME,
 ) {
-    val context = LocalContext.current
-    var workInfo by remember { mutableStateOf<WorkInfo?>(null) }
-    var isLoading by remember { mutableStateOf(true) }
-    val scope = rememberCoroutineScope()
-
-    // Fetch work info
-    LaunchedEffect(workName) {
-        isLoading = true
-        workManager
-            .getWorkInfosForUniqueWorkLiveData(workName)
-            .asFlow()
-            .collect { workInfoList ->
-                workInfo = workInfoList.firstOrNull()
-                isLoading = false
-            }
-    }
-
     Card(
         modifier = modifier.fillMaxWidth(),
         colors =
@@ -491,94 +509,81 @@ private fun WorkScheduleStatusCard(
                 modifier = Modifier.padding(bottom = 8.dp),
             )
 
-            if (isLoading) {
-                CircularProgressIndicator(
-                    modifier =
-                        Modifier
-                            .size(24.dp)
-                            .align(Alignment.CenterHorizontally)
-                            .padding(top = 8.dp),
-                )
-            } else if (workInfo == null) {
-                Text(
-                    text = "No scheduled refresh work found.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.error,
-                )
-            } else {
+            val nextRefreshJobInfo: NextImageRefreshDisplayInfo? = state.nextRefreshJobInfo
+            if (nextRefreshJobInfo != null) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.padding(vertical = 4.dp),
                 ) {
                     Icon(
-                        imageVector = workInfo?.state.toIcon(),
+                        imageVector = nextRefreshJobInfo.workerState.toIcon(),
                         contentDescription = null,
-                        tint = workInfo?.state.toColor(),
+                        tint = nextRefreshJobInfo.workerState.toColor(),
                         modifier = Modifier.size(20.dp),
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "Status: ${workInfo?.state.toDisplayString()}",
+                        text = "Status: ${nextRefreshJobInfo.workerState.toDisplayString()}",
                         style = MaterialTheme.typography.bodyMedium,
-                        color = workInfo?.state.toColor(),
+                        color = nextRefreshJobInfo.workerState.toColor(),
                     )
                 }
 
-                // Show next schedule time if available
-                val nextRefreshTimeInfo = workInfo?.nextRunTime()
-                if (nextRefreshTimeInfo != null) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.padding(vertical = 4.dp),
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(vertical = 4.dp),
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.DateRange,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(20.dp),
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "Next refresh: ${nextRefreshJobInfo.timeUntilNextRefresh}",
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                }
+
+                Text(
+                    text = "Scheduled for: ${nextRefreshJobInfo.nextRefreshOnDateTime}",
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.padding(start = 28.dp, top = 2.dp),
+                )
+
+                // Add a button to cancel the work if it's scheduled
+                if (nextRefreshJobInfo.workerState == WorkInfo.State.ENQUEUED ||
+                    nextRefreshJobInfo.workerState == WorkInfo.State.RUNNING ||
+                    nextRefreshJobInfo.workerState == WorkInfo.State.BLOCKED
+                ) {
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Button(
+                        onClick = {
+                            state.eventSink(AppSettingsScreen.Event.CancelScheduledWork)
+                        },
+                        colors =
+                            ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.error,
+                            ),
+                        modifier = Modifier.fillMaxWidth(),
                     ) {
                         Icon(
-                            imageVector = Icons.Default.DateRange,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary,
+                            imageVector = Icons.Default.Clear,
+                            contentDescription = "Cancel scheduled work",
                             modifier = Modifier.size(20.dp),
                         )
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = "Next refresh: ${nextRefreshTimeInfo.timeUntilNextRefresh}",
-                            style = MaterialTheme.typography.bodyMedium,
-                        )
-                    }
-
-                    Text(
-                        text = "Scheduled for: ${nextRefreshTimeInfo.nextRefreshOnDateTime}",
-                        style = MaterialTheme.typography.bodySmall,
-                        modifier = Modifier.padding(start = 28.dp, top = 2.dp),
-                    )
-
-                    // Add a button to cancel the work if it's scheduled
-                    if (workInfo?.state == WorkInfo.State.ENQUEUED ||
-                        workInfo?.state == WorkInfo.State.RUNNING ||
-                        workInfo?.state == WorkInfo.State.BLOCKED
-                    ) {
-                        Spacer(modifier = Modifier.height(16.dp))
-
-                        Button(
-                            onClick = {
-                                scope.launch {
-                                    workManager.cancelUniqueWork(workName)
-                                }
-                            },
-                            colors =
-                                ButtonDefaults.buttonColors(
-                                    containerColor = MaterialTheme.colorScheme.error,
-                                ),
-                            modifier = Modifier.fillMaxWidth(),
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Clear,
-                                contentDescription = "Cancel scheduled work",
-                                modifier = Modifier.size(20.dp),
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text("Cancel Periodic Refresh Job")
-                        }
+                        Text("Cancel Periodic Refresh Job")
                     }
                 }
+            } else {
+                Text(
+                    text = "No scheduled refresh work found.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.error,
+                )
             }
         }
     }
