@@ -19,8 +19,8 @@ android {
         applicationId = "dev.hossain.trmnl"
         minSdk = 30
         targetSdk = 35
-        versionCode = 8
-        versionName = "1.6"
+        versionCode = 9
+        versionName = "1.7"
 
         // Read key or other properties from local.properties
         val localProperties =
