@@ -65,30 +65,25 @@ fun WorkInfo?.nextRunTime(): NextImageRefreshDisplayInfo? {
         return null
     }
 
-    val nextScheduleTimeMillis = nextScheduleTimeMillis
-    if (nextScheduleTimeMillis > 0 && nextScheduleTimeMillis != Long.MAX_VALUE) {
-        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
-        val nextRunTime: String =
-            Instant
-                .ofEpochMilli(nextScheduleTimeMillis)
-                .atZone(ZoneId.systemDefault())
-                .format(formatter)
+    val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+    val nextRunTime: String =
+        Instant
+            .ofEpochMilli(nextScheduleTimeMillis)
+            .atZone(ZoneId.systemDefault())
+            .format(formatter)
 
-        val timeUntil = nextScheduleTimeMillis - System.currentTimeMillis()
-        val timeUntilText =
-            when {
-                timeUntil <= 0 -> "any moment now"
-                timeUntil < 60000 -> "in ${timeUntil / 1000} seconds"
-                timeUntil < 3600000 -> "in ${timeUntil / 60000} minutes"
-                else -> "in ${timeUntil / 3600000} hours"
-            }
-        return NextImageRefreshDisplayInfo(
-            workerState = state,
-            timeUntilNextRefresh = timeUntilText,
-            nextRefreshOnDateTime = nextRunTime,
-            nextRefreshTimeMillis = nextScheduleTimeMillis,
-        )
-    } else {
-        return null
-    }
+    val timeUntil = nextScheduleTimeMillis - System.currentTimeMillis()
+    val timeUntilText =
+        when {
+            timeUntil <= 0 -> "any moment now"
+            timeUntil < 60000 -> "in ${timeUntil / 1000} seconds"
+            timeUntil < 3600000 -> "in ${timeUntil / 60000} minutes"
+            else -> "in ${timeUntil / 3600000} hours"
+        }
+    return NextImageRefreshDisplayInfo(
+        workerState = state,
+        timeUntilNextRefresh = timeUntilText,
+        nextRefreshOnDateTime = nextRunTime,
+        nextRefreshTimeMillis = nextScheduleTimeMillis,
+    )
 }
