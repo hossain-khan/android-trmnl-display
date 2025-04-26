@@ -77,7 +77,8 @@ import dev.hossain.trmnl.data.TrmnlTokenDataStore
 import dev.hossain.trmnl.di.AppScope
 import dev.hossain.trmnl.ui.display.TrmnlMirrorDisplayScreen
 import dev.hossain.trmnl.ui.settings.AppSettingsScreen.ValidationResult
-import dev.hossain.trmnl.ui.settings.AppSettingsScreen.ValidationResult.*
+import dev.hossain.trmnl.ui.settings.AppSettingsScreen.ValidationResult.Failure
+import dev.hossain.trmnl.ui.settings.AppSettingsScreen.ValidationResult.Success
 import dev.hossain.trmnl.util.CoilRequestUtils
 import dev.hossain.trmnl.util.NextImageRefreshDisplayInfo
 import dev.hossain.trmnl.util.isHttpError

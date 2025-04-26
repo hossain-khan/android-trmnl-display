@@ -65,14 +65,14 @@ fun WorkInfo?.nextRunTime(): NextImageRefreshDisplayInfo? {
         return null
     }
 
-    val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+    val formatter = DateTimeFormatter.ofPattern("MMM dd 'at' hh:mm:ss a")
     val nextRunTime: String =
         Instant
             .ofEpochMilli(nextScheduleTimeMillis)
             .atZone(ZoneId.systemDefault())
             .format(formatter)
 
-    val timeUntil = nextScheduleTimeMillis - System.currentTimeMillis()
+    val timeUntil = nextScheduleTimeMillis - Instant.now().toEpochMilli()
     val timeUntilText =
         when {
             timeUntil <= 0 -> "any moment now"
