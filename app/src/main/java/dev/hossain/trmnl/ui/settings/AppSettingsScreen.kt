@@ -57,6 +57,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.work.WorkInfo
 import coil3.compose.AsyncImage
@@ -79,6 +80,7 @@ import dev.hossain.trmnl.ui.display.TrmnlMirrorDisplayScreen
 import dev.hossain.trmnl.ui.settings.AppSettingsScreen.ValidationResult
 import dev.hossain.trmnl.ui.settings.AppSettingsScreen.ValidationResult.Failure
 import dev.hossain.trmnl.ui.settings.AppSettingsScreen.ValidationResult.Success
+import dev.hossain.trmnl.ui.theme.TrmnlDisplayAppTheme
 import dev.hossain.trmnl.util.CoilRequestUtils
 import dev.hossain.trmnl.util.NextImageRefreshDisplayInfo
 import dev.hossain.trmnl.util.isHttpError
@@ -90,6 +92,9 @@ import dev.hossain.trmnl.work.TrmnlImageUpdateManager
 import dev.hossain.trmnl.work.TrmnlWorkScheduler
 import kotlinx.coroutines.launch
 import kotlinx.parcelize.Parcelize
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 /**
  * Screen for configuring the TRMNL mirror app settings.
@@ -595,7 +600,7 @@ private fun FakeApiInfoBanner(modifier: Modifier = Modifier) {
         modifier = modifier,
         colors =
             CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                containerColor = MaterialTheme.colorScheme.secondaryContainer,
             ),
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.tertiary),
     ) {
@@ -610,7 +615,7 @@ private fun FakeApiInfoBanner(modifier: Modifier = Modifier) {
             Icon(
                 imageVector = Icons.Default.Info,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.tertiary,
+                tint = MaterialTheme.colorScheme.secondary,
             )
 
             Column {
@@ -632,5 +637,155 @@ private fun FakeApiInfoBanner(modifier: Modifier = Modifier) {
                 )
             }
         }
+    }
+}
+
+@Preview(name = "App Settings Content - Initial State")
+@Composable
+private fun PreviewAppSettingsContentInitial() {
+    TrmnlDisplayAppTheme {
+        AppSettingsContent(
+            state =
+                AppSettingsScreen.State(
+                    accessToken = "",
+                    isLoading = false,
+                    validationResult = null,
+                    nextRefreshJobInfo = null,
+                    eventSink = {},
+                ),
+        )
+    }
+}
+
+@Preview(name = "App Settings Content - Loading State")
+@Composable
+private fun PreviewAppSettingsContentLoading() {
+    TrmnlDisplayAppTheme {
+        AppSettingsContent(
+            state =
+                AppSettingsScreen.State(
+                    accessToken = "some-token",
+                    isLoading = true,
+                    validationResult = null,
+                    nextRefreshJobInfo = null,
+                    eventSink = {},
+                ),
+        )
+    }
+}
+
+@Preview(name = "App Settings Content - Validation Success")
+@Composable
+private fun PreviewAppSettingsContentSuccess() {
+    TrmnlDisplayAppTheme {
+        AppSettingsContent(
+            state =
+                AppSettingsScreen.State(
+                    accessToken = "valid-token-123",
+                    isLoading = false,
+                    validationResult =
+                        ValidationResult.Success(
+                            imageUrl = "https://example.com/image.png", // Placeholder URL
+                            refreshRateSecs = 3600,
+                        ),
+                    nextRefreshJobInfo = null,
+                    eventSink = {},
+                ),
+        )
+    }
+}
+
+@Preview(name = "App Settings Content - Validation Failure")
+@Composable
+private fun PreviewAppSettingsContentFailure() {
+    TrmnlDisplayAppTheme {
+        AppSettingsContent(
+            state =
+                AppSettingsScreen.State(
+                    accessToken = "invalid-token",
+                    isLoading = false,
+                    validationResult =
+                        ValidationResult.Failure(
+                            message = "Invalid access token provided. Please check and try again.",
+                        ),
+                    nextRefreshJobInfo = null,
+                    eventSink = {},
+                ),
+        )
+    }
+}
+
+@Preview(name = "App Settings Content - With Scheduled Work")
+@Composable
+private fun PreviewAppSettingsContentWithWork() {
+    val formatter = DateTimeFormatter.ofPattern("MMM dd 'at' hh:mm:ss a")
+    val nextRunTimeMillis = Instant.now().plusSeconds(15 * 60).toEpochMilli()
+    val nextRunTimeFormatted = Instant.ofEpochMilli(nextRunTimeMillis).atZone(ZoneId.systemDefault()).format(formatter)
+
+    TrmnlDisplayAppTheme {
+        AppSettingsContent(
+            state =
+                AppSettingsScreen.State(
+                    accessToken = "valid-token-123",
+                    isLoading = false,
+                    validationResult = null, // Can also be Success state
+                    nextRefreshJobInfo =
+                        NextImageRefreshDisplayInfo(
+                            workerState = WorkInfo.State.ENQUEUED,
+                            timeUntilNextRefresh = "in 15 minutes",
+                            nextRefreshOnDateTime = nextRunTimeFormatted,
+                            nextRefreshTimeMillis = nextRunTimeMillis,
+                        ),
+                    eventSink = {},
+                ),
+        )
+    }
+}
+
+@Preview(name = "Work Schedule Status Card - Scheduled")
+@Composable
+private fun PreviewWorkScheduleStatusCardScheduled() {
+    val formatter = DateTimeFormatter.ofPattern("MMM dd 'at' hh:mm:ss a")
+    val nextRunTimeMillis = Instant.now().plusSeconds(15 * 60).toEpochMilli()
+    val nextRunTimeFormatted = Instant.ofEpochMilli(nextRunTimeMillis).atZone(ZoneId.systemDefault()).format(formatter)
+
+    TrmnlDisplayAppTheme {
+        WorkScheduleStatusCard(
+            state =
+                AppSettingsScreen.State(
+                    accessToken = "some-token",
+                    nextRefreshJobInfo =
+                        NextImageRefreshDisplayInfo(
+                            workerState = WorkInfo.State.ENQUEUED,
+                            timeUntilNextRefresh = "in 15 minutes",
+                            nextRefreshOnDateTime = nextRunTimeFormatted,
+                            nextRefreshTimeMillis = nextRunTimeMillis,
+                        ),
+                    eventSink = {},
+                ),
+        )
+    }
+}
+
+@Preview(name = "Work Schedule Status Card - No Work")
+@Composable
+private fun PreviewWorkScheduleStatusCardNoWork() {
+    TrmnlDisplayAppTheme {
+        WorkScheduleStatusCard(
+            state =
+                AppSettingsScreen.State(
+                    accessToken = "some-token",
+                    nextRefreshJobInfo = null,
+                    eventSink = {},
+                ),
+        )
+    }
+}
+
+@Preview(name = "Fake API Info Banner")
+@Composable
+private fun PreviewFakeApiInfoBanner() {
+    TrmnlDisplayAppTheme {
+        FakeApiInfoBanner()
     }
 }
