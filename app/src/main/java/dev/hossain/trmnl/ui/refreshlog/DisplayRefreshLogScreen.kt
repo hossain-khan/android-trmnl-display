@@ -38,6 +38,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.slack.circuit.codegen.annotations.CircuitInject
 import com.slack.circuit.runtime.CircuitUiEvent
@@ -50,9 +51,11 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dev.hossain.trmnl.BuildConfig
 import dev.hossain.trmnl.R
+import dev.hossain.trmnl.data.AppConfig.DEFAULT_REFRESH_INTERVAL_SEC
 import dev.hossain.trmnl.data.log.TrmnlRefreshLog
 import dev.hossain.trmnl.data.log.TrmnlRefreshLogManager
 import dev.hossain.trmnl.di.AppScope
+import dev.hossain.trmnl.ui.theme.TrmnlDisplayAppTheme
 import dev.hossain.trmnl.util.getTimeElapsedString
 import dev.hossain.trmnl.work.RefreshWorkType
 import dev.hossain.trmnl.work.TrmnlWorkScheduler
@@ -61,6 +64,7 @@ import kotlinx.parcelize.Parcelize
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import java.util.concurrent.TimeUnit
 
 /**
  * A screen that displays the refresh logs of the TRMNL display.
@@ -251,7 +255,7 @@ fun DisplayRefreshLogContent(
                     contentPadding = PaddingValues(16.dp),
                 ) {
                     items(state.logs) { log ->
-                        LogItem(log = log)
+                        LogItemView(log = log)
                     }
                 }
             }
@@ -264,7 +268,7 @@ fun DisplayRefreshLogContent(
  * Displays different information based on whether the log represents a success or failure.
  */
 @Composable
-private fun LogItem(
+private fun LogItemView(
     log: TrmnlRefreshLog,
     modifier: Modifier = Modifier,
 ) {
@@ -462,5 +466,99 @@ private fun DebugControls(
         ) {
             Text("Start Refresh Worker")
         }
+    }
+}
+
+@Preview(name = "Display Refresh Log Content - Empty")
+@Composable
+private fun PreviewDisplayRefreshLogContentEmpty() {
+    TrmnlDisplayAppTheme {
+        DisplayRefreshLogContent(
+            state =
+                DisplayRefreshLogScreen.State(
+                    logs = emptyList(),
+                    eventSink = {},
+                ),
+        )
+    }
+}
+
+@Preview(name = "Display Refresh Log Content - With Logs")
+@Composable
+private fun PreviewDisplayRefreshLogContentWithLogs() {
+    val sampleLogs =
+        listOf(
+            TrmnlRefreshLog(
+                timestamp = System.currentTimeMillis() - TimeUnit.MINUTES.toMillis(5),
+                success = true,
+                imageUrl = "https://example.com/image1.png",
+                imageName = "preview-image.bmp",
+                refreshIntervalSeconds = DEFAULT_REFRESH_INTERVAL_SEC,
+                imageRefreshWorkType = RefreshWorkType.PERIODIC.name,
+                error = null,
+            ),
+            TrmnlRefreshLog(
+                timestamp = System.currentTimeMillis() - TimeUnit.HOURS.toMillis(1),
+                success = false,
+                imageUrl = null,
+                imageName = "preview-image.bmp",
+                refreshIntervalSeconds = DEFAULT_REFRESH_INTERVAL_SEC,
+                imageRefreshWorkType = RefreshWorkType.ONE_TIME.name,
+                error = "Failed to connect to server (HTTP 500)",
+            ),
+            TrmnlRefreshLog(
+                timestamp = System.currentTimeMillis() - TimeUnit.DAYS.toMillis(1),
+                success = true,
+                imageUrl = "https://example.com/image2.png",
+                imageName = "preview-image.bmp",
+                refreshIntervalSeconds = DEFAULT_REFRESH_INTERVAL_SEC,
+                imageRefreshWorkType = RefreshWorkType.PERIODIC.name,
+                error = null,
+            ),
+        )
+    TrmnlDisplayAppTheme {
+        DisplayRefreshLogContent(
+            state =
+                DisplayRefreshLogScreen.State(
+                    logs = sampleLogs,
+                    eventSink = {},
+                ),
+        )
+    }
+}
+
+@Preview(name = "Log Item View - Success")
+@Composable
+private fun PreviewLogItemViewSuccess() {
+    val log =
+        TrmnlRefreshLog(
+            timestamp = System.currentTimeMillis() - TimeUnit.MINUTES.toMillis(10),
+            success = true,
+            imageUrl = "https://images.unsplash.com/photo-1617591897383-14876a3e6d1a",
+            imageName = "preview-image.bmp",
+            refreshIntervalSeconds = DEFAULT_REFRESH_INTERVAL_SEC,
+            imageRefreshWorkType = RefreshWorkType.PERIODIC.name,
+            error = null,
+        )
+    TrmnlDisplayAppTheme {
+        LogItemView(log = log)
+    }
+}
+
+@Preview(name = "Log Item View - Failure")
+@Composable
+private fun PreviewLogItemViewFailure() {
+    val log =
+        TrmnlRefreshLog(
+            timestamp = System.currentTimeMillis() - TimeUnit.MINUTES.toMillis(30),
+            success = false,
+            imageUrl = null,
+            imageName = "preview-image.bmp",
+            refreshIntervalSeconds = DEFAULT_REFRESH_INTERVAL_SEC,
+            imageRefreshWorkType = RefreshWorkType.ONE_TIME.name,
+            error = "Network timeout while fetching image.",
+        )
+    TrmnlDisplayAppTheme {
+        LogItemView(log = log)
     }
 }
