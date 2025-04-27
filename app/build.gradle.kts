@@ -120,6 +120,8 @@ dependencies {
     implementation(libs.eithernet)
     implementation(libs.eithernet.integration.retrofit)
 
+    implementation("androidx.compose.material:material-icons-extended:1.7.8")
+
     // Testing
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(libs.androidx.junit)
