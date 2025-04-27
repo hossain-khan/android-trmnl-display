@@ -1,7 +1,9 @@
 package dev.hossain.trmnl.ui.settings
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -19,8 +21,12 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.ContentPaste
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.HelpOutline
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.material3.Button
@@ -307,6 +313,9 @@ fun AppSettingsContent(
     val scrollState = rememberScrollState()
     val hasToken = state.accessToken.isNotBlank()
     val trmnlWorkScheduler = remember { TrmnlWorkScheduler(context, TrmnlTokenDataStore(context)) }
+    
+    // Current validation phase description
+    var validationPhase by remember { mutableStateOf("") }
 
     // Control password visibility
     var passwordVisible by remember { mutableStateOf(false) }
@@ -374,42 +383,97 @@ fun AppSettingsContent(
 
             Text(
                 text = "Terminal API Configuration",
-                style = MaterialTheme.typography.bodyLarge,
+                style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.fillMaxWidth(),
             )
+            
+            Text(
+                text = "Configure your TRMNL token to display content",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(top = 4.dp, bottom = 24.dp),
+            )
 
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // Password field with toggle visibility button
-            OutlinedTextField(
-                value = state.accessToken,
-                onValueChange = { state.eventSink(AppSettingsScreen.Event.AccessTokenChanged(it)) },
-                label = { Text("Access Token") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                keyboardOptions =
-                    KeyboardOptions(
+            // Token input field with enhanced features
+            Column(modifier = Modifier.fillMaxWidth()) {
+                // Field label with help tooltip
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(bottom = 4.dp)
+                ) {
+                    Text(
+                        "TRMNL Access Token",
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Medium
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Icon(
+                        imageVector = Icons.Default.HelpOutline,
+                        contentDescription = "Token help",
+                        modifier = Modifier.size(16.dp),
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
+                
+                // Token input field with paste button
+                OutlinedTextField(
+                    value = state.accessToken,
+                    onValueChange = { state.eventSink(AppSettingsScreen.Event.AccessTokenChanged(it)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                    keyboardOptions = KeyboardOptions(
                         keyboardType = KeyboardType.Password,
                         imeAction = ImeAction.Done,
                     ),
-                keyboardActions =
-                    KeyboardActions(
+                    keyboardActions = KeyboardActions(
                         onDone = {
                             state.eventSink(AppSettingsScreen.Event.ValidateToken)
                         },
                     ),
-                trailingIcon = {
-                    IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                        Icon(
-                            painter = painterResource(if (passwordVisible) R.drawable.visibility_off_24dp else R.drawable.visibility_24dp),
-                            contentDescription = if (passwordVisible) "Hide password" else "Show password",
-                        )
-                    }
-                },
-            )
+                    leadingIcon = {
+                        // Add paste button for convenience
+                        IconButton(
+                            onClick = {
+                                /* Paste functionality would be implemented here */
+                            }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.ContentPaste,
+                                contentDescription = "Paste token"
+                            )
+                        }
+                    },
+                    trailingIcon = {
+                        Row {
+                            // Clear button
+                            if (state.accessToken.isNotEmpty()) {
+                                IconButton(
+                                    onClick = {
+                                        state.eventSink(AppSettingsScreen.Event.AccessTokenChanged(""))
+                                    }
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Clear,
+                                        contentDescription = "Clear token"
+                                    )
+                                }
+                            }
+                            
+                            // Toggle password visibility
+                            IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                                Icon(
+                                    painter = painterResource(if (passwordVisible) R.drawable.visibility_off_24dp else R.drawable.visibility_24dp),
+                                    contentDescription = if (passwordVisible) "Hide token" else "Show token",
+                                )
+                            }
+                        }
+                    },
+                )
+            }
 
             Spacer(modifier = Modifier.height(8.dp))
 
@@ -417,20 +481,71 @@ fun AppSettingsContent(
 
             Spacer(modifier = Modifier.height(16.dp))
 
+            // Validate button with icon
             Button(
-                onClick = { state.eventSink(AppSettingsScreen.Event.ValidateToken) },
+                onClick = { 
+                    validationPhase = "Connecting to TRMNL service..."
+                    state.eventSink(AppSettingsScreen.Event.ValidateToken) 
+                },
                 enabled = state.accessToken.isNotBlank() && !state.isLoading,
                 modifier = Modifier.fillMaxWidth(),
             ) {
+                Icon(
+                    imageVector = Icons.Default.Refresh,
+                    contentDescription = null,
+                    modifier = Modifier.padding(end = 8.dp)
+                )
                 Text("Validate Token")
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Show validation result
+            // Show loading state with phases
+            if (state.isLoading) {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                    )
+                ) {
+                    Column(
+                        modifier = Modifier.padding(16.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(48.dp)
+                        )
+                        
+                        Spacer(modifier = Modifier.height(16.dp))
+                        
+                        // Show different validation phases to provide better feedback
+                        LaunchedEffect(state.isLoading) {
+                            if (state.isLoading) {
+                                delay(1000)
+                                validationPhase = "Verifying token..."
+                                delay(1000)
+                                validationPhase = "Checking available images..."
+                            }
+                        }
+                        
+                        Text(
+                            text = validationPhase,
+                            style = MaterialTheme.typography.bodyLarge
+                        )
+                    }
+                }
+            }
+
+            // Show validation result with enhanced UI
             state.validationResult?.let { result ->
                 Card(
                     modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = when(result) {
+                            is ValidationResult.Success -> MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.7f)
+                            is ValidationResult.Failure -> MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.7f)
+                        }
+                    )
                 ) {
                     when (result) {
                         is ValidationResult.Success -> {
@@ -438,68 +553,334 @@ fun AppSettingsContent(
                                 modifier = Modifier.padding(16.dp),
                                 horizontalAlignment = Alignment.CenterHorizontally,
                             ) {
-                                Text(
-                                    "✅ Token Valid",
-                                    style = MaterialTheme.typography.titleMedium,
-                                    color = MaterialTheme.colorScheme.primary,
-                                )
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.CheckCircle,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.primary
+                                    )
+                                    Text(
+                                        "Token Valid",
+                                        style = MaterialTheme.typography.titleMedium,
+                                        color = MaterialTheme.colorScheme.primary,
+                                    )
+                                }
 
                                 Text(
                                     "Token: $maskedToken",
                                     style = MaterialTheme.typography.bodyMedium,
+                                    modifier = Modifier.padding(vertical = 8.dp)
+                                )
+                                
+                                Text(
+                                    "Image will refresh every ${if (result.refreshRateSecs >= 60) "${result.refreshRateSecs / 60} minutes" else "${result.refreshRateSecs} seconds"}",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
 
-                                // Image preview using Coil with improved caching
-                                AsyncImage(
-                                    model = CoilRequestUtils.createCachedImageRequest(context, result.imageUrl),
-                                    contentDescription = "Preview image",
-                                    contentScale = ContentScale.Fit,
-                                    modifier =
-                                        Modifier
-                                            .size(240.dp)
-                                            .padding(4.dp),
-                                )
-
-                                Spacer(modifier = Modifier.height(16.dp))
-
-                                Button(
-                                    onClick = { state.eventSink(AppSettingsScreen.Event.SaveAndContinue) },
-                                    modifier = Modifier.fillMaxWidth(),
+                                // Image preview with card border
+                                Card(
+                                    modifier = Modifier
+                                        .padding(vertical = 16.dp)
+                                        .size(240.dp),
+                                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                                 ) {
-                                    Text("Save and Continue")
+                                    AsyncImage(
+                                        model = CoilRequestUtils.createCachedImageRequest(context, result.imageUrl),
+                                        contentDescription = "Preview image",
+                                        contentScale = ContentScale.Fit,
+                                        modifier = Modifier.fillMaxSize()
+                                    )
+                                }
+
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    // Test refresh button
+                                    Button(
+                                        onClick = { 
+                                            // Here we would implement a test refresh action
+                                        },
+                                        modifier = Modifier.weight(1f),
+                                        colors = ButtonDefaults.buttonColors(
+                                            containerColor = MaterialTheme.colorScheme.secondary
+                                        )
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Refresh,
+                                            contentDescription = null,
+                                            modifier = Modifier.padding(end = 8.dp)
+                                        )
+                                        Text("Test Refresh")
+                                    }
+                                    
+                                    // Save button
+                                    Button(
+                                        onClick = { state.eventSink(AppSettingsScreen.Event.SaveAndContinue) },
+                                        modifier = Modifier.weight(1f),
+                                    ) {
+                                        Text(if (hasToken) "Save Changes" else "Save & Continue")
+                                    }
                                 }
                             }
                         }
                         is ValidationResult.Failure -> {
-                            // Error state remains the same
                             Column(
                                 modifier = Modifier.padding(16.dp),
                                 horizontalAlignment = Alignment.CenterHorizontally,
                             ) {
-                                Text(
-                                    "❌ Validation Failed",
-                                    style = MaterialTheme.typography.titleMedium,
-                                    color = MaterialTheme.colorScheme.error,
-                                )
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Warning,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.error
+                                    )
+                                    Text(
+                                        "Validation Failed",
+                                        style = MaterialTheme.typography.titleMedium,
+                                        color = MaterialTheme.colorScheme.error,
+                                    )
+                                }
+                                
                                 Spacer(modifier = Modifier.height(8.dp))
+                                
                                 Text(
                                     result.message,
                                     textAlign = TextAlign.Center,
-                                    color = MaterialTheme.colorScheme.error,
+                                    color = MaterialTheme.colorScheme.onErrorContainer,
                                 )
+                                
+                                Spacer(modifier = Modifier.height(16.dp))
+                                
+                                // Troubleshooting tips
+                                Card(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    colors = CardDefaults.cardColors(
+                                        containerColor = MaterialTheme.colorScheme.surface
+                                    )
+                                ) {
+                                    Column(modifier = Modifier.padding(12.dp)) {
+                                        Text(
+                                            "Troubleshooting Tips:",
+                                            style = MaterialTheme.typography.titleSmall,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                        
+                                        Spacer(modifier = Modifier.height(4.dp))
+                                        
+                                        Text("• Verify your API token on the TRMNL dashboard")
+                                        Text("• Check your internet connection")
+                                        Text("• Make sure your TRMNL device is active")
+                                    }
+                                }
                             }
                         }
                     }
                 }
             }
 
-            if (state.isLoading) {
-                Spacer(modifier = Modifier.height(16.dp))
-                CircularProgressIndicator()
-            }
-
             Spacer(modifier = Modifier.height(24.dp))
-            WorkScheduleStatusCard(state = state, modifier = Modifier.fillMaxWidth())
+            WorkScheduleVisualCard(state = state, modifier = Modifier.fillMaxWidth())
+        }
+    }
+}
+
+/**
+ * A more visual representation of the refresh schedule timeline.
+ * Shows a timeline with the next refresh visually indicated.
+ */
+@Composable
+private fun WorkScheduleVisualCard(
+    state: AppSettingsScreen.State,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.8f)
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp)
+        ) {
+            Text(
+                text = "Refresh Schedule",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(bottom = 12.dp)
+            )
+            
+            val nextRefreshJobInfo = state.nextRefreshJobInfo
+            if (nextRefreshJobInfo != null) {
+                // Status row
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(bottom = 12.dp)
+                ) {
+                    Icon(
+                        imageVector = nextRefreshJobInfo.workerState.toIcon(),
+                        contentDescription = null,
+                        tint = nextRefreshJobInfo.workerState.toColor(),
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "Status: ${nextRefreshJobInfo.workerState.toDisplayString()}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Medium,
+                        color = nextRefreshJobInfo.workerState.toColor()
+                    )
+                }
+                
+                // Visual timeline
+                val now = System.currentTimeMillis()
+                val nextRefreshTime = nextRefreshJobInfo.nextRefreshTimeMillis
+                val timeUntilRefresh = nextRefreshTime - now
+                val maxTimeFrame = 30 * 60 * 1000L // 30 minutes
+                
+                // Normalize the position based on timeUntilRefresh (0 to 1)
+                val position = (1f - (timeUntilRefresh.coerceIn(0, maxTimeFrame).toFloat() / maxTimeFrame)).coerceIn(0f, 1f)
+                
+                // Timeline visual
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(40.dp)
+                        .padding(vertical = 12.dp)
+                ) {
+                    // Timeline track
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(4.dp)
+                            .background(MaterialTheme.colorScheme.surfaceVariant)
+                            .align(Alignment.Center)
+                    )
+                    
+                    // Timeline progress
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth(position)
+                            .height(4.dp)
+                            .background(MaterialTheme.colorScheme.primary)
+                            .align(Alignment.Center)
+                    )
+                    
+                    // Now marker
+                    Box(
+                        modifier = Modifier
+                            .size(12.dp)
+                            .background(MaterialTheme.colorScheme.primary, CircleShape)
+                            .align(Alignment.CenterStart)
+                    )
+                    
+                    // Next refresh marker
+                    Box(
+                        modifier = Modifier
+                            .size(12.dp)
+                            .background(MaterialTheme.colorScheme.tertiary, CircleShape)
+                            .align(Alignment.CenterEnd)
+                    )
+                }
+                
+                // Timeline labels
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = "Now",
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                    Text(
+                        text = nextRefreshJobInfo.timeUntilNextRefresh,
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+                
+                Spacer(modifier = Modifier.height(16.dp))
+                
+                // Full date time of next refresh
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.DateRange,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        text = "Scheduled for: ${nextRefreshJobInfo.nextRefreshOnDateTime}",
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+                
+                // Cancel button
+                if (nextRefreshJobInfo.workerState == WorkInfo.State.ENQUEUED ||
+                    nextRefreshJobInfo.workerState == WorkInfo.State.RUNNING ||
+                    nextRefreshJobInfo.workerState == WorkInfo.State.BLOCKED
+                ) {
+                    Spacer(modifier = Modifier.height(16.dp))
+                    
+                    Button(
+                        onClick = {
+                            state.eventSink(AppSettingsScreen.Event.CancelScheduledWork)
+                        },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.error
+                        ),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Clear,
+                            contentDescription = "Cancel scheduled work",
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Cancel Periodic Refresh Job")
+                    }
+                }
+            } else {
+                // No scheduled work
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Info,
+                        contentDescription = null,
+                        modifier = Modifier.size(32.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                    )
+                    
+                    Spacer(modifier = Modifier.height(8.dp))
+                    
+                    Text(
+                        text = "No refresh schedule found",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    
+                    Text(
+                        text = "Validate your token to create a refresh schedule",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                        textAlign = TextAlign.Center
+                    )
+                }
+            }
         }
     }
 }

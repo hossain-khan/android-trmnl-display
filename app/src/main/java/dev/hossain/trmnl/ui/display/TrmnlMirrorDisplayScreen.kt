@@ -1,6 +1,12 @@
 package dev.hossain.trmnl.ui.display
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
@@ -10,14 +16,25 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material.icons.filled.BrightnessHigh
+import androidx.compose.material.icons.filled.BrightnessLow
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Pin
+import androidx.compose.material.icons.filled.PushPin
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Sync
+import androidx.compose.material.icons.filled.TouchApp
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -250,9 +267,21 @@ fun TrmnlMirrorDisplayContent(
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
+    // Control whether to show the tap indicator
+    var showTapIndicator by remember { mutableStateOf(true) }
+    // Control whether to pin overlay controls
+    var pinnedControls by remember { mutableStateOf(false) }
+    // Control for high contrast mode
+    var highContrastMode by remember { mutableStateOf(false) }
 
     // Apply fullscreen mode and keep screen on
     FullScreenMode(enabled = true, keepScreenOn = true)
+
+    // Hide tap indicator after a delay
+    LaunchedEffect(Unit) {
+        delay(5000) // Show tap indicator for 5 seconds
+        showTapIndicator = false
+    }
 
     Surface {
         Box(
@@ -268,8 +297,21 @@ fun TrmnlMirrorDisplayContent(
             contentAlignment = Alignment.Center,
         ) {
             if (state.isLoading) {
-                CircularProgressIndicator()
+                // Enhanced loading state with descriptive text
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(48.dp)
+                    )
+                    Text(
+                        text = "Connecting to TRMNL service...",
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                }
             } else if (state.errorMessage != null) {
+                // Enhanced error state with troubleshooting options
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center,
@@ -278,7 +320,7 @@ fun TrmnlMirrorDisplayContent(
                     Icon(
                         painter = painterResource(R.drawable.trmnl_logo_plain),
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurface,
+                        tint = MaterialTheme.colorScheme.error,
                         modifier =
                             Modifier
                                 .size(64.dp)
@@ -289,24 +331,123 @@ fun TrmnlMirrorDisplayContent(
                         style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
                         textAlign = androidx.compose.ui.text.style.TextAlign.Center,
                     )
+                    
+                    Spacer(modifier = Modifier.height(16.dp))
+                    
+                    Text(
+                        text = "Please check your connection or verify your API token",
+                        style = MaterialTheme.typography.bodyMedium,
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                    )
+                    
+                    Spacer(modifier = Modifier.height(24.dp))
+                    
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Button(
+                            onClick = {
+                                state.eventSink(TrmnlMirrorDisplayScreen.Event.RefreshCurrentPlaylistItemRequested)
+                            }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Refresh,
+                                contentDescription = null,
+                                modifier = Modifier.padding(end = 8.dp)
+                            )
+                            Text("Try Again")
+                        }
+                        
+                        Button(
+                            onClick = {
+                                state.eventSink(TrmnlMirrorDisplayScreen.Event.ConfigureRequested)
+                            }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Settings,
+                                contentDescription = null,
+                                modifier = Modifier.padding(end = 8.dp)
+                            )
+                            Text("Configure Token")
+                        }
+                    }
                 }
             } else {
-                AsyncImage(
-                    model = CoilRequestUtils.createCachedImageRequest(context, state.imageUrl),
-                    contentDescription = "Terminal Display",
-                    contentScale = ContentScale.Fit,
-                    placeholder = painterResource(R.drawable.trmnl_logo_semi_transparent),
-                    modifier = Modifier.fillMaxSize(),
+                // Apply contrast filter for e-ink display optimization if enabled
+                Box(modifier = Modifier.fillMaxSize()) {
+                    AsyncImage(
+                        model = CoilRequestUtils.createCachedImageRequest(context, state.imageUrl),
+                        contentDescription = "Terminal Display",
+                        contentScale = ContentScale.Fit,
+                        placeholder = painterResource(R.drawable.trmnl_logo_semi_transparent),
+                        modifier = Modifier.fillMaxSize(),
+                    )
+                    
+                    // Apply high contrast overlay if enabled
+                    if (highContrastMode) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(MaterialTheme.colorScheme.background.copy(alpha = 0.15f))
+                        )
+                    }
+                }
+            }
+
+            // Tap indicator that appears briefly when the app starts
+            AnimatedVisibility(
+                visible = showTapIndicator && !state.overlayControlsVisible,
+                enter = fadeIn(),
+                exit = fadeOut(),
+            ) {
+                // Create pulsating effect for the tap icon
+                val infiniteTransition = rememberInfiniteTransition(label = "tapPulse")
+                val scale by infiniteTransition.animateFloat(
+                    initialValue = 1f,
+                    targetValue = 1.2f,
+                    animationSpec = infiniteRepeatable(
+                        animation = tween(800, easing = LinearEasing),
+                        repeatMode = RepeatMode.Reverse
+                    ),
+                    label = "tapPulse"
                 )
+                
+                Card(
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(bottom = 32.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f)
+                    )
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.TouchApp,
+                            contentDescription = null,
+                            modifier = Modifier.size(24.dp * scale)
+                        )
+                        Text("Tap screen for options")
+                    }
+                }
             }
 
             // Floating action buttons that appear when controls are visible
             AnimatedVisibility(
-                visible = state.overlayControlsVisible,
+                visible = state.overlayControlsVisible || pinnedControls,
                 enter = fadeIn() + slideInVertically { it },
                 exit = fadeOut() + slideOutVertically { it },
             ) {
-                OverlaySettingsView(state)
+                OverlaySettingsView(
+                    state = state,
+                    pinnedControls = pinnedControls,
+                    onPinToggle = { pinnedControls = !pinnedControls },
+                    highContrastMode = highContrastMode,
+                    onContrastToggle = { highContrastMode = !highContrastMode }
+                )
             }
         }
     }
@@ -316,6 +457,10 @@ fun TrmnlMirrorDisplayContent(
 private fun OverlaySettingsView(
     state: TrmnlMirrorDisplayScreen.State,
     windowSizeClass: WindowSizeClass = currentWindowAdaptiveInfo().windowSizeClass,
+    pinnedControls: Boolean = false,
+    onPinToggle: () -> Unit = {},
+    highContrastMode: Boolean = false,
+    onContrastToggle: () -> Unit = {},
 ) {
     // Shows larger button on tablets
     // https://developer.android.com/develop/ui/compose/layouts/adaptive/support-different-display-sizes
@@ -359,15 +504,62 @@ private fun OverlaySettingsView(
             verticalArrangement = Arrangement.spacedBy(12.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
+            // Title row with pin button
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Display Controls",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                )
+                
+                // Pin button to keep controls visible
+                IconButton(onClick = onPinToggle) {
+                    Icon(
+                        imageVector = if (pinnedControls) Icons.Default.PushPin else Icons.Default.Pin,
+                        contentDescription = if (pinnedControls) "Unpin controls" else "Pin controls",
+                        tint = if (pinnedControls) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                    )
+                }
+            }
+            
+            // Display refresh info
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)
+                )
+            ) {
+                Row(
+                    modifier = Modifier.padding(12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Sync,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                    Text(
+                        text = "Next refresh: ${state.nextImageRefreshIn}", 
+                        style = infoTextStyle
+                    )
+                }
+            }
+            
+            Spacer(modifier = Modifier.height(4.dp))
+            
+            // Group controls into logical sections
             Text(
-                text = "Display Configurations",
-                style = MaterialTheme.typography.displaySmall,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(bottom = 8.dp),
+                text = "Configuration",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Medium,
+                modifier = Modifier.align(Alignment.Start)
             )
-
-            Text("Display image refresh: ${state.nextImageRefreshIn}", style = infoTextStyle)
-
+            
             ExtendedFloatingActionButton(
                 onClick = {
                     state.eventSink(TrmnlMirrorDisplayScreen.Event.ConfigureRequested)
@@ -376,7 +568,7 @@ private fun OverlaySettingsView(
                     Icon(
                         imageVector = Icons.Default.Settings,
                         contentDescription = null,
-                        modifier = if (isExpandedWidth) Modifier.size(32.dp) else Modifier,
+                        modifier = if (isExpandedWidth) Modifier.size(28.dp) else Modifier,
                     )
                 },
                 text = {
@@ -386,6 +578,16 @@ private fun OverlaySettingsView(
                         fontWeight = FontWeight.Bold,
                     )
                 },
+                modifier = Modifier.fillMaxWidth()
+            )
+            
+            Spacer(modifier = Modifier.height(4.dp))
+            
+            Text(
+                text = "Image Controls",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Medium,
+                modifier = Modifier.align(Alignment.Start)
             )
 
             ExtendedFloatingActionButton(
@@ -396,16 +598,17 @@ private fun OverlaySettingsView(
                     Icon(
                         imageVector = Icons.Default.Refresh,
                         contentDescription = null,
-                        modifier = if (isExpandedWidth) Modifier.size(32.dp) else Modifier,
+                        modifier = if (isExpandedWidth) Modifier.size(28.dp) else Modifier,
                     )
                 },
                 text = {
                     Text(
-                        "Refresh Current Playlist Image",
+                        "Refresh Current Image",
                         style = fabTextStyle,
                         fontWeight = FontWeight.Bold,
                     )
                 },
+                modifier = Modifier.fillMaxWidth()
             )
 
             ExtendedFloatingActionButton(
@@ -416,7 +619,7 @@ private fun OverlaySettingsView(
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowForward,
                         contentDescription = null,
-                        modifier = if (isExpandedWidth) Modifier.size(32.dp) else Modifier,
+                        modifier = if (isExpandedWidth) Modifier.size(28.dp) else Modifier,
                     )
                 },
                 text = {
@@ -426,6 +629,46 @@ private fun OverlaySettingsView(
                         fontWeight = FontWeight.Bold,
                     )
                 },
+                modifier = Modifier.fillMaxWidth()
+            )
+            
+            // Display settings
+            Spacer(modifier = Modifier.height(4.dp))
+            
+            Text(
+                text = "Display Options",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Medium,
+                modifier = Modifier.align(Alignment.Start)
+            )
+            
+            // High contrast toggle for e-ink displays
+            ExtendedFloatingActionButton(
+                onClick = onContrastToggle,
+                icon = {
+                    Icon(
+                        imageVector = if (highContrastMode) Icons.Default.BrightnessHigh else Icons.Default.BrightnessLow,
+                        contentDescription = if (highContrastMode) "Disable high contrast" else "Enable high contrast",
+                        modifier = if (isExpandedWidth) Modifier.size(28.dp) else Modifier,
+                    )
+                },
+                text = {
+                    Text(
+                        if (highContrastMode) "Disable High Contrast" else "Enable High Contrast",
+                        style = fabTextStyle,
+                        fontWeight = FontWeight.Bold,
+                    )
+                },
+                modifier = Modifier.fillMaxWidth()
+            )
+            
+            Spacer(modifier = Modifier.height(4.dp))
+            
+            Text(
+                text = "Logs",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Medium,
+                modifier = Modifier.align(Alignment.Start)
             )
 
             ExtendedFloatingActionButton(
@@ -436,7 +679,7 @@ private fun OverlaySettingsView(
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.List,
                         contentDescription = null,
-                        modifier = if (isExpandedWidth) Modifier.size(32.dp) else Modifier,
+                        modifier = if (isExpandedWidth) Modifier.size(28.dp) else Modifier,
                     )
                 },
                 text = {
@@ -446,6 +689,7 @@ private fun OverlaySettingsView(
                         fontWeight = FontWeight.Bold,
                     )
                 },
+                modifier = Modifier.fillMaxWidth()
             )
         }
     }
